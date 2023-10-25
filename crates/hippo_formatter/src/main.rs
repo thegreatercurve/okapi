@@ -1,4 +1,3 @@
-use core::panic;
 use std::collections::VecDeque;
 
 #[derive(Clone)]
@@ -8,7 +7,6 @@ enum Doc {
     Deque(VecDeque<Self>),
     Group(Box<Self>),
     Nest(i32, Box<Self>),
-    Nil,
 }
 
 #[derive(Clone, Copy)]
@@ -43,20 +41,11 @@ fn doc_vec_to_doc(doc: Vec<Doc>) -> Doc {
     Doc::Deque(VecDeque::from(doc))
 }
 
-struct PrettyPrinter {
-    max_column_width: i32,
-}
+#[derive(Clone, Copy)]
+struct PrettyPrinter {}
 
 impl PrettyPrinter {
-    fn new(max_column_width: i32) -> Self {
-        Self { max_column_width }
-    }
-
-    fn format(self, doc: Doc) -> String {
-        self.format_imp(doc)
-    }
-
-    fn format_imp(mut self, root_doc: Doc) -> String {
+    fn format(mut self, root_doc: Doc, max_width: i32) -> String {
         let mut output: String = String::new();
 
         let mut current_column_count: i32 = 0;
@@ -78,15 +67,13 @@ impl PrettyPrinter {
                 }
                 Doc::Break(text) => match mode {
                     Mode::Break => {
-                        let mut break_text = String::from("\n");
+                        output.push_str("\n");
 
                         for _ in 0..indent {
-                            break_text.push_str(" ");
+                            output.push_str(&text);
                         }
 
-                        output.push_str(&break_text);
-
-                        current_column_count += break_text.len() as i32 * indent;
+                        current_column_count = text.len() as i32 * indent;
                     }
                     Mode::Flat => {
                         current_column_count += text.len() as i32;
@@ -94,51 +81,43 @@ impl PrettyPrinter {
                         output.push_str(&text);
                     }
                 },
-                Doc::Nest(nest_indent, child) => {
-                    stack.push_front((indent + nest_indent, mode, *child))
-                }
+                Doc::Nest(nest_indent, doc) => stack.push_front((indent + nest_indent, mode, *doc)),
                 Doc::Deque(doc) => {
-                    for value in doc.into_iter().rev() {
-                        stack.push_front((indent, mode, value))
+                    for value in doc.iter().rev() {
+                        stack.push_front((indent, mode, value.clone()))
                     }
                 }
                 Doc::Group(doc) => {
                     if self.fits(
                         current_column_count,
+                        max_width,
                         (indent, Mode::Flat, *doc.clone()),
-                        stack.clone(),
                     ) {
                         stack.push_front((indent, Mode::Flat, *doc.clone()));
                     } else {
                         stack.push_front((indent, Mode::Break, *doc.clone()));
                     }
                 }
-                Doc::Nil => output.push_str(""),
             }
         }
 
         output
     }
 
-    fn fits(
-        &mut self,
-        current_column_count: i32,
-        first_node: Node,
-        node_stack: VecDeque<Node>,
-    ) -> bool {
-        let mut remaining_column_count: i32 = self.max_column_width - current_column_count;
+    fn fits(&mut self, current_column_count: i32, max_width: i32, first_node: Node) -> bool {
+        let mut remaining_column_count: i32 = max_width - current_column_count;
 
-        let mut stack = VecDeque::from(vec![first_node]);
-
-        stack.extend(node_stack);
+        let mut stack: VecDeque<(i32, Mode, Doc)> = VecDeque::from(vec![first_node]);
 
         while !stack.is_empty() && remaining_column_count > -1 {
-            let (indent, mode, doc) = stack.pop_front().unwrap();
+            let current = stack.pop_front().unwrap();
+
+            let (indent, mode, doc) = current;
 
             match doc {
                 Doc::Break(text) => {
                     match mode {
-                        Mode::Break => remaining_column_count = -1,
+                        Mode::Break => return true,
                         Mode::Flat => remaining_column_count -= text.len() as i32,
                     };
                 }
@@ -147,12 +126,11 @@ impl PrettyPrinter {
                     stack.push_front((indent + current_indent, mode, *doc))
                 }
                 Doc::Deque(doc) => {
-                    for value in doc.into_iter().rev() {
-                        stack.push_front((indent, mode, value))
+                    for value in doc.iter().rev() {
+                        stack.push_front((indent, mode, value.clone()))
                     }
                 }
                 Doc::Group(doc) => stack.push_front((indent, Mode::Flat, *doc)),
-                Doc::Nil => {}
             }
         }
 
@@ -165,25 +143,27 @@ fn main() {
         text("[begin"),
         nest(
             3,
-            group(doc_vec_to_doc(vec![
+            doc_vec_to_doc(vec![
                 break_with_space(),
-                text("[stmt;"),
-                break_with_space(),
-                text("stmt;"),
-                break_with_space(),
-                text("stmt;]"),
-            ])),
+                group(doc_vec_to_doc(vec![
+                    text("[stmt;"),
+                    break_with_space(),
+                    text("stmt;"),
+                    break_with_space(),
+                    text("stmt;]"),
+                ])),
+            ]),
         ),
         break_with_space(),
         text("end]"),
     ]));
 
-    let mut printer = PrettyPrinter::new(50);
-    print!("{}", printer.format(doc.clone()));
-    printer = PrettyPrinter::new(32);
-    print!("{}", printer.format(doc.clone()));
-    printer = PrettyPrinter::new(10);
-    print!("{}", printer.format(doc.clone()));
+    let mut printer = PrettyPrinter {};
+    println!("{}", printer.format(doc.clone(), 50));
+    printer = PrettyPrinter {};
+    println!("{}", printer.format(doc.clone(), 30));
+    printer = PrettyPrinter {};
+    print!("{}", printer.format(doc.clone(), 10));
 }
 
 #[cfg(test)]
@@ -193,36 +173,40 @@ mod tests {
     };
 
     #[test]
-    fn it_should_correctly_break_based_on_max_width_1() {
+    fn it_should_correctly_break_based_on_max_width() {
         let doc = group(doc_vec_to_doc(vec![
             text("[begin"),
             nest(
                 3,
-                group(doc_vec_to_doc(vec![
+                doc_vec_to_doc(vec![
                     break_with_space(),
-                    text("[stmt;"),
-                    break_with_space(),
-                    text("stmt;"),
-                    break_with_space(),
-                    text("stmt;]"),
-                ])),
+                    group(doc_vec_to_doc(vec![
+                        text("[stmt;"),
+                        break_with_space(),
+                        text("stmt;"),
+                        break_with_space(),
+                        text("stmt;]"),
+                    ])),
+                ]),
             ),
             break_with_space(),
             text("end]"),
         ]));
 
+        let printer = PrettyPrinter {};
+
         assert_eq!(
-            PrettyPrinter::new(50).format(doc.clone()),
+            printer.format(doc.clone(), 50),
             "[begin [stmt; stmt; stmt;] end]"
         );
         assert_eq!(
-            PrettyPrinter::new(30).format(doc.clone()),
+            printer.format(doc.clone(), 30),
             "[begin
    [stmt; stmt; stmt;]
 end]"
         );
         assert_eq!(
-            PrettyPrinter::new(10).format(doc.clone()),
+            printer.format(doc.clone(), 10),
             "[begin
    [stmt;
    stmt;
@@ -233,6 +217,74 @@ end]"
 
     #[test]
     fn it_should_correctly_break_based_with_nested_groups() {
+        let doc = group(doc_vec_to_doc(vec![
+            text("[begin"),
+            nest(
+                3,
+                doc_vec_to_doc(vec![
+                    break_with_space(),
+                    group(doc_vec_to_doc(vec![
+                        text("[stmt;"),
+                        break_with_space(),
+                        text("stmt;"),
+                        nest(
+                            3,
+                            doc_vec_to_doc(vec![
+                                break_with_space(),
+                                group(doc_vec_to_doc(vec![
+                                    text("[stmt;"),
+                                    break_with_space(),
+                                    text("stmt;"),
+                                    break_with_space(),
+                                    text("stmt;]"),
+                                ])),
+                            ]),
+                        ),
+                        break_with_space(),
+                        text("stmt;]"),
+                    ])),
+                ]),
+            ),
+            break_with_space(),
+            text("end]"),
+        ]));
+
+        let printer = PrettyPrinter {};
+
+        assert_eq!(
+            printer.format(doc.clone(), 80),
+            "[begin [stmt; stmt; [stmt; stmt; stmt;] stmt;] end]"
+        );
+        assert_eq!(
+            printer.format(doc.clone(), 50),
+            "[begin
+   [stmt; stmt; [stmt; stmt; stmt;] stmt;]
+end]"
+        );
+        assert_eq!(
+            printer.format(doc.clone(), 30),
+            "[begin
+   [stmt;
+   stmt;
+      [stmt; stmt; stmt;]
+   stmt;]
+end]"
+        );
+        assert_eq!(
+            printer.format(doc.clone(), 10),
+            "[begin
+   [stmt;
+   stmt;
+      [stmt;
+      stmt;
+      stmt;]
+   stmt;]
+end]"
+        );
+    }
+
+    #[test]
+    fn it_should_correctly_break_based_with_if_else_statement() {
         fn binop(left: &str, op: &str, right: &str) -> Doc {
             group(doc_vec_to_doc(vec![nest(
                 2,
@@ -253,11 +305,11 @@ end]"
         let expr_2 = binop("a", "+", "b");
 
         fn if_then(cond: Doc, expr_1: Doc, expr_2: Doc) -> Doc {
-            group(doc_vec_to_doc(vec![group(doc_vec_to_doc(vec![
-                nest(
+            group(doc_vec_to_doc(vec![
+                group(doc_vec_to_doc(vec![nest(
                     2,
                     doc_vec_to_doc(vec![text("if"), break_with_space(), cond]),
-                ),
+                )])),
                 break_with_space(),
                 group(doc_vec_to_doc(vec![nest(
                     2,
@@ -268,15 +320,61 @@ end]"
                     2,
                     doc_vec_to_doc(vec![text("else"), break_with_space(), expr_2]),
                 )])),
-            ]))]))
+            ]))
         }
 
         let doc = if_then(cond, expr_1, expr_2);
 
-        assert_eq!(PrettyPrinter::new(32).format(doc.clone()), "");
+        let printer = PrettyPrinter {};
 
-        assert_eq!(PrettyPrinter::new(15).format(doc.clone()), "");
-
-        assert_eq!(PrettyPrinter::new(10).format(doc.clone()), "");
+        assert_eq!(
+            printer.format(doc.clone(), 32),
+            "if a == b then a << b else a + b"
+        );
+        assert_eq!(
+            printer.format(doc.clone(), 15),
+            "if a == b
+then a << b
+else a + b"
+        );
+        assert_eq!(
+            printer.format(doc.clone(), 10),
+            "if a == b
+then
+  a << b
+else a + b"
+        );
+        assert_eq!(
+            printer.format(doc.clone(), 8),
+            "if
+  a == b
+then
+  a << b
+else
+  a + b"
+        );
+        assert_eq!(
+            printer.format(doc.clone(), 7),
+            "if
+  a ==
+    b
+then
+  a <<
+    b
+else
+  a + b"
+        );
+        assert_eq!(
+            printer.format(doc.clone(), 6),
+            "if
+  a ==
+    b
+then
+  a <<
+    b
+else
+  a +
+    b"
+        );
     }
 }

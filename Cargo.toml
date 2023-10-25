@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+name = "hippo"
+version = "0.1.0"
+license = "MIT"
+edition = "2021"
+
+[workspace.dependencies]
+# workspace crates
+hippo_ast = { path = "crates/hippo_ast" }
+hippo_formatter = { path = "crates/hippo_formatter" }
+
+# dependencies
+hermes = { git = "https://github.com/facebook/hermes.git" }
