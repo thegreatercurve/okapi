@@ -1,16 +1,17 @@
 use core::panic;
 use std::collections::VecDeque;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 enum Doc {
     Text(String),
-    Break,
-    Group(VecDeque<Self>),
+    Break(String),
+    Deque(VecDeque<Self>),
+    Group(Box<Self>),
     Nest(i32, Box<Self>),
     Nil,
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy)]
 enum Mode {
     Flat,
     Break,
@@ -18,25 +19,37 @@ enum Mode {
 
 type Node = (i32, Mode, Doc);
 
+fn text(text: &str) -> Doc {
+    Doc::Text(text.to_string())
+}
+
+fn nest(indent: i32, doc: Doc) -> Doc {
+    Doc::Nest(indent, Box::from(Doc::Deque(VecDeque::from(vec![doc]))))
+}
+
+fn break_with(text: &str) -> Doc {
+    Doc::Break(text.to_string())
+}
+
+fn break_with_space() -> Doc {
+    Doc::Break(" ".to_string())
+}
+
+fn group(doc: Doc) -> Doc {
+    Doc::Group(Box::from(Doc::Deque(VecDeque::from(vec![doc]))))
+}
+
+fn doc_vec_to_doc(doc: Vec<Doc>) -> Doc {
+    Doc::Deque(VecDeque::from(doc))
+}
+
 struct PrettyPrinter {
-    node_stack: VecDeque<Node>,
     max_column_width: i32,
 }
 
-const WHITE_SPACE: &str = " ";
-const WHITE_SPACE_LEN: i32 = WHITE_SPACE.len() as i32;
-
-const BREAK_TEXT: &str = "\n";
-
-const NEST_TEXT: &str = "   ";
-const NEST_TEXT_LEN: i32 = NEST_TEXT.len() as i32;
-
 impl PrettyPrinter {
     fn new(max_column_width: i32) -> Self {
-        Self {
-            node_stack: VecDeque::new(),
-            max_column_width,
-        }
+        Self { max_column_width }
     }
 
     fn format(self, doc: Doc) -> String {
@@ -48,12 +61,14 @@ impl PrettyPrinter {
 
         let mut current_column_count: i32 = 0;
 
+        let mut stack: VecDeque<(i32, Mode, Doc)> = VecDeque::new();
+
         if let Doc::Group(group) = root_doc {
-            self.node_stack = VecDeque::from(vec![(0, Mode::Flat, Doc::Group(group))]);
+            stack = VecDeque::from(vec![(0, Mode::Flat, Doc::Group(group))]);
         }
 
-        while !self.node_stack.is_empty() {
-            let (indent, mode, doc) = self.node_stack.pop_front().unwrap();
+        while !stack.is_empty() {
+            let (indent, mode, doc) = stack.pop_front().unwrap();
 
             match doc {
                 Doc::Text(text) => {
@@ -61,30 +76,42 @@ impl PrettyPrinter {
 
                     output.push_str(&text);
                 }
-                Doc::Break => match mode {
+                Doc::Break(text) => match mode {
                     Mode::Break => {
-                        current_column_count += NEST_TEXT_LEN * indent;
-
-                        output.push_str(BREAK_TEXT);
+                        let mut break_text = String::from("\n");
 
                         for _ in 0..indent {
-                            output.push_str(NEST_TEXT);
+                            break_text.push_str(" ");
                         }
+
+                        output.push_str(&break_text);
+
+                        current_column_count += break_text.len() as i32 * indent;
                     }
                     Mode::Flat => {
-                        current_column_count += WHITE_SPACE_LEN;
+                        current_column_count += text.len() as i32;
 
-                        output.push_str(WHITE_SPACE);
+                        output.push_str(&text);
                     }
                 },
-                Doc::Nest(nest_indent_total, child) => {
-                    self.node_stack
-                        .push_front((indent + nest_indent_total, mode, *child));
+                Doc::Nest(nest_indent, child) => {
+                    stack.push_front((indent + nest_indent, mode, *child))
+                }
+                Doc::Deque(doc) => {
+                    for value in doc.into_iter().rev() {
+                        stack.push_front((indent, mode, value))
+                    }
                 }
                 Doc::Group(doc) => {
-                    if self.fits(current_column_count, indent, doc) {
+                    if self.fits(
+                        current_column_count,
+                        (indent, Mode::Flat, *doc.clone()),
+                        stack.clone(),
+                    ) {
+                        stack.push_front((indent, Mode::Flat, *doc.clone()));
                     } else {
-                    };
+                        stack.push_front((indent, Mode::Break, *doc.clone()));
+                    }
                 }
                 Doc::Nil => output.push_str(""),
             }
@@ -93,183 +120,163 @@ impl PrettyPrinter {
         output
     }
 
-    fn fits(&mut self, current_column_count: i32, indent: i32, root_doc: VecDeque<Doc>) -> bool {
-        // There are problems here.
-        let node_stack: VecDeque<Doc> = VecDeque::new();
+    fn fits(
+        &mut self,
+        current_column_count: i32,
+        first_node: Node,
+        node_stack: VecDeque<Node>,
+    ) -> bool {
+        let mut remaining_column_count: i32 = self.max_column_width - current_column_count;
 
-        for value in root_doc.into_iter().rev() {
-            self.node_stack.push_front((indent, Mode::Flat, value));
-        }
+        let mut stack = VecDeque::from(vec![first_node]);
 
-        let mut remaining_columns_count = self.max_column_width - current_column_count;
+        stack.extend(node_stack);
 
-        while !node_stack.is_empty() && remaining_columns_count > -1 {
-            let (indent, mode, doc) = self.node_stack.pop_front().unwrap();
+        while !stack.is_empty() && remaining_column_count > -1 {
+            let (indent, mode, doc) = stack.pop_front().unwrap();
 
             match doc {
-                Doc::Break => {
+                Doc::Break(text) => {
                     match mode {
-                        Mode::Break => {
-                            panic!("Unexpected break");
-                        }
-                        Mode::Flat => {
-                            remaining_columns_count -= WHITE_SPACE_LEN;
-                        }
+                        Mode::Break => remaining_column_count = -1,
+                        Mode::Flat => remaining_column_count -= text.len() as i32,
                     };
                 }
-                Doc::Text(text) => {
-                    remaining_columns_count -= text.len() as i32;
+                Doc::Text(text) => remaining_column_count -= text.len() as i32,
+                Doc::Nest(current_indent, doc) => {
+                    stack.push_front((indent + current_indent, mode, *doc))
                 }
-                Doc::Nest(nest_indent_total, child) => {
-                    self.node_stack
-                        .push_front((indent + nest_indent_total, mode, *child));
-                }
-                Doc::Group(stack) => {
-                    for value in stack.into_iter().rev() {
-                        self.node_stack.push_front((indent, Mode::Flat, value));
+                Doc::Deque(doc) => {
+                    for value in doc.into_iter().rev() {
+                        stack.push_front((indent, mode, value))
                     }
                 }
+                Doc::Group(doc) => stack.push_front((indent, Mode::Flat, *doc)),
                 Doc::Nil => {}
             }
         }
 
-        remaining_columns_count > -1
+        remaining_column_count > -1
     }
 }
 
 fn main() {
-    let doc = Doc::Group(VecDeque::from(vec![
-        Doc::Text("[begin".to_string()),
-        Doc::Break,
-        Doc::Group(VecDeque::from(vec![
-            Doc::Text("[stmt;".to_string()),
-            Doc::Break,
-            Doc::Text("stmt;".to_string()),
-            Doc::Break,
-            Doc::Text("stmt;]".to_string()),
-        ])),
-        Doc::Break,
-        Doc::Text("end]".to_string()),
+    let doc = group(doc_vec_to_doc(vec![
+        text("[begin"),
+        nest(
+            3,
+            group(doc_vec_to_doc(vec![
+                break_with_space(),
+                text("[stmt;"),
+                break_with_space(),
+                text("stmt;"),
+                break_with_space(),
+                text("stmt;]"),
+            ])),
+        ),
+        break_with_space(),
+        text("end]"),
     ]));
 
-    let printer = PrettyPrinter::new(10);
-
-    let formatted_string = printer.format(doc);
-
-    print!("{}", formatted_string);
+    let mut printer = PrettyPrinter::new(50);
+    print!("{}", printer.format(doc.clone()));
+    printer = PrettyPrinter::new(32);
+    print!("{}", printer.format(doc.clone()));
+    printer = PrettyPrinter::new(10);
+    print!("{}", printer.format(doc.clone()));
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::VecDeque;
-
-    use crate::{Doc, PrettyPrinter};
+    use crate::{
+        break_with, break_with_space, doc_vec_to_doc, group, nest, text, Doc, PrettyPrinter,
+    };
 
     #[test]
     fn it_should_correctly_break_based_on_max_width_1() {
-        let doc = Doc::Group(VecDeque::from(vec![
-            Doc::Text("[begin".to_string()),
-            Doc::Break,
-            Doc::Group(VecDeque::from(vec![
-                Doc::Text("[stmt;".to_string()),
-                Doc::Break,
-                Doc::Text("stmt;".to_string()),
-                Doc::Break,
-                Doc::Text("stmt;]".to_string()),
-            ])),
-            Doc::Break,
-            Doc::Text("end]".to_string()),
+        let doc = group(doc_vec_to_doc(vec![
+            text("[begin"),
+            nest(
+                3,
+                group(doc_vec_to_doc(vec![
+                    break_with_space(),
+                    text("[stmt;"),
+                    break_with_space(),
+                    text("stmt;"),
+                    break_with_space(),
+                    text("stmt;]"),
+                ])),
+            ),
+            break_with_space(),
+            text("end]"),
         ]));
 
         assert_eq!(
-            PrettyPrinter::new(80).format(doc.clone()),
+            PrettyPrinter::new(50).format(doc.clone()),
             "[begin [stmt; stmt; stmt;] end]"
         );
         assert_eq!(
             PrettyPrinter::new(30).format(doc.clone()),
             "[begin
-[stmt; stmt; stmt;]
+   [stmt; stmt; stmt;]
 end]"
         );
         assert_eq!(
             PrettyPrinter::new(10).format(doc.clone()),
             "[begin
-[stmt;
-stmt;
-stmt;]
+   [stmt;
+   stmt;
+   stmt;]
 end]"
         );
     }
 
     #[test]
-    fn it_should_correctly_break_based_on_max_width_2() {
-        let doc = Doc::Group(VecDeque::from(vec![
-            Doc::Text("[begin".to_string()),
-            Doc::Break,
-            Doc::Group(VecDeque::from(vec![
-                Doc::Text("[stmt;".to_string()),
-                Doc::Break,
-                Doc::Text("stmt;".to_string()),
-                Doc::Break,
-                Doc::Group(VecDeque::from(vec![
-                    Doc::Text("[stmt;".to_string()),
-                    Doc::Break,
-                    Doc::Text("stmt;".to_string()),
-                    Doc::Break,
-                    Doc::Text("stmt;]".to_string()),
-                ])),
-                Doc::Break,
-                Doc::Text("stmt;]".to_string()),
-            ])),
-            Doc::Break,
-            Doc::Text("end]".to_string()),
-        ]));
-
-        assert_eq!(
-            PrettyPrinter::new(80).format(doc.clone()),
-            "[begin [stmt; stmt; [stmt; stmt; stmt;] stmt;] end]"
-        );
-        assert_eq!(
-            PrettyPrinter::new(50).format(doc.clone()),
-            "[begin\n[stmt; stmt; [stmt; stmt; stmt;] stmt;]\nend]"
-        );
-        assert_eq!(
-            PrettyPrinter::new(40).format(doc.clone()),
-            "[begin\n[stmt;\nstmt;\n[stmt; stmt; stmt;]\nstmt;]\nend]"
-        );
-        assert_eq!(
-            PrettyPrinter::new(10).format(doc.clone()),
-            "[begin\n[stmt;\nstmt;\n[stmt;\nstmt;\nstmt;]\nstmt;]\nend]"
-        );
-    }
-
-    #[test]
     fn it_should_correctly_break_based_with_nested_groups() {
-        let doc = Doc::Group(VecDeque::from(vec![
-            Doc::Text("[begin".to_string()),
-            Doc::Break,
-            Doc::Nest(
-                1,
-                Box::from(Doc::Group(VecDeque::from(vec![
-                    Doc::Text("[stmt;".to_string()),
-                    Doc::Break,
-                    Doc::Text("stmt;".to_string()),
-                    Doc::Break,
-                    Doc::Text("stmt;]".to_string()),
-                ]))),
-            ),
-            Doc::Break,
-            Doc::Text("end]".to_string()),
-        ]));
+        fn binop(left: &str, op: &str, right: &str) -> Doc {
+            group(doc_vec_to_doc(vec![nest(
+                2,
+                doc_vec_to_doc(vec![
+                    group(doc_vec_to_doc(vec![
+                        text(left),
+                        break_with_space(),
+                        break_with(op),
+                    ])),
+                    break_with_space(),
+                    text(right),
+                ]),
+            )]))
+        }
 
-        assert_eq!(
-            PrettyPrinter::new(80).format(doc.clone()),
-            "[begin [stmt; stmt; stmt;] end]"
-        );
+        let cond = binop("a", "==", "b");
+        let expr_1 = binop("a", "<<", "b");
+        let expr_2 = binop("a", "+", "b");
 
-        assert_eq!(
-            PrettyPrinter::new(10).format(doc.clone()),
-            "[begin [stmt; stmt; stmt;] end]"
-        );
+        fn if_then(cond: Doc, expr_1: Doc, expr_2: Doc) -> Doc {
+            group(doc_vec_to_doc(vec![group(doc_vec_to_doc(vec![
+                nest(
+                    2,
+                    doc_vec_to_doc(vec![text("if"), break_with_space(), cond]),
+                ),
+                break_with_space(),
+                group(doc_vec_to_doc(vec![nest(
+                    2,
+                    doc_vec_to_doc(vec![text("then"), break_with_space(), expr_1]),
+                )])),
+                break_with_space(),
+                group(doc_vec_to_doc(vec![nest(
+                    2,
+                    doc_vec_to_doc(vec![text("else"), break_with_space(), expr_2]),
+                )])),
+            ]))]))
+        }
+
+        let doc = if_then(cond, expr_1, expr_2);
+
+        assert_eq!(PrettyPrinter::new(32).format(doc.clone()), "");
+
+        assert_eq!(PrettyPrinter::new(15).format(doc.clone()), "");
+
+        assert_eq!(PrettyPrinter::new(10).format(doc.clone()), "");
     }
 }
