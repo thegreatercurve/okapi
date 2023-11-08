@@ -1,9 +1,10 @@
 [package]
 name = "hippo_ast"
 version = "0.1.0"
-authors.workspace     = true
+publish               = false
 edition.workspace     = true
 license.workspace     = true
 
 [dependencies]
 hermes = { workspace = true }
+juno_support = { workspace = true }

@@ -42,7 +42,7 @@ fn doc_vec_to_doc(doc: Vec<Doc>) -> Doc {
 }
 
 #[derive(Clone, Copy)]
-struct PrettyPrinter {}
+pub struct PrettyPrinter {}
 
 impl PrettyPrinter {
     fn format(mut self, root_doc: Doc, max_width: i32) -> String {

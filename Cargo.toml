@@ -15,3 +15,4 @@ hippo_formatter = { path = "crates/hippo_formatter" }
 
 # dependencies
 hermes = { git = "https://github.com/facebook/hermes.git" }
+juno_support = { git = "https://github.com/facebook/hermes.git" }
