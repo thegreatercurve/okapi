@@ -12,6 +12,7 @@ edition = "2021"
 # workspace crates
 hippo_ast = { path = "crates/hippo_ast" }
 hippo_formatter = { path = "crates/hippo_formatter" }
+hippo_wasm = { path = "crates/hippo_wasm" }
 
 # dependencies
 hermes = { git = "https://github.com/facebook/hermes.git" }

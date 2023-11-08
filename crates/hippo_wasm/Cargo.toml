@@ -1,0 +1,8 @@
+[package]
+name = "hippo_wasm"
+version = "0.1.0"
+publish               = false
+edition.workspace     = true
+license.workspace     = true
+
+[dependencies]
