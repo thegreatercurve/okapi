@@ -1,11 +1,8 @@
 [package]
-name = "hippo_formatter"
+name = "hippo_js_parser"
 version = "0.1.0"
 publish = false
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
-hippo_ast = { workspace = true }
-oxc_allocator = "0.3.0"
-oxc_ast = "0.3.0"
