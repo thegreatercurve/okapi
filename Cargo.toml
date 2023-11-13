@@ -10,8 +10,6 @@ edition = "2021"
 
 [workspace.dependencies]
 # workspace crates
-hippo_ast = { path = "crates/hippo_ast" }
-hippo_formatter = { path = "crates/hippo_formatter" }
 hippo_js_parser = { path = "crates/hippo_js_parser" }
 hippo_wasm = { path = "crates/hippo_wasm" }
 

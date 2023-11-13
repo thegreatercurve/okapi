@@ -1,14 +1,8 @@
-use crate::{
-    config::Config,
-    tokens::TokenType,
-    utils::{
-        is_numeric, is_start_of_identifier_or_keyword, is_string_literal, is_whitespace,
-        is_within_identifier_or_keyword,
-    },
-};
+use crate::lexer::char_extensions::CharExtensions;
+use crate::{config::Config, tokens::TokenType};
 
 #[derive(Debug)]
-pub struct Lexer<'a> {
+pub struct Scanner<'a> {
     config: Config,
     input: &'a str,
     start_position: usize,
@@ -16,7 +10,7 @@ pub struct Lexer<'a> {
     ch: char,
 }
 
-impl<'a> Lexer<'a> {
+impl<'a> Scanner<'a> {
     pub fn new(input: &'a str) -> Self {
         let mut lexer = Self {
             config: Config::default(),
@@ -55,11 +49,11 @@ impl<'a> Lexer<'a> {
         self.skip_whitespace();
 
         let token = match self.ch {
-            ch if is_start_of_identifier_or_keyword(ch) => {
+            ch if ch.is_start_of_identifier_or_keyword() => {
                 self.scan_token_from_keyword_or_identifier()
             }
-            ch if is_string_literal(ch) => self.scan_string_literal(),
-            ch if is_numeric(ch) => self.scan_number_literal(),
+            ch if ch.is_string_literal() => self.scan_string_literal(),
+            ch if ch.is_numeric() => self.scan_number_literal(),
             '=' => {
                 if self.peek_char() == '=' {
                     self.read_char();
@@ -119,7 +113,7 @@ impl<'a> Lexer<'a> {
         while self.read_position < self.input.len() {
             self.read_char();
 
-            if self.ch != '\\' && is_string_literal(self.peek_char()) {
+            if self.ch != '\\' && self.peek_char().is_string_literal() {
                 break;
             }
         }
@@ -139,7 +133,7 @@ impl<'a> Lexer<'a> {
         while self.read_position < self.input.len() {
             self.read_char();
 
-            if !is_numeric(self.peek_char()) {
+            if !self.peek_char().is_numeric() {
                 break;
             }
         }
@@ -161,7 +155,7 @@ impl<'a> Lexer<'a> {
     fn read_word(&mut self) -> &str {
         let start_position = self.start_position;
 
-        while is_within_identifier_or_keyword(self.ch) {
+        while self.ch.is_within_identifier_or_keyword() {
             self.read_char();
         }
 
@@ -169,7 +163,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn skip_whitespace(&mut self) {
-        while is_whitespace(self.ch) {
+        while self.ch.is_whitespace() {
             self.read_char();
         }
     }
