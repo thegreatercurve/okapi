@@ -1,12 +1,16 @@
 #[derive(Debug, PartialEq)]
-pub enum TokenType {
-    // Keywords
-    Constant,
+pub enum KeywordValue {
+    Const,
     Let,
-    Variable,
+    Var,
+    Illegal,
+}
 
-    // Identifiers
-    Name,
+#[derive(Debug, PartialEq)]
+pub enum TokenType {
+    // Keywords or Identifiers
+    Keyword(KeywordValue),
+    Identifier,
 
     // Literals
     String,

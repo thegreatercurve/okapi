@@ -1,5 +1,5 @@
 mod config;
-mod lexer;
 mod utils;
 
+pub mod lexer;
 pub mod tokens;
