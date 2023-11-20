@@ -151,15 +151,19 @@ function writeRustFile({
   let data = getPragma(version);
 
   data += `
-pub fn is_unicode_id_start(c: char) -> bool {
-\tmatch c {
+pub fn is_unicode_id_start(ch: char) -> bool {
+\tmatch ch {
 \t\t${getCodePoints(startCodePoints)} => true,
 \t\t_ => false,
 \t}
 }
 
-pub fn is_unicode_id_continue(c: char) -> bool {
-\tmatch c {
+pub fn is_unicode_id_continue(ch: char) -> bool {
+\tif is_unicode_id_start(ch) {
+\t\treturn true;
+\t}
+\t  
+\tmatch ch {
 \t\t${getCodePoints(continueCodePoints)} => true,
 \t\t_ => false,
 \t}

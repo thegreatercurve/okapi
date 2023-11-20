@@ -8,8 +8,6 @@ license = "MIT"
 edition = "2021"
 
 [workspace.dependencies]
-# workspace crates
 hippo_js_parser = { path = "crates/hippo_js_parser" }
+hippo_unicode = { path = "crates/hippo_unicode" }
 hippo_wasm = { path = "crates/hippo_wasm" }
-
-# dependencies

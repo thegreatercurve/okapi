@@ -197,8 +197,8 @@ impl<'a> Scanner<'a> {
                 _ => false,
             }
         } else {
+            is_unicode_id_start(ch);
             // TODO Implement UNICODE identifier support: https://unicode.org/Public/15.1.0/ucd/UnicodeData.txt
-            false
         }
     }
 
