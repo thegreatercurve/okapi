@@ -4,7 +4,7 @@
   "description": "",
   "main": "generate-unicode-tables.ts",
   "scripts": {
-    "generate": "./node_modules/ts-node/dist/bin-script.js generate-unicode-tables.ts "
+    "generate": "./node_modules/ts-node/dist/bin-script.js ./scripts/generate-unicode-matchers.ts --version=15.1.0 --output=./src/unicode.rs"
   },
   "author": "",
   "license": "ISC",
