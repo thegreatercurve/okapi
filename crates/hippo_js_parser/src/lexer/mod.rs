@@ -1,2 +1,2 @@
-pub mod char_extensions;
+pub mod char_utils;
 pub mod scanner;

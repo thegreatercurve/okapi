@@ -1,0 +1,17 @@
+{
+  "name": "hippo_unicode",
+  "version": "0.1.0",
+  "description": "",
+  "main": "generate-unicode-tables.ts",
+  "scripts": {
+    "generate": "./node_modules/ts-node/dist/bin-script.js generate-unicode-tables.ts "
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.9.2",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
+  }
+}

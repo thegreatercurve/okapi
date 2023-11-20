@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use hippo_js_parser::{
     lexer::scanner::Scanner,
-    tokens::{KeywordValue, TokenType},
+    tokens::{KeywordKind, TokenType},
 };
 
 #[test]
@@ -14,17 +14,17 @@ fn test_simple_variable_assignment() {
 ";
 
     let mut tests = VecDeque::from(vec![
-        TokenType::Keyword(KeywordValue::Const),
+        TokenType::Keyword(KeywordKind::Const),
         TokenType::Identifier,
         TokenType::Assign,
         TokenType::Number,
         TokenType::SemiColon,
-        TokenType::Keyword(KeywordValue::Let),
+        TokenType::Keyword(KeywordKind::Let),
         TokenType::Identifier,
         TokenType::Assign,
         TokenType::Number,
         TokenType::SemiColon,
-        TokenType::Keyword(KeywordValue::Var),
+        TokenType::Keyword(KeywordKind::Var),
         TokenType::Identifier,
         TokenType::Assign,
         TokenType::Number,
