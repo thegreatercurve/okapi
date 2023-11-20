@@ -5,6 +5,9 @@ version = 3
 [[package]]
 name = "hippo_js_parser"
 version = "0.1.0"
+dependencies = [
+ "hippo_unicode",
+]
 
 [[package]]
 name = "hippo_unicode"

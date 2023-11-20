@@ -1,4 +1,5 @@
 use crate::{config::Config, tokens::KeywordKind, tokens::TokenType};
+use hippo_unicode::{is_unicode_id_continue, is_unicode_id_start};
 
 use super::char_utils::{is_line_terminator, is_numeric, is_whitespace};
 
@@ -197,8 +198,7 @@ impl<'a> Scanner<'a> {
                 _ => false,
             }
         } else {
-            // TODO Implement UNICODE identifier support: https://unicode.org/Public/15.1.0/ucd/UnicodeData.txt
-            false
+            is_unicode_id_start(ch)
         }
     }
 
@@ -210,8 +210,7 @@ impl<'a> Scanner<'a> {
                 _ => false,
             }
         } else {
-            // TODO Implement UNICODE identifier support: https://unicode.org/Public/15.1.0/ucd/UnicodeData.txt
-            false
+            is_unicode_id_continue(ch)
         }
     }
 }
