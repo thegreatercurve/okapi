@@ -194,11 +194,12 @@ impl<'a> Scanner<'a> {
         if ch.is_ascii() {
             match ch {
                 ch if ch.is_ascii_alphabetic() => true,
-                '#' | '_' | '$' => true,
+                '_' | '$' => true,
                 _ => false,
             }
         } else {
             is_unicode_id_start(ch)
+            // TODO Add support for unicode escape sequences.
         }
     }
 
@@ -206,11 +207,12 @@ impl<'a> Scanner<'a> {
         if ch.is_ascii() {
             match ch {
                 ch if ch.is_ascii_alphanumeric() => true,
-                '_' | '$' | '0'..='9' => true,
+                '_' | '$' => true,
                 _ => false,
             }
         } else {
             is_unicode_id_continue(ch)
+            // TODO Add support for unicode escape sequences.
         }
     }
 }
