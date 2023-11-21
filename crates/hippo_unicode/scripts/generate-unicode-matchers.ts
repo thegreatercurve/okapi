@@ -97,8 +97,8 @@ async function downloadDerivedCoreProperties(
 function extractDerivedCoreProperties(
   fileContents: string,
   derivedProperty: string
-): Set<string | ReadonlyArray<string>> {
-  let codePoints = new Set<string | ReadonlyArray<string>>();
+): Set<string> {
+  let codePoints = new Set<string>();
 
   const rows = fileContents.split("\n");
 
@@ -117,11 +117,7 @@ function extractDerivedCoreProperties(
       continue;
     }
 
-    if (codePointRange.includes("..")) {
-      codePoints.add(codePointRange.split(".."));
-    } else {
-      codePoints.add(codePointRange);
-    }
+    codePoints.add(codePointRange);
   }
 
   return codePoints;
@@ -141,8 +137,8 @@ function writeRustFile({
   startCodePoints,
   version,
 }: Readonly<{
-  continueCodePoints: Set<string | ReadonlyArray<string>>;
-  startCodePoints: Set<string | ReadonlyArray<string>>;
+  continueCodePoints: Set<string>;
+  startCodePoints: Set<string>;
   output: string;
   version: string;
 }>): void {
@@ -164,7 +160,9 @@ pub fn is_unicode_id_continue(ch: char) -> bool {
 \t}
 \t  
 \tmatch ch {
-\t\t${getCodePoints(continueCodePoints)} => true,
+\t\t${getCodePoints(
+    removeDuplicateCodePoints(startCodePoints, continueCodePoints)
+  )} => true,
 \t\t_ => false,
 \t}
 }
@@ -179,14 +177,12 @@ pub fn is_unicode_id_continue(ch: char) -> bool {
   });
 }
 
-function getCodePoints(
-  codePoints: Set<string | ReadonlyArray<string>>
-): string {
+function getCodePoints(codePoints: Set<string>): string {
   const formatted = [];
 
   for (const codePoint of codePoints) {
-    if (Array.isArray(codePoint)) {
-      const [start, end] = codePoint;
+    if (codePoint.includes("..")) {
+      const [start, end] = codePoint.split("..");
 
       formatted.push(`'\\u{${start}}'..='\\u{${end}}'`);
     } else {
@@ -208,4 +204,19 @@ function getPragma(version: string) {
  *   ${version}
  */
 `;
+}
+
+function removeDuplicateCodePoints(
+  codePointsOne: Set<string>,
+  codePointsTwo: Set<string>
+): Set<string> {
+  const output = new Set<string>();
+
+  for (const codePoint of codePointsTwo) {
+    if (!codePointsOne.has(codePoint)) {
+      output.add(codePoint);
+    }
+  }
+
+  return output;
 }
