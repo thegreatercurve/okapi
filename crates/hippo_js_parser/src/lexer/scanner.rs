@@ -215,4 +215,11 @@ impl<'a> Scanner<'a> {
             // TODO Add support for unicode escape sequences.
         }
     }
+
+    fn is_hex_digit(&self, ch: char) -> bool {
+        match ch {
+            ch if ch.is_ascii_hexdigit() => true,
+            _ => false,
+        }
+    }
 }
