@@ -1,11 +1,11 @@
-use crate::{config::Config, tokens::KeywordKind, tokens::TokenType};
 use hippo_unicode::{is_unicode_id_continue, is_unicode_id_start};
 
-use super::char_utils::{is_line_terminator, is_numeric, is_whitespace};
+use crate::{errors::ParserError, KeywordKind, TokenType};
+
+use super::char_utils::{is_line_terminator, is_whitespace};
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
-    config: Config,
     input: &'a str,
     read_index: usize,
     ch: char,
@@ -14,7 +14,6 @@ pub struct Scanner<'a> {
 impl<'a> Scanner<'a> {
     pub fn new(input: &'a str) -> Self {
         let mut lexer = Self {
-            config: Config::default(),
             input: &input,
             read_index: 0,
             ch: 0 as char,
@@ -31,9 +30,13 @@ impl<'a> Scanner<'a> {
     }
 
     fn peek_char(&self) -> char {
+        self.peek_char_nth(1)
+    }
+
+    fn peek_char_nth(&self, offset: usize) -> char {
         self.input
             .chars()
-            .nth(self.read_index + 1)
+            .nth(self.read_index + offset)
             .unwrap_or(0 as char)
     }
 
@@ -63,8 +66,7 @@ impl<'a> Scanner<'a> {
 
     fn scan_for_token_from_initial_character(&mut self) -> TokenType {
         let token = match self.ch {
-            ch if self.is_part_of_identifier_or_keyword(ch) => self.scan_identifier_or_keyword(),
-            ch if is_numeric(ch) => self.scan_number_literal(),
+            ch if self.is_start_of_identifier_or_keyword(ch) => self.scan_identifier_or_keyword(),
             '=' => {
                 if self.peek_char() == '=' {
                     self.read_char();
@@ -73,6 +75,26 @@ impl<'a> Scanner<'a> {
                 } else {
                     TokenType::Assign
                 }
+            }
+            '#' => {
+                // https://tc39.es/ecma262/#prod-PrivateIdentifier
+                // PrivateIdentifier ::
+                //      # IdentifierName
+                if self.is_start_of_identifier_or_keyword(self.peek_char()) {
+                    self.read_char();
+                    self.scan_identifier_or_keyword()
+                } else {
+                    TokenType::Illegal
+                }
+            }
+            '\\' => {
+                if self.peek_char() == 'u' {
+                    self.read_char();
+
+                    self.scan_unicode_escape_sequence();
+                }
+
+                TokenType::Backslash
             }
             _ => self.scan_token_from_single_char(),
         };
@@ -89,37 +111,8 @@ impl<'a> Scanner<'a> {
             '<' => TokenType::LessThan,
             '>' => TokenType::GreaterThan,
             ';' => TokenType::SemiColon,
-            '#' => {
-                // https://tc39.es/ecma262/#prod-PrivateIdentifier
-                // PrivateIdentifier ::
-                //      # IdentifierName
-                if self.is_start_of_identifier_or_keyword(self.ch) {
-                    self.scan_identifier_or_keyword()
-                } else {
-                    TokenType::Illegal
-                }
-            }
             _ => TokenType::EOF,
         }
-    }
-
-    // https://tc39.es/ecma262/#sec-literals-numeric-literals
-    fn scan_number_literal(&mut self) -> TokenType {
-        let start_index = self.read_index;
-
-        // TODO Account for numbers starting with decimals ("".123").
-        // TODO Account for numbers with underscore separators.
-        // TODO Account for floats.
-
-        while self.read_index < self.input.len() {
-            self.read_char();
-
-            if !self.peek_char().is_numeric() {
-                break;
-            }
-        }
-
-        TokenType::Number
     }
 }
 
@@ -199,7 +192,6 @@ impl<'a> Scanner<'a> {
             }
         } else {
             is_unicode_id_start(ch)
-            // TODO Add support for unicode escape sequences.
         }
     }
 
@@ -212,14 +204,47 @@ impl<'a> Scanner<'a> {
             }
         } else {
             is_unicode_id_continue(ch)
-            // TODO Add support for unicode escape sequences.
         }
     }
 
-    fn is_hex_digit(&self, ch: char) -> bool {
-        match ch {
-            ch if ch.is_ascii_hexdigit() => true,
-            _ => false,
+    // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
+    // ```text
+    // UnicodeEscapeSequence ::
+    //  `u` Hex4Digits
+    //  `u{` CodePoint `}`
+    // ```
+    fn scan_unicode_escape_sequence(&mut self) {
+        if self.peek_char() == '{' {
+            self.read_char();
+        } else {
+            self.scan_hex_four_digits();
+        }
+    }
+
+    // https://tc39.es/ecma262/#prod-Hex4Digits
+    // ```text
+    // Hex4Digits ::
+    //  HexDigit HexDigit HexDigit HexDigit
+    // ```
+    fn scan_hex_four_digits(&mut self) -> Result<char, ParserError> {
+        let start_index = self.read_index;
+
+        while self.ch.is_ascii_hexdigit() {
+            self.read_char();
+        }
+
+        let hex_digits = &self.input[start_index..self.read_index];
+
+        let ch = self.code_point_to_char(hex_digits)
+    }
+
+    fn code_point_to_char(&self, hex_digits: &str) -> Result<char, ParserError> {
+        let code_point = u32::from_str_radix(hex_digits, 16).unwrap();
+
+        if !(0xD800..=0xDFFF).contains(&code_point) || hex_digits.len() < 4 {
+            Err(ParserError::InvalidUnicodeEscapeSequence)
+        } else {
+            Ok(char::from_u32(code_point).unwrap())
         }
     }
 }

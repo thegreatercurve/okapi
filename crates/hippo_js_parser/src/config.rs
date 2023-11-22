@@ -13,13 +13,13 @@ enum ECMAVersion {
 
 #[derive(Debug)]
 pub struct Config {
-    ecmaVersion: ECMAVersion,
+    ecma_version: ECMAVersion,
 }
 
 impl Config {
     pub fn default() -> Self {
         Self {
-            ecmaVersion: ECMAVersion::TwentyTwentyThree,
+            ecma_version: ECMAVersion::TwentyTwentyThree,
         }
     }
 }

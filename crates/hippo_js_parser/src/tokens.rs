@@ -64,6 +64,7 @@ pub enum TokenType {
     // Operators
     Assign,
     Bang,
+    Backslash,
     Plus,
     Minus,
     Asterisk,

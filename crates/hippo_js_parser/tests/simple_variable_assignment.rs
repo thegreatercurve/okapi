@@ -1,9 +1,6 @@
 use std::collections::VecDeque;
 
-use hippo_js_parser::{
-    lexer::scanner::Scanner,
-    tokens::{KeywordKind, TokenType},
-};
+use hippo_js_parser::{KeywordKind, Scanner, TokenType};
 
 #[test]
 fn test_simple_variable_assignment() {

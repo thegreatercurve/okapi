@@ -1,4 +1,7 @@
-mod config;
+pub use lexer::scanner::Scanner;
+pub use tokens::{KeywordKind, TokenType};
 
-pub mod lexer;
-pub mod tokens;
+mod config;
+mod errors;
+mod lexer;
+mod tokens;
