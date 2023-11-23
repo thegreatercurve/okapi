@@ -1,3 +1,6 @@
+#[derive(Debug)]
 pub enum ParserError {
-    InvalidUnicodeEscapeSequence,
+    SyntaxError(String),
+    IllegalCharacter,
+    ScannerError,
 }

@@ -8,8 +8,7 @@ pub fn is_string_literal(ch: char) -> bool {
 // 12.1 Unicode Format-Control Characters
 // https://tc39.es/ecma262/#sec-unicode-format-control-characters
 //
-const ZWNJ: char = '\u{200C}'; // Used in IdentifierPart
-const ZWJ: char = '\u{200D}'; // Used in IdentifierPart
+
 const ZWNBSP: char = '\u{FEFF}'; // Used in WhiteSpace
 
 // 12.2 White Space

@@ -1,14 +1,35 @@
+use std::{char, string::ParseError};
+
 use hippo_unicode::{is_unicode_id_continue, is_unicode_id_start};
 
 use crate::{errors::ParserError, KeywordKind, TokenType};
 
 use super::char_utils::{is_line_terminator, is_whitespace};
 
+const ZWNJ: char = '\u{200C}'; // Used in IdentifierPart
+const ZWJ: char = '\u{200D}'; // Used in IdentifierPart
+
 #[derive(Debug)]
 pub struct Scanner<'a> {
     input: &'a str,
     read_index: usize,
     ch: char,
+}
+
+fn is_identifier_start(ch: char) -> bool {
+    if ch.is_ascii() {
+        ch == '$' || ch == '_' || ch.is_ascii_alphabetic()
+    } else {
+        is_unicode_id_start(ch)
+    }
+}
+
+fn is_identifier_part(ch: char) -> bool {
+    if ch.is_ascii() {
+        ch == '$' || ch == '_' || ch.is_ascii_alphanumeric()
+    } else {
+        is_unicode_id_continue(ch) || ch == ZWNJ || ch == ZWJ
+    }
 }
 
 impl<'a> Scanner<'a> {
@@ -57,16 +78,15 @@ impl<'a> Scanner<'a> {
             return TokenType::EOF;
         }
 
-        let token = self.scan_for_token_from_initial_character();
+        let token = self.advance();
 
         self.read_char();
 
         token
     }
 
-    fn scan_for_token_from_initial_character(&mut self) -> TokenType {
-        let token = match self.ch {
-            ch if self.is_start_of_identifier_or_keyword(ch) => self.scan_identifier_or_keyword(),
+    fn advance(&mut self) -> TokenType {
+        match self.ch {
             '=' => {
                 if self.peek_char() == '=' {
                     self.read_char();
@@ -76,135 +96,165 @@ impl<'a> Scanner<'a> {
                     TokenType::Assign
                 }
             }
-            '#' => {
-                // https://tc39.es/ecma262/#prod-PrivateIdentifier
-                // PrivateIdentifier ::
-                //      # IdentifierName
-                if self.is_start_of_identifier_or_keyword(self.peek_char()) {
-                    self.read_char();
-                    self.scan_identifier_or_keyword()
-                } else {
-                    TokenType::Illegal
-                }
-            }
-            '\\' => {
-                if self.peek_char() == 'u' {
-                    self.read_char();
-
-                    self.scan_unicode_escape_sequence();
-                }
-
-                TokenType::Backslash
-            }
-            _ => self.scan_token_from_single_char(),
-        };
-
-        return token;
-    }
-
-    fn scan_token_from_single_char(&mut self) -> TokenType {
-        match self.ch {
-            '+' => TokenType::Plus,
-            '-' => TokenType::Minus,
-            '*' => TokenType::Asterisk,
-            '/' => TokenType::Slash,
-            '<' => TokenType::LessThan,
-            '>' => TokenType::GreaterThan,
-            ';' => TokenType::SemiColon,
-            _ => TokenType::EOF,
+            '#' => self.private_identifier(),
+            ch if is_identifier_start(ch) => self.identifier_name_or_keyword(),
+            _ => TokenType::Illegal,
         }
     }
-}
 
-// 12.7 Names and Keywords
-// https://tc39.es/ecma262/#sec-names-and-keywords
-
-impl<'a> Scanner<'a> {
-    fn scan_identifier_or_keyword(&mut self) -> TokenType {
+    // https://tc39.es/ecma262/#sec-names-and-keywords
+    // 12.7 Names and Keywords
+    // ```text
+    // PrivateIdentifier ::
+    //  # IdentifierName
+    //
+    // IdentifierName ::
+    //  IdentifierStart
+    //  IdentifierName IdentifierPart
+    //
+    // IdentifierStart ::
+    //  IdentifierStartChar
+    //  \ UnicodeEscapeSequence
+    //
+    // IdentifierPart ::
+    //  IdentifierPartChar
+    //  \ UnicodeEscapeSequence
+    //
+    // IdentifierStartChar ::
+    //  UnicodeIDStart
+    //  $
+    //  _
+    //
+    // IdentifierPartChar ::
+    //  UnicodeIDContinue
+    //  $
+    //  <ZWNJ>
+    //  <ZWJ>
+    fn identifier_name_or_keyword(&mut self) -> TokenType {
         let start_index = self.read_index;
 
-        while self.is_part_of_identifier_or_keyword(self.ch) {
-            self.read_char();
+        self.identifier_start().unwrap();
+
+        let keyword_or_identifer_name = &self.input[start_index..self.read_index];
+
+        match self.match_reserved_keyword(keyword_or_identifer_name) {
+            Some(keyword_token) => keyword_token,
+            None => TokenType::Identifier(keyword_or_identifer_name.to_string()),
         }
+    }
 
-        let keyword_or_identifer = &self.input[start_index..self.read_index];
+    fn identifier_start(&mut self) -> Result<(), ParserError> {
+        match self.ch {
+            '$' | '_' | _ if self.ch.is_ascii_alphabetic() => self.read_char(),
+            '\\' => {
+                if self.peek_char() != 'u' {
+                    return Err(ParserError::IllegalCharacter);
+                }
 
+                // self.unicode_escape_sequence();
+            }
+            _ if is_unicode_id_start(self.ch) => self.read_char(),
+            _ => {
+                return Err(ParserError::IllegalCharacter);
+            }
+        };
+
+        self.read_char();
+
+        self.identifier_part()
+    }
+
+    fn identifier_part(&mut self) -> Result<(), ParserError> {
+        let asdf = while is_identifier_part(self.ch) || self.ch == '\\' {
+            if self.ch == '\\' {
+                if self.peek_char() != 'u' {
+                    return Err(ParserError::IllegalCharacter);
+                }
+
+                // self.unicode_escape_sequence();
+            }
+
+            self.read_char();
+        };
+
+        Ok(asdf)
+    }
+
+    // https://tc39.es/ecma262/#sec-keywords-and-reserved-words
+    // > Those that are contextually disallowed as identifiers, in strict mode code: let, static, implements, interface, package, private, protected, and public;
+    // ```text
+    // ReservedWord :: one of
+    //  await break case catch class const continue debugger default delete do else enum export extends false finally for function if import in instanceof new null return super switch this throw true try typeof var void while with yield
+    // ```
+    fn match_reserved_keyword(&self, keyword_or_identifer: &str) -> Option<TokenType> {
         match keyword_or_identifer {
-            "await" => TokenType::Keyword(KeywordKind::Await),
-            "break" => TokenType::Keyword(KeywordKind::Break),
-            "case" => TokenType::Keyword(KeywordKind::Case),
-            "catch" => TokenType::Keyword(KeywordKind::Catch),
-            "class" => TokenType::Keyword(KeywordKind::Class),
-            "const" => TokenType::Keyword(KeywordKind::Const),
-            "continue" => TokenType::Keyword(KeywordKind::Continue),
-            "debugger" => TokenType::Keyword(KeywordKind::Debugger),
-            "default" => TokenType::Keyword(KeywordKind::Default),
-            "delete" => TokenType::Keyword(KeywordKind::Delete),
-            "do" => TokenType::Keyword(KeywordKind::Do),
-            "else" => TokenType::Keyword(KeywordKind::Else),
-            "enum" => TokenType::Keyword(KeywordKind::Enum),
-            "export" => TokenType::Keyword(KeywordKind::Export),
-            "extends" => TokenType::Keyword(KeywordKind::Extends),
-            "false" => TokenType::Keyword(KeywordKind::False),
-            "finally" => TokenType::Keyword(KeywordKind::Finally),
-            "for" => TokenType::Keyword(KeywordKind::For),
-            "function" => TokenType::Keyword(KeywordKind::Function),
-            "if" => TokenType::Keyword(KeywordKind::If),
-            "import" => TokenType::Keyword(KeywordKind::Import),
-            "in" => TokenType::Keyword(KeywordKind::In),
-            "instanceof" => TokenType::Keyword(KeywordKind::Instanceof),
-            "new" => TokenType::Keyword(KeywordKind::New),
-            "null" => TokenType::Keyword(KeywordKind::Null),
-            "return" => TokenType::Keyword(KeywordKind::Return),
-            "super" => TokenType::Keyword(KeywordKind::Super),
-            "switch" => TokenType::Keyword(KeywordKind::Switch),
-            "this" => TokenType::Keyword(KeywordKind::This),
-            "throw" => TokenType::Keyword(KeywordKind::Throw),
-            "true" => TokenType::Keyword(KeywordKind::True),
-            "try" => TokenType::Keyword(KeywordKind::Try),
-            "typeof" => TokenType::Keyword(KeywordKind::Typeof),
-            "var" => TokenType::Keyword(KeywordKind::Var),
-            "void" => TokenType::Keyword(KeywordKind::Void),
-            "while" => TokenType::Keyword(KeywordKind::While),
-            "with" => TokenType::Keyword(KeywordKind::With),
-            "yield" => TokenType::Keyword(KeywordKind::Yield),
+            "await" => Some(TokenType::Keyword(KeywordKind::Await)),
+            "break" => Some(TokenType::Keyword(KeywordKind::Break)),
+            "case" => Some(TokenType::Keyword(KeywordKind::Case)),
+            "catch" => Some(TokenType::Keyword(KeywordKind::Catch)),
+            "class" => Some(TokenType::Keyword(KeywordKind::Class)),
+            "const" => Some(TokenType::Keyword(KeywordKind::Const)),
+            "continue" => Some(TokenType::Keyword(KeywordKind::Continue)),
+            "debugger" => Some(TokenType::Keyword(KeywordKind::Debugger)),
+            "default" => Some(TokenType::Keyword(KeywordKind::Default)),
+            "delete" => Some(TokenType::Keyword(KeywordKind::Delete)),
+            "do" => Some(TokenType::Keyword(KeywordKind::Do)),
+            "else" => Some(TokenType::Keyword(KeywordKind::Else)),
+            "enum" => Some(TokenType::Keyword(KeywordKind::Enum)),
+            "export" => Some(TokenType::Keyword(KeywordKind::Export)),
+            "extends" => Some(TokenType::Keyword(KeywordKind::Extends)),
+            "false" => Some(TokenType::Keyword(KeywordKind::False)),
+            "finally" => Some(TokenType::Keyword(KeywordKind::Finally)),
+            "for" => Some(TokenType::Keyword(KeywordKind::For)),
+            "function" => Some(TokenType::Keyword(KeywordKind::Function)),
+            "if" => Some(TokenType::Keyword(KeywordKind::If)),
+            "import" => Some(TokenType::Keyword(KeywordKind::Import)),
+            "in" => Some(TokenType::Keyword(KeywordKind::In)),
+            "instanceof" => Some(TokenType::Keyword(KeywordKind::Instanceof)),
+            "new" => Some(TokenType::Keyword(KeywordKind::New)),
+            "null" => Some(TokenType::Keyword(KeywordKind::Null)),
+            "return" => Some(TokenType::Keyword(KeywordKind::Return)),
+            "super" => Some(TokenType::Keyword(KeywordKind::Super)),
+            "switch" => Some(TokenType::Keyword(KeywordKind::Switch)),
+            "this" => Some(TokenType::Keyword(KeywordKind::This)),
+            "throw" => Some(TokenType::Keyword(KeywordKind::Throw)),
+            "true" => Some(TokenType::Keyword(KeywordKind::True)),
+            "try" => Some(TokenType::Keyword(KeywordKind::Try)),
+            "typeof" => Some(TokenType::Keyword(KeywordKind::Typeof)),
+            "var" => Some(TokenType::Keyword(KeywordKind::Var)),
+            "void" => Some(TokenType::Keyword(KeywordKind::Void)),
+            "while" => Some(TokenType::Keyword(KeywordKind::While)),
+            "with" => Some(TokenType::Keyword(KeywordKind::With)),
+            "yield" => Some(TokenType::Keyword(KeywordKind::Yield)),
 
             // Strict mode future reserved words
-            "let" => TokenType::Keyword(KeywordKind::Let),
-            "static" => TokenType::Keyword(KeywordKind::Static),
-            "implements" => TokenType::Keyword(KeywordKind::Implements),
-            "interface" => TokenType::Keyword(KeywordKind::Interface),
-            "package" => TokenType::Keyword(KeywordKind::Package),
-            "private" => TokenType::Keyword(KeywordKind::Private),
-            "protected" => TokenType::Keyword(KeywordKind::Protected),
-            "public" => TokenType::Keyword(KeywordKind::Public),
-
-            _ => TokenType::Identifier,
+            "let" => Some(TokenType::Keyword(KeywordKind::Let)),
+            "static" => Some(TokenType::Keyword(KeywordKind::Static)),
+            "implements" => Some(TokenType::Keyword(KeywordKind::Implements)),
+            "interface" => Some(TokenType::Keyword(KeywordKind::Interface)),
+            "package" => Some(TokenType::Keyword(KeywordKind::Package)),
+            "private" => Some(TokenType::Keyword(KeywordKind::Private)),
+            "protected" => Some(TokenType::Keyword(KeywordKind::Protected)),
+            "public" => Some(TokenType::Keyword(KeywordKind::Public)),
+            _ => None,
         }
     }
 
-    fn is_start_of_identifier_or_keyword(&self, ch: char) -> bool {
-        if ch.is_ascii() {
-            match ch {
-                ch if ch.is_ascii_alphabetic() => true,
-                '_' | '$' => true,
-                _ => false,
-            }
-        } else {
-            is_unicode_id_start(ch)
-        }
-    }
+    // https://tc39.es/ecma262/#prod-PrivateIdentifier
+    // ```text
+    // PrivateIdentifier ::
+    //  # IdentifierName
+    // ```
+    fn private_identifier(&mut self) -> TokenType {
+        let start_index = self.read_index;
 
-    fn is_part_of_identifier_or_keyword(&self, ch: char) -> bool {
-        if ch.is_ascii() {
-            match ch {
-                ch if ch.is_ascii_alphanumeric() => true,
-                '_' | '$' => true,
-                _ => false,
-            }
-        } else {
-            is_unicode_id_continue(ch)
-        }
+        self.read_char();
+
+        self.identifier_start().unwrap();
+
+        let identifer_name = &self.input[start_index..self.read_index];
+
+        TokenType::Identifier(identifer_name.to_string())
     }
 
     // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
@@ -213,11 +263,11 @@ impl<'a> Scanner<'a> {
     //  `u` Hex4Digits
     //  `u{` CodePoint `}`
     // ```
-    fn scan_unicode_escape_sequence(&mut self) {
+    fn unicode_escape_sequence(&mut self) {
         if self.peek_char() == '{' {
             self.read_char();
         } else {
-            self.scan_hex_four_digits();
+            self.hex_four_digits();
         }
     }
 
@@ -226,7 +276,7 @@ impl<'a> Scanner<'a> {
     // Hex4Digits ::
     //  HexDigit HexDigit HexDigit HexDigit
     // ```
-    fn scan_hex_four_digits(&mut self) -> Result<char, ParserError> {
+    fn hex_four_digits(&mut self) -> Result<char, ParserError> {
         let start_index = self.read_index;
 
         while self.ch.is_ascii_hexdigit() {
@@ -235,14 +285,14 @@ impl<'a> Scanner<'a> {
 
         let hex_digits = &self.input[start_index..self.read_index];
 
-        let ch = self.code_point_to_char(hex_digits)
+        self.code_point_to_char(hex_digits)
     }
 
     fn code_point_to_char(&self, hex_digits: &str) -> Result<char, ParserError> {
         let code_point = u32::from_str_radix(hex_digits, 16).unwrap();
 
         if !(0xD800..=0xDFFF).contains(&code_point) || hex_digits.len() < 4 {
-            Err(ParserError::InvalidUnicodeEscapeSequence)
+            Err(ParserError::IllegalCharacter)
         } else {
             Ok(char::from_u32(code_point).unwrap())
         }

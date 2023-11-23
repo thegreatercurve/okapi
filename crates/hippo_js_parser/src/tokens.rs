@@ -56,7 +56,8 @@ pub enum KeywordKind {
 pub enum TokenType {
     // Keywords or Identifiers
     Keyword(KeywordKind),
-    Identifier,
+    Identifier(String),
+
     // Literals
     String,
     Number,
