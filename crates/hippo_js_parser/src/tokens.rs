@@ -62,21 +62,30 @@ pub enum TokenType {
     String,
     Number,
 
-    // Operators
+    // Punctuators
+    LeftBracket,
+    RightBracket,
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
+    Dot,
+    SemiColon,
+    Comma,
+    LessThan,
+    GreaterThan,
     Assign,
     Bang,
-    Backslash,
     Plus,
     Minus,
     Asterisk,
-    Slash,
-    LessThan,
-    GreaterThan,
-    Equal,
-    NotEqual,
-
-    // Delimiters
-    SemiColon,
+    Percent,
+    Ampersand,
+    Pipe,
+    Caret,
+    Tilde,
+    QuestionMark,
+    Colon,
 
     // Utility
     Illegal,

@@ -32,15 +32,21 @@ fn is_identifier_part(ch: char) -> bool {
     }
 }
 
+fn is_punctuator_start(ch: char) -> bool {
+    match ch {
+        '{' | '}' | '(' | ')' | '[' | ']' | '.' | ';' | ',' | '<' | '>' | '=' | '!' | '+' | '-'
+        | '*' | '%' | '&' | '|' | '^' | '~' | '?' | ':' => true,
+        _ => false,
+    }
+}
+
 impl<'a> Scanner<'a> {
     pub fn new(input: &'a str) -> Self {
-        let mut lexer = Self {
+        let lexer = Self {
             input: &input,
             read_index: 0,
-            ch: 0 as char,
+            ch: input.chars().nth(0).unwrap_or(0 as char),
         };
-
-        lexer.read_char();
 
         return lexer;
     }
@@ -91,13 +97,61 @@ impl<'a> Scanner<'a> {
                 if self.peek_char() == '=' {
                     self.read_char();
 
-                    TokenType::Equal
+                    TokenType::Equals
                 } else {
                     TokenType::Assign
                 }
             }
-            '#' => self.private_identifier(),
-            ch if is_identifier_start(ch) => self.identifier_name_or_keyword(),
+            '#' => self.scan_private_identifier(),
+            '1'..='9' => TokenType::Number,
+            ';' => TokenType::SemiColon,
+            _ if is_punctuator_start(self.ch) => self.scan_punctuator(),
+            _ if is_identifier_start(self.ch) => self.scan_identifier_name_or_keyword(),
+            _ => TokenType::Illegal,
+        }
+    }
+
+    // https://tc39.es/ecma262/#sec-punctuators
+    // 12.8 Punctuators
+    // ```text
+    // Punctuator ::
+    //  OptionalChainingPunctuator
+    //  OtherPunctuator
+    // OptionalChainingPunctuator ::
+    //  ?. [lookahead ∉ DecimalDigit]
+    // OtherPunctuator :: one of
+    //  { ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ** ++ -- << >> >>> & | ^ ! ~ && || ?? ? : = += -= *= %= **= <<= >>= >>>= &= |= ^= &&= ||= ??= =>
+    // DivPunctuator ::
+    //  /
+    //  /=
+    // RightBracePunctuator ::
+    //  }
+    // ```
+    fn scan_punctuator(&self) -> TokenType {
+        match self.ch {
+            '{' => TokenType::LeftBracket,
+            '}' => TokenType::RightBracket,
+            '(' => TokenType::LeftParen,
+            ')' => TokenType::RightParen,
+            '[' => TokenType::LeftBrace,
+            ']' => TokenType::RightBrace,
+            '.' => TokenType::Dot,
+            ';' => TokenType::SemiColon,
+            ',' => TokenType::Comma,
+            '<' => TokenType::LessThan,
+            '>' => TokenType::GreaterThan,
+            '=' => TokenType::Assign,
+            '!' => TokenType::Bang,
+            '+' => TokenType::Plus,
+            '-' => TokenType::Minus,
+            '*' => TokenType::Asterisk,
+            '%' => TokenType::Percent,
+            '&' => TokenType::Ampersand,
+            '|' => TokenType::Pipe,
+            '^' => TokenType::Caret,
+            '~' => TokenType::Tilde,
+            '?' => TokenType::QuestionMark,
+            ':' => TokenType::Colon,
             _ => TokenType::Illegal,
         }
     }
@@ -130,7 +184,8 @@ impl<'a> Scanner<'a> {
     //  $
     //  <ZWNJ>
     //  <ZWJ>
-    fn identifier_name_or_keyword(&mut self) -> TokenType {
+    // ```
+    fn scan_identifier_name_or_keyword(&mut self) -> TokenType {
         let start_index = self.read_index;
 
         self.identifier_start().unwrap();
@@ -155,6 +210,7 @@ impl<'a> Scanner<'a> {
             }
             _ if is_unicode_id_start(self.ch) => self.read_char(),
             _ => {
+                println!("Illegal character: {}", self.ch);
                 return Err(ParserError::IllegalCharacter);
             }
         };
@@ -245,7 +301,7 @@ impl<'a> Scanner<'a> {
     // PrivateIdentifier ::
     //  # IdentifierName
     // ```
-    fn private_identifier(&mut self) -> TokenType {
+    fn scan_private_identifier(&mut self) -> TokenType {
         let start_index = self.read_index;
 
         self.read_char();
