@@ -139,9 +139,9 @@ impl<'a> Scanner<'a> {
                 if self.peek_char() == '=' {
                     self.read_char();
 
-                    TokenType::Assign
+                    TokenType::Equal
                 } else {
-                    TokenType::Assign
+                    TokenType::Assignment
                 }
             }
             '!' => TokenType::Bang,
