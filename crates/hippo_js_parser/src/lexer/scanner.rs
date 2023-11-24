@@ -1,4 +1,4 @@
-use std::{char, string::ParseError};
+use std::{char, str::Chars, string::ParseError};
 
 use hippo_unicode::{is_unicode_id_continue, is_unicode_id_start};
 
@@ -11,7 +11,8 @@ const ZWJ: char = '\u{200D}'; // Used in IdentifierPart
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
-    input: &'a str,
+    input: Chars<'a>,
+    input_length: usize,
     read_index: usize,
     ch: char,
 }
@@ -42,10 +43,15 @@ fn is_punctuator_start(ch: char) -> bool {
 
 impl<'a> Scanner<'a> {
     pub fn new(input: &'a str) -> Self {
+        let mut input_chars = input.chars();
+
+        let first_char = input_chars.next().unwrap();
+
         let lexer = Self {
-            input: &input,
+            input: input_chars,
+            input_length: input.len(),
             read_index: 0,
-            ch: input.chars().nth(0).unwrap_or(0 as char),
+            ch: first_char,
         };
 
         return lexer;
@@ -56,19 +62,18 @@ impl<'a> Scanner<'a> {
         self.read_index += 1;
     }
 
-    fn peek_char(&self) -> char {
+    fn peek_char(&mut self) -> char {
         self.peek_char_nth(1)
     }
 
-    fn peek_char_nth(&self, offset: usize) -> char {
+    fn peek_char_nth(&mut self, offset: usize) -> char {
         self.input
-            .chars()
             .nth(self.read_index + offset)
             .unwrap_or(0 as char)
     }
 
-    pub fn is_end_of_file(&self) -> bool {
-        self.read_index >= self.input.len()
+    pub fn is_end_of_file(&mut self) -> bool {
+        self.read_index >= self.input_length
     }
 
     fn skip_whitespace(&mut self) {
@@ -93,18 +98,8 @@ impl<'a> Scanner<'a> {
 
     fn advance(&mut self) -> TokenType {
         match self.ch {
-            '=' => {
-                if self.peek_char() == '=' {
-                    self.read_char();
-
-                    TokenType::Equals
-                } else {
-                    TokenType::Assign
-                }
-            }
             '#' => self.scan_private_identifier(),
             '1'..='9' => TokenType::Number,
-            ';' => TokenType::SemiColon,
             _ if is_punctuator_start(self.ch) => self.scan_punctuator(),
             _ if is_identifier_start(self.ch) => self.scan_identifier_name_or_keyword(),
             _ => TokenType::Illegal,
@@ -127,20 +122,28 @@ impl<'a> Scanner<'a> {
     // RightBracePunctuator ::
     //  }
     // ```
-    fn scan_punctuator(&self) -> TokenType {
+    fn scan_punctuator(&mut self) -> TokenType {
         match self.ch {
-            '{' => TokenType::LeftBracket,
-            '}' => TokenType::RightBracket,
-            '(' => TokenType::LeftParen,
-            ')' => TokenType::RightParen,
-            '[' => TokenType::LeftBrace,
-            ']' => TokenType::RightBrace,
+            '{' => TokenType::LeftCurlyBrace,
+            '}' => TokenType::RightCurlyBrace,
+            '(' => TokenType::LeftParenthesis,
+            ')' => TokenType::RightParenthesis,
+            '[' => TokenType::LeftSquareBracket,
+            ']' => TokenType::RightSquareBracket,
             '.' => TokenType::Dot,
-            ';' => TokenType::SemiColon,
+            ';' => TokenType::Semicolon,
             ',' => TokenType::Comma,
             '<' => TokenType::LessThan,
             '>' => TokenType::GreaterThan,
-            '=' => TokenType::Assign,
+            '=' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+
+                    TokenType::Assign
+                } else {
+                    TokenType::Assign
+                }
+            }
             '!' => TokenType::Bang,
             '+' => TokenType::Plus,
             '-' => TokenType::Minus,
@@ -152,7 +155,7 @@ impl<'a> Scanner<'a> {
             '~' => TokenType::Tilde,
             '?' => TokenType::QuestionMark,
             ':' => TokenType::Colon,
-            _ => TokenType::Illegal,
+            _ => break,
         }
     }
 
@@ -190,7 +193,7 @@ impl<'a> Scanner<'a> {
 
         self.identifier_start().unwrap();
 
-        let keyword_or_identifer_name = &self.input[start_index..self.read_index];
+        let keyword_or_identifer_name = &self.input.as_str()[start_index..self.read_index];
 
         match self.match_reserved_keyword(keyword_or_identifer_name) {
             Some(keyword_token) => keyword_token,
@@ -308,7 +311,7 @@ impl<'a> Scanner<'a> {
 
         self.identifier_start().unwrap();
 
-        let identifer_name = &self.input[start_index..self.read_index];
+        let identifer_name = &self.input.as_str()[start_index..self.read_index];
 
         TokenType::Identifier(identifer_name.to_string())
     }
@@ -339,7 +342,7 @@ impl<'a> Scanner<'a> {
             self.read_char();
         }
 
-        let hex_digits = &self.input[start_index..self.read_index];
+        let hex_digits = &self.input.as_str()[start_index..self.read_index];
 
         self.code_point_to_char(hex_digits)
     }
