@@ -1,4 +1,4 @@
-use std::{char, str::Chars, string::ParseError};
+use std::{char, str::Chars};
 
 use hippo_unicode::{is_unicode_id_continue, is_unicode_id_start};
 
@@ -130,32 +130,240 @@ impl<'a> Scanner<'a> {
             ')' => TokenType::RightParenthesis,
             '[' => TokenType::LeftSquareBracket,
             ']' => TokenType::RightSquareBracket,
-            '.' => TokenType::Dot,
+            '.' => {
+                if self.peek_char() == '.' && self.peek_char_nth(2) == '.' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::Ellipsis
+                } else {
+                    TokenType::Dot
+                }
+            }
             ';' => TokenType::Semicolon,
             ',' => TokenType::Comma,
-            '<' => TokenType::LessThan,
-            '>' => TokenType::GreaterThan,
+            '<' => {
+                let peek_char = self.peek_char();
+                let peek_char_2 = self.peek_char_nth(2);
+
+                if peek_char == '<' && peek_char_2 == '=' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::LeftShiftAssignment
+                } else if peek_char == '<' {
+                    self.read_char();
+
+                    TokenType::LeftShift
+                } else if peek_char == '=' {
+                    self.read_char();
+
+                    TokenType::LessThanOrEqual
+                } else {
+                    TokenType::LessThan
+                }
+            }
+            '>' => {
+                let peek_char = self.peek_char();
+                let peek_char_2 = self.peek_char_nth(2);
+                let peek_char_3 = self.peek_char_nth(3);
+
+                if peek_char == '>' && peek_char_2 == '>' && peek_char_3 == '=' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::UnsignedRightShiftAssignment
+                } else if peek_char == '>' && peek_char_2 == '>' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::UnsignedRightShift
+                } else if peek_char == '>' && peek_char_2 == '=' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::RightShiftAssignment
+                } else if peek_char == '>' {
+                    self.read_char();
+
+                    TokenType::RightShift
+                } else if peek_char == '=' {
+                    self.read_char();
+
+                    TokenType::GreaterThanOrEqual
+                } else {
+                    TokenType::GreaterThan
+                }
+            }
             '=' => {
-                if self.peek_char() == '=' {
+                let peek_char = self.peek_char();
+                let peek_char_2 = self.peek_char_nth(2);
+
+                if peek_char == '=' && peek_char_2 == '=' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::StrictEqual
+                } else if peek_char == '=' {
                     self.read_char();
 
                     TokenType::Equal
+                } else if peek_char == '>' {
+                    self.read_char();
+
+                    TokenType::ArrowFunction
                 } else {
                     TokenType::Assignment
                 }
             }
-            '!' => TokenType::Bang,
-            '+' => TokenType::Plus,
-            '-' => TokenType::Minus,
-            '*' => TokenType::Asterisk,
-            '%' => TokenType::Percent,
-            '&' => TokenType::Ampersand,
-            '|' => TokenType::Pipe,
-            '^' => TokenType::Caret,
-            '~' => TokenType::Tilde,
-            '?' => TokenType::QuestionMark,
+            '!' => {
+                let peek_char = self.peek_char();
+                let peek_char_2 = self.peek_char_nth(2);
+
+                if peek_char == '=' && peek_char_2 == '=' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::StrictNotEqual
+                } else if peek_char == '=' {
+                    self.read_char();
+
+                    TokenType::NotEqual
+                } else {
+                    TokenType::LogicalNot
+                }
+            }
+            '+' => {
+                let peek_char = self.peek_char();
+
+                if peek_char == '=' {
+                    self.read_char();
+
+                    TokenType::PlusAssignment
+                } else if peek_char == '+' {
+                    self.read_char();
+
+                    TokenType::Increment
+                } else {
+                    TokenType::Addition
+                }
+            }
+            '-' => {
+                let peek_char = self.peek_char();
+
+                if peek_char == '=' {
+                    self.read_char();
+
+                    TokenType::MinusAssignment
+                } else if peek_char == '-' {
+                    self.read_char();
+
+                    TokenType::Decrement
+                } else {
+                    TokenType::Subtraction
+                }
+            }
+            '*' => {
+                let peek_char = self.peek_char();
+                let peek_char_2 = self.peek_char_nth(2);
+
+                if peek_char == '*' && peek_char_2 == '=' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::ExponentiationAssignment
+                } else if peek_char == '=' {
+                    self.read_char();
+
+                    TokenType::MultiplyAssignment
+                } else if peek_char == '*' {
+                    self.read_char();
+
+                    TokenType::Exponentiation
+                } else {
+                    TokenType::Multiplication
+                }
+            }
+            '%' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+
+                    TokenType::ModulusAssignment
+                } else {
+                    TokenType::Modulus
+                }
+            }
+            '&' => {
+                let peek_char = self.peek_char();
+                let peek_char_2 = self.peek_char_nth(2);
+
+                if peek_char == '|' && peek_char_2 == '=' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::LogicalAndAssignment
+                } else if peek_char == '=' {
+                    self.read_char();
+
+                    TokenType::BitwiseAndAssignment
+                } else if peek_char == '&' {
+                    self.read_char();
+
+                    TokenType::LogicalAnd
+                } else {
+                    TokenType::BitwiseAnd
+                }
+            }
+            '|' => {
+                let peek_char = self.peek_char();
+                let peek_char_2 = self.peek_char_nth(2);
+
+                if peek_char == '|' && peek_char_2 == '=' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::LogicalOrAssignment
+                } else if peek_char == '=' {
+                    self.read_char();
+
+                    TokenType::BitwiseOrAssignment
+                } else if peek_char == '|' {
+                    self.read_char();
+
+                    TokenType::LogicalOr
+                } else {
+                    TokenType::BitwiseOr
+                }
+            }
+            '^' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+
+                    TokenType::BitwiseXorAssignment
+                } else {
+                    TokenType::BitwiseXor
+                }
+            }
+            '~' => TokenType::BitwiseNot,
+            '?' => {
+                let peek_char = self.peek_char();
+                let peek_char_2 = self.peek_char_nth(2);
+
+                if peek_char == '?' && peek_char_2 == '=' {
+                    self.read_char();
+                    self.read_char();
+
+                    TokenType::NullishCoalescingAssignment
+                } else if peek_char == '?' {
+                    self.read_char();
+
+                    TokenType::NullishCoalescing
+                } else {
+                    TokenType::QuestionMark
+                }
+            }
             ':' => TokenType::Colon,
-            _ => break,
+            _ => TokenType::Illegal,
         }
     }
 

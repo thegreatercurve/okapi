@@ -31,9 +31,9 @@ fn keywords_and_identifiers() {
         vec![
             TokenType::Keyword(KeywordKind::Const),
             TokenType::Identifier("foo".to_string()),
-            TokenType::Assign,
+            TokenType::Assignment,
             TokenType::Number,
-            TokenType::SemiColon,
+            TokenType::Semicolon,
         ]
     );
 
@@ -42,9 +42,9 @@ fn keywords_and_identifiers() {
         vec![
             TokenType::Keyword(KeywordKind::Let),
             TokenType::Identifier("baz".to_string()),
-            TokenType::Assign,
+            TokenType::Assignment,
             TokenType::Number,
-            TokenType::SemiColon,
+            TokenType::Semicolon,
         ]
     );
 
@@ -53,9 +53,9 @@ fn keywords_and_identifiers() {
         vec![
             TokenType::Keyword(KeywordKind::Var),
             TokenType::Identifier("baz".to_string()),
-            TokenType::Assign,
+            TokenType::Assignment,
             TokenType::Number,
-            TokenType::SemiColon,
+            TokenType::Semicolon,
         ]
     );
 
@@ -66,7 +66,7 @@ fn keywords_and_identifiers() {
     //         TokenType::Identifier("baz".to_string()),
     //         TokenType::Assign,
     //         TokenType::Number,
-    //         TokenType::SemiColon,
+    //         TokenType::Semicolon,
     //     ]
     // );
 
@@ -77,11 +77,11 @@ fn keywords_and_identifiers() {
             TokenType::Identifier("Foo".to_string()),
             // TokenType::LeftBracket,
             TokenType::Identifier("#bar".to_string()),
-            TokenType::Assign,
+            TokenType::Assignment,
             TokenType::Number,
-            TokenType::SemiColon,
+            TokenType::Semicolon,
             // TokenType::RightBracket,
-            TokenType::SemiColon,
+            TokenType::Semicolon,
         ]
     );
 
