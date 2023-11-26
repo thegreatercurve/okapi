@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub use declaration::*;
 pub use expression::*;
 pub use pattern::*;

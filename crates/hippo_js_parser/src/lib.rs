@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub use lexer::scanner::Scanner;
 pub use tokens::{KeywordKind, TokenType};
 

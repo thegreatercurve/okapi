@@ -45,7 +45,7 @@ impl<'a> Scanner<'a> {
     pub fn new(input: &'a str) -> Self {
         let mut input_chars = input.chars();
 
-        let first_char = input_chars.next().unwrap();
+        let first_char = input_chars.nth(0).unwrap();
 
         let lexer = Self {
             input: input_chars,
@@ -91,19 +91,21 @@ impl<'a> Scanner<'a> {
 
         let token = self.advance();
 
-        self.read_char();
-
         token
     }
 
     fn advance(&mut self) -> TokenType {
-        match self.ch {
+        let token = match self.ch {
             '#' => self.scan_private_identifier(),
             '1'..='9' => TokenType::Number,
             _ if is_punctuator_start(self.ch) => self.scan_punctuator(),
             _ if is_identifier_start(self.ch) => self.scan_identifier_name_or_keyword(),
             _ => TokenType::Illegal,
-        }
+        };
+
+        self.read_char();
+
+        token
     }
 
     // https://tc39.es/ecma262/#sec-punctuators
