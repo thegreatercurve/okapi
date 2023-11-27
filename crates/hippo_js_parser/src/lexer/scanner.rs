@@ -437,7 +437,7 @@ impl<'a> Scanner<'a> {
     fn scan_identifier_name_or_keyword(&mut self) -> TokenType {
         let start_index = self.read_index;
 
-        if !self.identifier_start() {
+        if !self.read_identifier_start() {
             return TokenType::Illegal;
         };
 
@@ -449,7 +449,7 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    fn identifier_start(&mut self) -> bool {
+    fn read_identifier_start(&mut self) -> bool {
         match self.ch {
             '$' | '_' | _ if self.ch.is_ascii_alphabetic() => self.read_char(),
             '\\' => {
@@ -459,16 +459,16 @@ impl<'a> Scanner<'a> {
                     return false;
                 }
 
-                self.unicode_escape_sequence();
+                self.read_unicode_escape_sequence();
             }
             _ if is_unicode_id_start(self.ch) => self.read_char(),
             _ => self.errors.push(ParserError::IllegalIdentifierCharacter),
         };
 
-        self.identifier_part()
+        self.read_identifier_part()
     }
 
-    fn identifier_part(&mut self) -> bool {
+    fn read_identifier_part(&mut self) -> bool {
         while is_identifier_part(self.ch) || self.ch == '\\' {
             if self.ch == '\\' {
                 if self.peek_char() != 'u' {
@@ -477,7 +477,7 @@ impl<'a> Scanner<'a> {
                     return false;
                 }
 
-                self.unicode_escape_sequence();
+                self.read_unicode_escape_sequence();
             }
 
             self.read_char();
@@ -556,7 +556,7 @@ impl<'a> Scanner<'a> {
 
         self.read_char();
 
-        if !self.identifier_start() {
+        if !self.read_identifier_start() {
             return TokenType::Illegal;
         };
 
@@ -598,7 +598,7 @@ impl<'a> Scanner<'a> {
 
                 return TokenType::Illegal;
             } else if self.ch == '\\' {
-                self.validate_escape_sequence();
+                self.read_escape_sequence();
             }
 
             self.read_char();
@@ -607,7 +607,7 @@ impl<'a> Scanner<'a> {
         return TokenType::StringLiteral;
     }
 
-    fn validate_escape_sequence(&mut self) -> bool {
+    fn read_escape_sequence(&mut self) -> bool {
         match self.ch {
             '\'' | '"' | '\\' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' => {
                 self.read_char();
@@ -617,9 +617,9 @@ impl<'a> Scanner<'a> {
             'x' => self.read_hex_two_digits(),
             'u' => {
                 if self.peek_char() == '{' {
-                    self.unicode_escape_sequence()
+                    self.read_unicode_escape_sequence()
                 } else {
-                    self.code_point_escape_sequence()
+                    self.read_code_point_escape_sequence()
                 }
             }
             _ => false,
@@ -650,11 +650,22 @@ impl<'a> Scanner<'a> {
     // ```text
     // UnicodeEscapeSequence ::
     //   `u` Hex4Digits
+    //
+    // Hex4Digits ::
+    //   HexDigit HexDigit HexDigit HexDigit
     // ```
-    fn unicode_escape_sequence(&mut self) -> bool {
+    fn read_unicode_escape_sequence(&mut self) -> bool {
         let start_index = self.read_index;
 
-        self.read_hex_four_digits();
+        for _ in 0..4 {
+            if !self.ch.is_ascii_hexdigit() {
+                self.errors.push(ParserError::IllegalUnicodeEscapeSequence);
+
+                return false;
+            }
+
+            self.read_char();
+        }
 
         let hex_value = &self.source_str[start_index..self.read_index];
 
@@ -667,7 +678,8 @@ impl<'a> Scanner<'a> {
         let hex_value_u32 = u32::from_str_radix(hex_value, 16).unwrap_or_else(|_| {
             self.errors.push(ParserError::IllegalUnicodeEscapeSequence);
 
-            00000
+            // Next value up from 0xFFFF
+            0x00000
         });
 
         // Check that it's not outside of range of Basic Multilingual Plane.
@@ -687,9 +699,45 @@ impl<'a> Scanner<'a> {
     // ```text
     // UnicodeEscapeSequence ::
     //   `u{` CodePoint `}`
+    //
+    // CodePoint ::
+    //   HexDigits[~Sep] but only if MV of HexDigits ≤ 0x10FFFF
     // ```
-    fn code_point_escape_sequence(&mut self) -> bool {
-        self.read_hex_four_digits();
+    fn read_code_point_escape_sequence(&mut self) -> bool {
+        let start_index = self.read_index;
+
+        for _ in 0..6 {
+            if !self.ch.is_ascii_hexdigit() {
+                self.errors
+                    .push(ParserError::IllegalUnicodeCodePointEscapeSequence);
+
+                return false;
+            }
+
+            self.read_char();
+        }
+
+        let code_point_value = &self.source_str[start_index..self.read_index];
+
+        if code_point_value.len() < 4 {
+            self.errors.push(ParserError::IllegalUnicodeEscapeSequence);
+
+            return false;
+        }
+
+        let code_point_value_u32 = u32::from_str_radix(code_point_value, 16).unwrap_or_else(|_| {
+            self.errors.push(ParserError::IllegalUnicodeEscapeSequence);
+
+            // Next value up from 0x10FFFF
+            0x110000
+        });
+
+        if code_point_value_u32 > 0x10FFFF {
+            self.errors
+                .push(ParserError::IllegalUnicodeCodePointEscapeSequence);
+
+            return false;
+        }
 
         if self.peek_char() != '}' {
             self.errors
@@ -699,26 +747,6 @@ impl<'a> Scanner<'a> {
         }
 
         self.read_char();
-
-        true
-    }
-
-    // https://tc39.es/ecma262/#prod-Hex4Digits
-    // ```text
-    // Hex4Digits ::
-    //   HexDigit HexDigit HexDigit HexDigit
-    // ```
-    fn read_hex_four_digits(&mut self) -> bool {
-        for _ in 0..4 {
-            if !self.ch.is_ascii_hexdigit() {
-                self.errors
-                    .push(ParserError::IllegalHexadecimalEscapeSequence);
-
-                return false;
-            }
-
-            self.read_char();
-        }
 
         true
     }
