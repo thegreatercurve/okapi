@@ -59,12 +59,12 @@ pub enum TokenType {
     Identifier(String),
 
     // Literals
-    String,
-    Number,
+    StringLiteral,
+    NumberLiteral,
 
     // Punctuators
+    OptionalChaining,
     LeftCurlyBrace,
-    RightCurlyBrace,
     LeftParenthesis,
     RightParenthesis,
     LeftSquareBracket,
@@ -117,6 +117,9 @@ pub enum TokenType {
     LogicalOrAssignment,
     NullishCoalescingAssignment,
     ArrowFunction,
+    Division,
+    DivisionAssignment,
+    RightCurlyBrace,
 
     // Utility
     Illegal,
@@ -126,8 +129,8 @@ pub enum TokenType {
 // impl TokenType {
 //     pub fn to_str(&self) -> &str {
 //         match self {
+//             TokenType::OptionalChaining => "?.",
 //             TokenType::LeftCurlyBrace => "{",
-//             TokenType::RightCurlyBrace => "}",
 //             TokenType::LeftParenthesis => "(",
 //             TokenType::RightParenthesis => ")",
 //             TokenType::LeftSquareBracket => "[",
@@ -180,6 +183,9 @@ pub enum TokenType {
 //             TokenType::LogicalOrAssignment => "||=",
 //             TokenType::NullishCoalescingAssignment => "??=",
 //             TokenType::ArrowFunction => "=>",
+//             TokenType::Division =>: "/",
+//             TokenType::DivisionAssignment => "/=",
+//             TokenType::RightCurlyBrace =>": "}"
 //             _ => "",
 //         }
 //     }

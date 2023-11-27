@@ -1,18 +1,48 @@
-use std::{char, str::Chars};
-
 use hippo_unicode::{is_unicode_id_continue, is_unicode_id_start};
 
 use crate::{errors::ParserError, KeywordKind, TokenType};
 
-use super::char_utils::{is_line_terminator, is_whitespace};
+// 12.1 Unicode Format-Control Characters
+// https://tc39.es/ecma262/#sec-unicode-format-control-characters
+//
 
 const ZWNJ: char = '\u{200C}'; // Used in IdentifierPart
 const ZWJ: char = '\u{200D}'; // Used in IdentifierPart
+const ZWNBSP: char = '\u{FEFF}'; // Used in WhiteSpace
+
+// 12.2 White Space
+// https://tc39.es/ecma262/#sec-white-space
+const TAB: char = '\u{0009}';
+const VT: char = '\u{000B}';
+const FF: char = '\u{000C}';
+const SP: char = '\u{0020}';
+const NBSP: char = '\u{00A0}';
+
+pub fn is_whitespace(ch: char) -> bool {
+    match ch {
+        TAB | VT | FF | SP | NBSP | ZWNBSP => true,
+        _ => false,
+    }
+}
+
+// 12.3 Line Terminators
+// https://tc39.es/ecma262/#sec-line-terminators
+
+const LF: char = '\u{000A}';
+const CR: char = '\u{000D}';
+const LS: char = '\u{2028}';
+const PS: char = '\u{2029}';
+
+pub fn is_line_terminator(ch: char) -> bool {
+    match ch {
+        LF | CR | LS | PS => true,
+        _ => false,
+    }
+}
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
-    input: Chars<'a>,
-    input_length: usize,
+    source_str: &'a str,
     read_index: usize,
     ch: char,
 }
@@ -35,31 +65,31 @@ fn is_identifier_part(ch: char) -> bool {
 
 fn is_punctuator_start(ch: char) -> bool {
     match ch {
-        '{' | '}' | '(' | ')' | '[' | ']' | '.' | ';' | ',' | '<' | '>' | '=' | '!' | '+' | '-'
-        | '*' | '%' | '&' | '|' | '^' | '~' | '?' | ':' => true,
+        '{' | '(' | ')' | '[' | ']' | '.' | ';' | ',' | '<' | '>' | '=' | '!' | '+' | '-' | '*'
+        | '%' | '&' | '|' | '^' | '~' | '?' | ':' | '/' | '}' => true,
         _ => false,
     }
 }
 
 impl<'a> Scanner<'a> {
     pub fn new(input: &'a str) -> Self {
-        let mut input_chars = input.chars();
-
-        let first_char = input_chars.nth(0).unwrap();
-
         let lexer = Self {
-            input: input_chars,
-            input_length: input.len(),
+            source_str: input,
             read_index: 0,
-            ch: first_char,
+            ch: input.chars().next().unwrap(),
         };
 
         return lexer;
     }
 
     fn read_char(&mut self) {
-        self.ch = self.peek_char();
-        self.read_index += 1;
+        self.read_char_nth(1);
+    }
+
+    fn read_char_nth(&mut self, offset: usize) {
+        self.ch = self.peek_char_nth(offset);
+
+        self.read_index += offset;
     }
 
     fn peek_char(&mut self) -> char {
@@ -67,13 +97,14 @@ impl<'a> Scanner<'a> {
     }
 
     fn peek_char_nth(&mut self, offset: usize) -> char {
-        self.input
+        self.source_str
+            .chars()
             .nth(self.read_index + offset)
             .unwrap_or(0 as char)
     }
 
     pub fn is_end_of_file(&mut self) -> bool {
-        self.read_index >= self.input_length
+        self.read_index >= self.source_str.len()
     }
 
     fn skip_whitespace(&mut self) {
@@ -91,19 +122,20 @@ impl<'a> Scanner<'a> {
 
         let token = self.advance();
 
+        self.read_char();
+
         token
     }
 
     fn advance(&mut self) -> TokenType {
         let token = match self.ch {
             '#' => self.scan_private_identifier(),
-            '1'..='9' => TokenType::Number,
+            '1'..='9' => TokenType::NumberLiteral,
+            '\'' | '"' => self.scan_string_literal().unwrap_or(TokenType::Illegal),
             _ if is_punctuator_start(self.ch) => self.scan_punctuator(),
             _ if is_identifier_start(self.ch) => self.scan_identifier_name_or_keyword(),
             _ => TokenType::Illegal,
         };
-
-        self.read_char();
 
         token
     }
@@ -112,17 +144,17 @@ impl<'a> Scanner<'a> {
     // 12.8 Punctuators
     // ```text
     // Punctuator ::
-    //  OptionalChainingPunctuator
-    //  OtherPunctuator
+    //   OptionalChainingPunctuator
+    //   OtherPunctuator
     // OptionalChainingPunctuator ::
-    //  ?. [lookahead ∉ DecimalDigit]
+    //   ?. [lookahead ∉ DecimalDigit]
     // OtherPunctuator :: one of
-    //  { ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ** ++ -- << >> >>> & | ^ ! ~ && || ?? ? : = += -= *= %= **= <<= >>= >>>= &= |= ^= &&= ||= ??= =>
+    //   { ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ** ++ -- << >> >>> & | ^ ! ~ && || ?? ? : = += -= *= %= **= <<= >>= >>>= &= |= ^= &&= ||= ??= =>
     // DivPunctuator ::
-    //  /
-    //  /=
+    //   /
+    //   /=
     // RightBracePunctuator ::
-    //  }
+    //   }
     // ```
     fn scan_punctuator(&mut self) -> TokenType {
         match self.ch {
@@ -133,7 +165,7 @@ impl<'a> Scanner<'a> {
             '[' => TokenType::LeftSquareBracket,
             ']' => TokenType::RightSquareBracket,
             '.' => {
-                if self.peek_char() == '.' && self.peek_char_nth(2) == '.' {
+                if self.peek_char() == '.' && self.peek_char_nth(1) == '.' {
                     self.read_char();
                     self.read_char();
 
@@ -146,9 +178,9 @@ impl<'a> Scanner<'a> {
             ',' => TokenType::Comma,
             '<' => {
                 let peek_char = self.peek_char();
-                let peek_char_2 = self.peek_char_nth(2);
+                let peek_char_1 = self.peek_char_nth(2);
 
-                if peek_char == '<' && peek_char_2 == '=' {
+                if peek_char == '<' && peek_char_1 == '=' {
                     self.read_char();
                     self.read_char();
 
@@ -167,20 +199,21 @@ impl<'a> Scanner<'a> {
             }
             '>' => {
                 let peek_char = self.peek_char();
-                let peek_char_2 = self.peek_char_nth(2);
-                let peek_char_3 = self.peek_char_nth(3);
+                let peek_char_1 = self.peek_char_nth(2);
+                let peek_char_2 = self.peek_char_nth(3);
 
-                if peek_char == '>' && peek_char_2 == '>' && peek_char_3 == '=' {
+                if peek_char == '>' && peek_char_1 == '>' && peek_char_2 == '=' {
+                    self.read_char();
                     self.read_char();
                     self.read_char();
 
                     TokenType::UnsignedRightShiftAssignment
-                } else if peek_char == '>' && peek_char_2 == '>' {
+                } else if peek_char == '>' && peek_char_1 == '>' {
                     self.read_char();
                     self.read_char();
 
                     TokenType::UnsignedRightShift
-                } else if peek_char == '>' && peek_char_2 == '=' {
+                } else if peek_char == '>' && peek_char_1 == '=' {
                     self.read_char();
                     self.read_char();
 
@@ -199,9 +232,9 @@ impl<'a> Scanner<'a> {
             }
             '=' => {
                 let peek_char = self.peek_char();
-                let peek_char_2 = self.peek_char_nth(2);
+                let peek_char_1 = self.peek_char_nth(2);
 
-                if peek_char == '=' && peek_char_2 == '=' {
+                if peek_char == '=' && peek_char_1 == '=' {
                     self.read_char();
                     self.read_char();
 
@@ -220,9 +253,9 @@ impl<'a> Scanner<'a> {
             }
             '!' => {
                 let peek_char = self.peek_char();
-                let peek_char_2 = self.peek_char_nth(2);
+                let peek_char_1 = self.peek_char_nth(2);
 
-                if peek_char == '=' && peek_char_2 == '=' {
+                if peek_char == '=' && peek_char_1 == '=' {
                     self.read_char();
                     self.read_char();
 
@@ -267,9 +300,9 @@ impl<'a> Scanner<'a> {
             }
             '*' => {
                 let peek_char = self.peek_char();
-                let peek_char_2 = self.peek_char_nth(2);
+                let peek_char_1 = self.peek_char_nth(2);
 
-                if peek_char == '*' && peek_char_2 == '=' {
+                if peek_char == '*' && peek_char_1 == '=' {
                     self.read_char();
                     self.read_char();
 
@@ -286,6 +319,15 @@ impl<'a> Scanner<'a> {
                     TokenType::Multiplication
                 }
             }
+            '/' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+
+                    TokenType::DivisionAssignment
+                } else {
+                    TokenType::Division
+                }
+            }
             '%' => {
                 if self.peek_char() == '=' {
                     self.read_char();
@@ -297,9 +339,9 @@ impl<'a> Scanner<'a> {
             }
             '&' => {
                 let peek_char = self.peek_char();
-                let peek_char_2 = self.peek_char_nth(2);
+                let peek_char_1 = self.peek_char_nth(2);
 
-                if peek_char == '|' && peek_char_2 == '=' {
+                if peek_char == '&' && peek_char_1 == '=' {
                     self.read_char();
                     self.read_char();
 
@@ -318,9 +360,9 @@ impl<'a> Scanner<'a> {
             }
             '|' => {
                 let peek_char = self.peek_char();
-                let peek_char_2 = self.peek_char_nth(2);
+                let peek_char_1 = self.peek_char_nth(2);
 
-                if peek_char == '|' && peek_char_2 == '=' {
+                if peek_char == '|' && peek_char_1 == '=' {
                     self.read_char();
                     self.read_char();
 
@@ -349,9 +391,9 @@ impl<'a> Scanner<'a> {
             '~' => TokenType::BitwiseNot,
             '?' => {
                 let peek_char = self.peek_char();
-                let peek_char_2 = self.peek_char_nth(2);
+                let peek_char_1 = self.peek_char_nth(2);
 
-                if peek_char == '?' && peek_char_2 == '=' {
+                if peek_char == '?' && peek_char_1 == '=' {
                     self.read_char();
                     self.read_char();
 
@@ -360,6 +402,10 @@ impl<'a> Scanner<'a> {
                     self.read_char();
 
                     TokenType::NullishCoalescing
+                } else if peek_char == '.' {
+                    self.read_char();
+
+                    TokenType::OptionalChaining
                 } else {
                     TokenType::QuestionMark
                 }
@@ -373,37 +419,37 @@ impl<'a> Scanner<'a> {
     // 12.7 Names and Keywords
     // ```text
     // PrivateIdentifier ::
-    //  # IdentifierName
+    //   # IdentifierName
     //
     // IdentifierName ::
-    //  IdentifierStart
-    //  IdentifierName IdentifierPart
+    //   IdentifierStart
+    //   IdentifierName IdentifierPart
     //
     // IdentifierStart ::
-    //  IdentifierStartChar
-    //  \ UnicodeEscapeSequence
+    //   IdentifierStartChar
+    //   \ UnicodeEscapeSequence
     //
     // IdentifierPart ::
-    //  IdentifierPartChar
-    //  \ UnicodeEscapeSequence
+    //   IdentifierPartChar
+    //   \ UnicodeEscapeSequence
     //
     // IdentifierStartChar ::
-    //  UnicodeIDStart
-    //  $
-    //  _
+    //   UnicodeIDStart
+    //   $
+    //   _
     //
     // IdentifierPartChar ::
-    //  UnicodeIDContinue
-    //  $
-    //  <ZWNJ>
-    //  <ZWJ>
+    //   UnicodeIDContinue
+    //   $
+    //   <ZWNJ>
+    //   <ZWJ>
     // ```
     fn scan_identifier_name_or_keyword(&mut self) -> TokenType {
         let start_index = self.read_index;
 
         self.identifier_start().unwrap();
 
-        let keyword_or_identifer_name = &self.input.as_str()[start_index..self.read_index];
+        let keyword_or_identifer_name = &self.source_str[start_index..self.read_index];
 
         match self.match_reserved_keyword(keyword_or_identifer_name) {
             Some(keyword_token) => keyword_token,
@@ -428,13 +474,11 @@ impl<'a> Scanner<'a> {
             }
         };
 
-        self.read_char();
-
         self.identifier_part()
     }
 
     fn identifier_part(&mut self) -> Result<(), ParserError> {
-        let asdf = while is_identifier_part(self.ch) || self.ch == '\\' {
+        while is_identifier_part(self.ch) || self.ch == '\\' {
             if self.ch == '\\' {
                 if self.peek_char() != 'u' {
                     return Err(ParserError::IllegalCharacter);
@@ -444,16 +488,16 @@ impl<'a> Scanner<'a> {
             }
 
             self.read_char();
-        };
+        }
 
-        Ok(asdf)
+        Ok(())
     }
 
     // https://tc39.es/ecma262/#sec-keywords-and-reserved-words
     // > Those that are contextually disallowed as identifiers, in strict mode code: let, static, implements, interface, package, private, protected, and public;
     // ```text
     // ReservedWord :: one of
-    //  await break case catch class const continue debugger default delete do else enum export extends false finally for function if import in instanceof new null return super switch this throw true try typeof var void while with yield
+    //   await break case catch class const continue debugger default delete do else enum export extends false finally for function if import in instanceof new null return super switch this throw true try typeof var void while with yield
     // ```
     fn match_reserved_keyword(&self, keyword_or_identifer: &str) -> Option<TokenType> {
         match keyword_or_identifer {
@@ -512,7 +556,7 @@ impl<'a> Scanner<'a> {
     // https://tc39.es/ecma262/#prod-PrivateIdentifier
     // ```text
     // PrivateIdentifier ::
-    //  # IdentifierName
+    //   # IdentifierName
     // ```
     fn scan_private_identifier(&mut self) -> TokenType {
         let start_index = self.read_index;
@@ -521,18 +565,79 @@ impl<'a> Scanner<'a> {
 
         self.identifier_start().unwrap();
 
-        let identifer_name = &self.input.as_str()[start_index..self.read_index];
+        let identifer_name = &self.source_str[start_index..self.read_index];
 
         TokenType::Identifier(identifer_name.to_string())
+    }
+
+    // https://tc39.es/ecma262/#sec-literals-string-literals
+    // ```text
+    // StringLiteral ::
+    //   " DoubleStringCharactersopt "
+    //   ' SingleStringCharactersopt '
+    // DoubleStringCharacters ::
+    //   DoubleStringCharacter DoubleStringCharactersopt
+    // SingleStringCharacters ::
+    //   SingleStringCharacter SingleStringCharactersopt
+    // DoubleStringCharacter ::
+    //   SourceCharacter but not one of " or \ or LineTerminator
+    //   <LS>
+    //   <PS>
+    //   \ EscapeSequence
+    //   LineContinuation
+    // SingleStringCharacter ::
+    //   SourceCharacter but not one of ' or \ or LineTerminator
+    //   <LS>
+    //   <PS>
+    //   \ EscapeSequence
+    //   LineContinuation
+    // ```
+    fn scan_string_literal(&mut self) -> Result<TokenType, ParserError> {
+        let start_quote_character = self.ch; // '\'' | '"'
+
+        self.read_char();
+
+        while self.ch != start_quote_character {
+            if self.ch == CR || self.ch == LF {
+                return Err(ParserError::UnterminatedStringLiteral);
+            } else if self.ch == '\\' {
+                self.scan_escape_sequence();
+            }
+
+            self.read_char();
+        }
+
+        return Ok(TokenType::StringLiteral);
+    }
+
+    fn scan_escape_sequence(&mut self) {
+        match self.ch {
+            '\'' | '"' | '\\' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' => self.read_char(),
+            'x' => {
+                if self.hex_two_digits().is_ok() {
+                    return;
+                }
+            }
+            'u' => self.scan_unicode_escape_sequence(),
+            CR => {
+                if self.peek_char() == LF {
+                    self.read_char();
+                }
+            }
+            LF | LS | PS => {}
+            _ => {
+                println!("Illegal character: {}", self.ch);
+            }
+        }
     }
 
     // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
     // ```text
     // UnicodeEscapeSequence ::
-    //  `u` Hex4Digits
-    //  `u{` CodePoint `}`
+    //   `u` Hex4Digits
+    //   `u{` CodePoint `}`
     // ```
-    fn unicode_escape_sequence(&mut self) {
+    fn scan_unicode_escape_sequence(&mut self) {
         if self.peek_char() == '{' {
             self.read_char();
         } else {
@@ -540,10 +645,27 @@ impl<'a> Scanner<'a> {
         }
     }
 
+    // https://tc39.es/ecma262/#prod-HexEscapeSequence
+    // ```text
+    // HexEscapeSequence ::
+    //   x HexDigit HexDigit
+    // ```
+    fn hex_two_digits(&mut self) -> Result<char, ParserError> {
+        let start_index = self.read_index;
+
+        while self.ch.is_ascii_hexdigit() {
+            self.read_char();
+        }
+
+        let hex_digits = &self.source_str[start_index..self.read_index];
+
+        self.code_point_to_char(hex_digits)
+    }
+
     // https://tc39.es/ecma262/#prod-Hex4Digits
     // ```text
     // Hex4Digits ::
-    //  HexDigit HexDigit HexDigit HexDigit
+    //   HexDigit HexDigit HexDigit HexDigit
     // ```
     fn hex_four_digits(&mut self) -> Result<char, ParserError> {
         let start_index = self.read_index;
@@ -552,7 +674,7 @@ impl<'a> Scanner<'a> {
             self.read_char();
         }
 
-        let hex_digits = &self.input.as_str()[start_index..self.read_index];
+        let hex_digits = &self.source_str[start_index..self.read_index];
 
         self.code_point_to_char(hex_digits)
     }
