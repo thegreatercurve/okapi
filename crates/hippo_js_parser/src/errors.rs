@@ -1,7 +1,12 @@
 #[derive(Debug)]
 pub enum ParserError {
-    SyntaxError(String),
-    IllegalCharacter,
+    SyntaxError,
+
+    IllegalIdentifierCharacter,
+    IllegalHexadecimalEscapeSequence,
+    IllegalUnicodeEscapeSequence,
+    IllegalUnicodeCodePointEscapeSequence,
+
     UnterminatedStringLiteral,
     ScannerError,
 }

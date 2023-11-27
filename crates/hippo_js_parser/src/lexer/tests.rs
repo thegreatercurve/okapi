@@ -62,11 +62,11 @@ fn keywords_and_identifiers() {
     );
 
     // assert_lexer_eq!(
-    //     r#"var \\u{0042}\\u{0041}z = 1;"#,
+    //     r#"var \u{0042}\u{0041}z = 1;"#,
     //     vec![
     //         TokenType::Keyword(KeywordKind::Var),
     //         TokenType::Identifier("baz".to_string()),
-    //         TokenType::Assign,
+    //         TokenType::Assignment,
     //         TokenType::NumberLiteral,
     //         TokenType::Semicolon,
     //     ]
@@ -153,5 +153,49 @@ fn punctuators() {
             TokenType::DivisionAssignment,
             TokenType::RightCurlyBrace,
         ]
+    );
+}
+
+#[test]
+fn string_literals() {
+    assert_lexer_eq!(r#""hello world""#, vec![TokenType::StringLiteral]);
+    assert_lexer_eq!("\"hello world\"", vec![TokenType::StringLiteral]);
+
+    assert_lexer_eq!(r#""hello\n\tworld""#, vec![TokenType::StringLiteral]);
+    assert_lexer_eq!("\"hello\\b\\tworld\"", vec![TokenType::StringLiteral]);
+
+    // Hexadecimal escape sequence
+    assert_lexer_eq!("\"hello \x4A\x61vaScript\"", vec![TokenType::StringLiteral]);
+    assert_lexer_eq!(
+        r#""hello \x4A\x61vaScript""#,
+        vec![TokenType::StringLiteral]
+    );
+
+    // Unicode escape sequence
+    assert_lexer_eq!("\"hello\\u0020world\"", vec![TokenType::StringLiteral]);
+    assert_lexer_eq!(r#""hello\u0020world""#, vec![TokenType::StringLiteral]);
+
+    // Unicode escape sequence with surrogate pairs
+    assert_lexer_eq!(
+        "\"hello\\u0020world\\uD83D\\uDE00\"",
+        vec![TokenType::StringLiteral]
+    );
+    assert_lexer_eq!(
+        r#""hello\u0020world\uD83D\uDE00""#,
+        vec![TokenType::StringLiteral]
+    );
+
+    // Code point escape sequence with surrogate pairs
+    assert_lexer_eq!("\"hello world \\u{1F607}\"", vec![TokenType::StringLiteral]);
+    assert_lexer_eq!(r#""hello world \u{1F607}""#, vec![TokenType::StringLiteral]);
+
+    // Unescaped string with complex graphemes.
+    assert_lexer_eq!(
+        r#""abcdefghijklmnopqrstuvwxyz🙂12345678910'\'10🎉""#,
+        vec![TokenType::StringLiteral]
+    );
+    assert_lexer_eq!(
+        "\"abcdefghijklmnopqrstuvwxyz🙂12345678910'\'10🎉\"",
+        vec![TokenType::StringLiteral]
     );
 }

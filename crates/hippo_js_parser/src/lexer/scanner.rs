@@ -42,9 +42,10 @@ pub fn is_line_terminator(ch: char) -> bool {
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
-    source_str: &'a str,
-    read_index: usize,
     ch: char,
+    errors: Vec<ParserError>,
+    read_index: usize,
+    source_str: &'a str,
 }
 
 fn is_identifier_start(ch: char) -> bool {
@@ -74,9 +75,10 @@ fn is_punctuator_start(ch: char) -> bool {
 impl<'a> Scanner<'a> {
     pub fn new(input: &'a str) -> Self {
         let lexer = Self {
-            source_str: input,
-            read_index: 0,
             ch: input.chars().next().unwrap(),
+            errors: Vec::new(),
+            read_index: 0,
+            source_str: input,
         };
 
         return lexer;
@@ -104,7 +106,7 @@ impl<'a> Scanner<'a> {
     }
 
     pub fn is_end_of_file(&mut self) -> bool {
-        self.read_index >= self.source_str.len()
+        self.read_index >= self.source_str.chars().count()
     }
 
     fn skip_whitespace(&mut self) {
@@ -131,7 +133,7 @@ impl<'a> Scanner<'a> {
         let token = match self.ch {
             '#' => self.scan_private_identifier(),
             '1'..='9' => TokenType::NumberLiteral,
-            '\'' | '"' => self.scan_string_literal().unwrap_or(TokenType::Illegal),
+            '\'' | '"' => self.scan_string_literal(),
             _ if is_punctuator_start(self.ch) => self.scan_punctuator(),
             _ if is_identifier_start(self.ch) => self.scan_identifier_name_or_keyword(),
             _ => TokenType::Illegal,
@@ -166,8 +168,7 @@ impl<'a> Scanner<'a> {
             ']' => TokenType::RightSquareBracket,
             '.' => {
                 if self.peek_char() == '.' && self.peek_char_nth(1) == '.' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::Ellipsis
                 } else {
@@ -181,8 +182,7 @@ impl<'a> Scanner<'a> {
                 let peek_char_1 = self.peek_char_nth(2);
 
                 if peek_char == '<' && peek_char_1 == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::LeftShiftAssignment
                 } else if peek_char == '<' {
@@ -203,19 +203,15 @@ impl<'a> Scanner<'a> {
                 let peek_char_2 = self.peek_char_nth(3);
 
                 if peek_char == '>' && peek_char_1 == '>' && peek_char_2 == '=' {
-                    self.read_char();
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(3);
 
                     TokenType::UnsignedRightShiftAssignment
                 } else if peek_char == '>' && peek_char_1 == '>' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::UnsignedRightShift
                 } else if peek_char == '>' && peek_char_1 == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::RightShiftAssignment
                 } else if peek_char == '>' {
@@ -235,8 +231,7 @@ impl<'a> Scanner<'a> {
                 let peek_char_1 = self.peek_char_nth(2);
 
                 if peek_char == '=' && peek_char_1 == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::StrictEqual
                 } else if peek_char == '=' {
@@ -256,8 +251,7 @@ impl<'a> Scanner<'a> {
                 let peek_char_1 = self.peek_char_nth(2);
 
                 if peek_char == '=' && peek_char_1 == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::StrictNotEqual
                 } else if peek_char == '=' {
@@ -303,8 +297,7 @@ impl<'a> Scanner<'a> {
                 let peek_char_1 = self.peek_char_nth(2);
 
                 if peek_char == '*' && peek_char_1 == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::ExponentiationAssignment
                 } else if peek_char == '=' {
@@ -342,8 +335,7 @@ impl<'a> Scanner<'a> {
                 let peek_char_1 = self.peek_char_nth(2);
 
                 if peek_char == '&' && peek_char_1 == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::LogicalAndAssignment
                 } else if peek_char == '=' {
@@ -363,8 +355,7 @@ impl<'a> Scanner<'a> {
                 let peek_char_1 = self.peek_char_nth(2);
 
                 if peek_char == '|' && peek_char_1 == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::LogicalOrAssignment
                 } else if peek_char == '=' {
@@ -394,8 +385,7 @@ impl<'a> Scanner<'a> {
                 let peek_char_1 = self.peek_char_nth(2);
 
                 if peek_char == '?' && peek_char_1 == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.read_char_nth(2);
 
                     TokenType::NullishCoalescingAssignment
                 } else if peek_char == '?' {
@@ -447,7 +437,9 @@ impl<'a> Scanner<'a> {
     fn scan_identifier_name_or_keyword(&mut self) -> TokenType {
         let start_index = self.read_index;
 
-        self.identifier_start().unwrap();
+        if !self.identifier_start() {
+            return TokenType::Illegal;
+        };
 
         let keyword_or_identifer_name = &self.source_str[start_index..self.read_index];
 
@@ -457,40 +449,41 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    fn identifier_start(&mut self) -> Result<(), ParserError> {
+    fn identifier_start(&mut self) -> bool {
         match self.ch {
             '$' | '_' | _ if self.ch.is_ascii_alphabetic() => self.read_char(),
             '\\' => {
                 if self.peek_char() != 'u' {
-                    return Err(ParserError::IllegalCharacter);
+                    self.errors.push(ParserError::IllegalIdentifierCharacter);
+
+                    return false;
                 }
 
-                // self.unicode_escape_sequence();
+                self.unicode_escape_sequence();
             }
             _ if is_unicode_id_start(self.ch) => self.read_char(),
-            _ => {
-                println!("Illegal character: {}", self.ch);
-                return Err(ParserError::IllegalCharacter);
-            }
+            _ => self.errors.push(ParserError::IllegalIdentifierCharacter),
         };
 
         self.identifier_part()
     }
 
-    fn identifier_part(&mut self) -> Result<(), ParserError> {
+    fn identifier_part(&mut self) -> bool {
         while is_identifier_part(self.ch) || self.ch == '\\' {
             if self.ch == '\\' {
                 if self.peek_char() != 'u' {
-                    return Err(ParserError::IllegalCharacter);
+                    self.errors.push(ParserError::IllegalIdentifierCharacter);
+
+                    return false;
                 }
 
-                // self.unicode_escape_sequence();
+                self.unicode_escape_sequence();
             }
 
             self.read_char();
         }
 
-        Ok(())
+        true
     }
 
     // https://tc39.es/ecma262/#sec-keywords-and-reserved-words
@@ -563,7 +556,9 @@ impl<'a> Scanner<'a> {
 
         self.read_char();
 
-        self.identifier_start().unwrap();
+        if !self.identifier_start() {
+            return TokenType::Illegal;
+        };
 
         let identifer_name = &self.source_str[start_index..self.read_index];
 
@@ -592,56 +587,42 @@ impl<'a> Scanner<'a> {
     //   \ EscapeSequence
     //   LineContinuation
     // ```
-    fn scan_string_literal(&mut self) -> Result<TokenType, ParserError> {
+    fn scan_string_literal(&mut self) -> TokenType {
         let start_quote_character = self.ch; // '\'' | '"'
 
         self.read_char();
 
         while self.ch != start_quote_character {
             if self.ch == CR || self.ch == LF {
-                return Err(ParserError::UnterminatedStringLiteral);
+                self.errors.push(ParserError::UnterminatedStringLiteral);
+
+                return TokenType::Illegal;
             } else if self.ch == '\\' {
-                self.scan_escape_sequence();
+                self.validate_escape_sequence();
             }
 
             self.read_char();
         }
 
-        return Ok(TokenType::StringLiteral);
+        return TokenType::StringLiteral;
     }
 
-    fn scan_escape_sequence(&mut self) {
+    fn validate_escape_sequence(&mut self) -> bool {
         match self.ch {
-            '\'' | '"' | '\\' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' => self.read_char(),
-            'x' => {
-                if self.hex_two_digits().is_ok() {
-                    return;
-                }
-            }
-            'u' => self.scan_unicode_escape_sequence(),
-            CR => {
-                if self.peek_char() == LF {
-                    self.read_char();
-                }
-            }
-            LF | LS | PS => {}
-            _ => {
-                println!("Illegal character: {}", self.ch);
-            }
-        }
-    }
+            '\'' | '"' | '\\' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' => {
+                self.read_char();
 
-    // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
-    // ```text
-    // UnicodeEscapeSequence ::
-    //   `u` Hex4Digits
-    //   `u{` CodePoint `}`
-    // ```
-    fn scan_unicode_escape_sequence(&mut self) {
-        if self.peek_char() == '{' {
-            self.read_char();
-        } else {
-            self.hex_four_digits();
+                true
+            }
+            'x' => self.read_hex_two_digits(),
+            'u' => {
+                if self.peek_char() == '{' {
+                    self.unicode_escape_sequence()
+                } else {
+                    self.code_point_escape_sequence()
+                }
+            }
+            _ => false,
         }
     }
 
@@ -650,16 +631,76 @@ impl<'a> Scanner<'a> {
     // HexEscapeSequence ::
     //   x HexDigit HexDigit
     // ```
-    fn hex_two_digits(&mut self) -> Result<char, ParserError> {
-        let start_index = self.read_index;
+    fn read_hex_two_digits(&mut self) -> bool {
+        for _ in 0..2 {
+            if !self.ch.is_ascii_hexdigit() {
+                self.errors
+                    .push(ParserError::IllegalHexadecimalEscapeSequence);
 
-        while self.ch.is_ascii_hexdigit() {
+                return false;
+            }
+
             self.read_char();
         }
 
-        let hex_digits = &self.source_str[start_index..self.read_index];
+        true
+    }
 
-        self.code_point_to_char(hex_digits)
+    // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
+    // ```text
+    // UnicodeEscapeSequence ::
+    //   `u` Hex4Digits
+    // ```
+    fn unicode_escape_sequence(&mut self) -> bool {
+        let start_index = self.read_index;
+
+        self.read_hex_four_digits();
+
+        let hex_value = &self.source_str[start_index..self.read_index];
+
+        if hex_value.len() < 4 {
+            self.errors.push(ParserError::IllegalUnicodeEscapeSequence);
+
+            return false;
+        }
+
+        let hex_value_u32 = u32::from_str_radix(hex_value, 16).unwrap_or_else(|_| {
+            self.errors.push(ParserError::IllegalUnicodeEscapeSequence);
+
+            00000
+        });
+
+        // Check that it's not outside of range of Basic Multilingual Plane.
+        if !(0x0000..=0xFFFF).contains(&hex_value_u32) {
+            self.errors.push(ParserError::IllegalUnicodeEscapeSequence);
+
+            return false;
+        }
+
+        // TODO Better handle surrogate pairs.
+        // From Wiki: The High Surrogate (U+D800–U+DBFF) and Low Surrogate (U+DC00–U+DFFF) codes are reserved for encoding non-BMP characters in UTF-16 by using a pair of 16-bit codes: one High Surrogate and one Low Surrogate. A single surrogate code point will never be assigned a character.
+
+        true
+    }
+
+    // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
+    // ```text
+    // UnicodeEscapeSequence ::
+    //   `u{` CodePoint `}`
+    // ```
+    fn code_point_escape_sequence(&mut self) -> bool {
+        self.read_hex_four_digits();
+
+        if self.peek_char() != '}' {
+            self.errors
+                .push(ParserError::IllegalUnicodeCodePointEscapeSequence);
+
+            return false;
+        }
+
+        self.read_char();
+
+        true
     }
 
     // https://tc39.es/ecma262/#prod-Hex4Digits
@@ -667,25 +708,18 @@ impl<'a> Scanner<'a> {
     // Hex4Digits ::
     //   HexDigit HexDigit HexDigit HexDigit
     // ```
-    fn hex_four_digits(&mut self) -> Result<char, ParserError> {
-        let start_index = self.read_index;
+    fn read_hex_four_digits(&mut self) -> bool {
+        for _ in 0..4 {
+            if !self.ch.is_ascii_hexdigit() {
+                self.errors
+                    .push(ParserError::IllegalHexadecimalEscapeSequence);
 
-        while self.ch.is_ascii_hexdigit() {
+                return false;
+            }
+
             self.read_char();
         }
 
-        let hex_digits = &self.source_str[start_index..self.read_index];
-
-        self.code_point_to_char(hex_digits)
-    }
-
-    fn code_point_to_char(&self, hex_digits: &str) -> Result<char, ParserError> {
-        let code_point = u32::from_str_radix(hex_digits, 16).unwrap();
-
-        if !(0xD800..=0xDFFF).contains(&code_point) || hex_digits.len() < 4 {
-            Err(ParserError::IllegalCharacter)
-        } else {
-            Ok(char::from_u32(code_point).unwrap())
-        }
+        true
     }
 }
