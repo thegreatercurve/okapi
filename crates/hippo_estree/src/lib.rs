@@ -11,12 +11,12 @@ mod statement;
 
 #[derive(Debug, PartialEq)]
 pub struct Identifier {
-    name: String,
+    pub name: String,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Literal {
-    value: LiteralValue,
+    pub value: LiteralValue,
 }
 
 #[derive(Debug, PartialEq)]

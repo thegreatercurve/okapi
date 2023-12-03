@@ -1,2 +1,6 @@
+use crate::Identifier;
+
 #[derive(Debug, PartialEq)]
-pub struct Pattern {}
+pub enum Pattern {
+    Identifier(Identifier),
+}

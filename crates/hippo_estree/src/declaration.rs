@@ -1,20 +1,30 @@
 use crate::{ExpressionData, Identifier, Pattern};
 
+#[derive(Debug, PartialEq)]
+pub enum DeclarationData {
+    Function(FunctionDeclaration),
+    Variable(VariableDeclaration),
+}
+
+#[derive(Debug, PartialEq)]
 pub struct FunctionDeclaration {
     id: Identifier,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct VariableDeclaration {
-    declarations: Vec<VariableDeclarator>,
-    kind: VariableKind,
+    pub declarations: Vec<VariableDeclarator>,
+    pub kind: VariableKind,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct VariableDeclarator {
-    id: Pattern,
-    init: Option<ExpressionData>,
+    pub id: Pattern,
+    pub init: Option<ExpressionData>,
 }
 
-enum VariableKind {
+#[derive(Debug, PartialEq)]
+pub enum VariableKind {
     Var,
     Let,
     Const,

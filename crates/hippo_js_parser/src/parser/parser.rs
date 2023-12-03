@@ -38,4 +38,11 @@ impl<'a> Parser<'a> {
 
         self.next_token = self.lexer.next_token();
     }
+
+    fn parse_expression(&mut self) {
+        match self.current_token {
+            TokenType::NumberLiteral => {}
+            _ => {}
+        }
+    }
 }

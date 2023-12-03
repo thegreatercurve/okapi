@@ -1,4 +1,4 @@
-use crate::{ExpressionData, Identifier, Literal, Pattern};
+use crate::{DeclarationData, ExpressionData, Identifier, Literal, Pattern};
 
 #[derive(Debug, PartialEq)]
 pub enum StatementData {
@@ -22,6 +22,8 @@ pub enum StatementData {
     DoWhile(DoWhileStatement),
     For(ForStatement),
     ForIn(ForInStatement),
+
+    Declaration(DeclarationData),
 }
 
 #[derive(Debug, PartialEq)]

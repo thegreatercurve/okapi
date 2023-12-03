@@ -1,3 +1,5 @@
+use crate::Literal;
+
 #[derive(Debug, PartialEq)]
 pub enum ExpressionData {
     This,
@@ -14,6 +16,8 @@ pub enum ExpressionData {
     Call(CallExpression),
     New(NewExpression),
     Sequence(SequenceExpression),
+
+    Literal(Literal),
 }
 
 #[derive(Debug, PartialEq)]
