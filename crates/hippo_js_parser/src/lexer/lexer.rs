@@ -127,6 +127,20 @@ impl<'a> Lexer<'a> {
         token
     }
 
+    pub fn peek_token(&mut self) -> TokenType {
+        self.skip_whitespace();
+
+        if self.is_end_of_file() {
+            return TokenType::EOF;
+        }
+
+        let token = self.advance();
+
+        self.read_char();
+
+        token
+    }
+
     fn advance(&mut self) -> TokenType {
         let token = match self.ch {
             '#' => self.scan_private_identifier(),

@@ -9,15 +9,18 @@ mod expression;
 mod pattern;
 mod statement;
 
+#[derive(Debug, PartialEq)]
 pub struct Identifier {
     name: String,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Literal {
     value: LiteralValue,
 }
 
-enum LiteralValue {
+#[derive(Debug, PartialEq)]
+pub enum LiteralValue {
     String(String),
     Boolean(bool),
     Null,
@@ -25,22 +28,26 @@ enum LiteralValue {
     RegExp(RegExpLiteral),
 }
 
+#[derive(Debug, PartialEq)]
 pub struct RegExpLiteral {
     regex: Regex,
 }
 
+#[derive(Debug, PartialEq)]
 struct Regex {
     pattern: String,
     flags: String,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Program {
-    body: Vec<ProgramBody>,
+    pub body: Vec<ProgramBody>,
 }
 
-enum ProgramBody {
-    Directive,
-    Statement,
+#[derive(Debug, PartialEq)]
+pub enum ProgramBody {
+    Directive(),
+    Statement(StatementData),
 }
 
 pub struct Function {

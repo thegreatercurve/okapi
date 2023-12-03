@@ -1,4 +1,4 @@
-use crate::{Expression, Identifier, Pattern};
+use crate::{ExpressionData, Identifier, Pattern};
 
 pub struct FunctionDeclaration {
     id: Identifier,
@@ -11,7 +11,7 @@ pub struct VariableDeclaration {
 
 pub struct VariableDeclarator {
     id: Pattern,
-    init: Option<Expression>,
+    init: Option<ExpressionData>,
 }
 
 enum VariableKind {

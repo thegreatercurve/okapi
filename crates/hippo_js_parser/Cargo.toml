@@ -5,4 +5,5 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+hippo_estree = { workspace = true }
 hippo_unicode = { workspace = true }

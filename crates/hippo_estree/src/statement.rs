@@ -1,114 +1,160 @@
-use crate::{Expression, Identifier, Literal, Pattern};
+use crate::{ExpressionData, Identifier, Literal, Pattern};
 
-pub struct Statement {}
-
-pub struct ExpressionStatement {
-    expression: Expression,
+#[derive(Debug, PartialEq)]
+pub enum StatementData {
+    Expression(ExpressionStatement),
+    Directive(Directive),
+    Block(BlockStatement),
+    Empty(EmptyStatement),
+    Debugger(DebuggerStatement),
+    With(WithStatement),
+    Return(ReturnStatement),
+    Labeled(LabeledStatement),
+    Break(BreakStatement),
+    Continue(ContinueStatement),
+    If(IfStatement),
+    Switch(SwitchStatement),
+    SwitchCase(SwitchCase),
+    Throw(ThrowStatement),
+    Try(TryStatement),
+    CatchClause(CatchClause),
+    While(WhileStatement),
+    DoWhile(DoWhileStatement),
+    For(ForStatement),
+    ForIn(ForInStatement),
 }
 
+#[derive(Debug, PartialEq)]
+pub struct ExpressionStatement {
+    pub expression: ExpressionData,
+}
+
+#[derive(Debug, PartialEq)]
 pub struct Directive {
     expression: Literal,
     directive: String,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct BlockStatement {
-    body: Vec<Statement>,
+    body: Vec<StatementData>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct FunctionBody {
     body: FunctionBodyBody,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum FunctionBodyBody {
     Directive,
     Statement,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct EmptyStatement {}
 
+#[derive(Debug, PartialEq)]
 pub struct DebuggerStatement {}
 
+#[derive(Debug, PartialEq)]
 pub struct WithStatement {
-    object: Expression,
-    body: Statement,
+    object: ExpressionData,
+    body: Box<StatementData>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ReturnStatement {
-    argument: Option<Expression>,
+    argument: Option<ExpressionData>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct LabeledStatement {
     label: Identifier,
-    body: Statement,
+    body: Box<StatementData>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct BreakStatement {
     label: Option<Identifier>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ContinueStatement {
     label: Option<Identifier>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct IfStatement {
-    test: Expression,
-    consequent: Statement,
-    alternate: Option<Statement>,
+    test: ExpressionData,
+    consequent: Box<StatementData>,
+    alternate: Option<Box<StatementData>>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct SwitchStatement {
-    discriminant: Expression,
+    discriminant: ExpressionData,
     cases: Vec<SwitchCase>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct SwitchCase {
-    test: Option<Expression>,
-    consequent: Vec<Statement>,
+    test: Option<ExpressionData>,
+    consequent: Vec<StatementData>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ThrowStatement {
-    argument: Expression,
+    argument: ExpressionData,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct TryStatement {
     block: BlockStatement,
     handler: Option<CatchClause>,
     finalizer: Option<BlockStatement>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct CatchClause {
     param: Pattern,
     body: BlockStatement,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct WhileStatement {
-    test: Expression,
-    body: Statement,
+    test: ExpressionData,
+    body: Box<StatementData>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct DoWhileStatement {
-    body: Statement,
-    test: Expression,
+    body: Box<StatementData>,
+    test: ExpressionData,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ForStatement {
     init: ForStatementInit,
-    test: Option<Expression>,
-    update: Option<Expression>,
-    body: Statement,
+    test: Option<ExpressionData>,
+    update: Option<ExpressionData>,
+    body: Box<StatementData>,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum ForStatementInit {
     VariableDeclaration,
     Expression,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct ForInStatement {
     left: ForInStatementLeft,
-    right: Expression,
-    body: Statement,
+    right: ExpressionData,
+    body: Box<StatementData>,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum ForInStatementLeft {
     Directive,
     Statement,
