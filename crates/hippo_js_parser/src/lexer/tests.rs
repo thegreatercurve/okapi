@@ -15,8 +15,6 @@ macro_rules! assert_lexer_eq {
                 .pop_front()
                 .unwrap_or_else(|| panic!("Unexpected end to queue"));
 
-            println!("{:?} {:?}", token, expected_token);
-
             assert_eq!(
                 expected_token, token,
                 "Expected token {:?}, but found {:?}",
