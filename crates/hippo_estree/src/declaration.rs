@@ -8,7 +8,7 @@ pub enum DeclarationData {
 
 #[derive(Debug, PartialEq)]
 pub struct FunctionDeclaration {
-    id: Identifier,
+    pub id: Identifier,
 }
 
 #[derive(Debug, PartialEq)]

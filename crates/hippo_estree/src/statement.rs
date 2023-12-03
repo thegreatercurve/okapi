@@ -33,18 +33,18 @@ pub struct ExpressionStatement {
 
 #[derive(Debug, PartialEq)]
 pub struct Directive {
-    expression: Literal,
-    directive: String,
+    pub expression: Literal,
+    pub directive: String,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct BlockStatement {
-    body: Vec<StatementData>,
+    pub body: Vec<StatementData>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct FunctionBody {
-    body: FunctionBodyBody,
+    pub body: FunctionBodyBody,
 }
 
 #[derive(Debug, PartialEq)]
@@ -61,86 +61,86 @@ pub struct DebuggerStatement {}
 
 #[derive(Debug, PartialEq)]
 pub struct WithStatement {
-    object: ExpressionData,
-    body: Box<StatementData>,
+    pub object: ExpressionData,
+    pub body: Box<StatementData>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ReturnStatement {
-    argument: Option<ExpressionData>,
+    pub argument: Option<ExpressionData>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct LabeledStatement {
-    label: Identifier,
-    body: Box<StatementData>,
+    pub label: Identifier,
+    pub body: Box<StatementData>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct BreakStatement {
-    label: Option<Identifier>,
+    pub label: Option<Identifier>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ContinueStatement {
-    label: Option<Identifier>,
+    pub label: Option<Identifier>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct IfStatement {
-    test: ExpressionData,
-    consequent: Box<StatementData>,
-    alternate: Option<Box<StatementData>>,
+    pub test: ExpressionData,
+    pub consequent: Box<StatementData>,
+    pub alternate: Option<Box<StatementData>>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct SwitchStatement {
-    discriminant: ExpressionData,
-    cases: Vec<SwitchCase>,
+    pub discriminant: ExpressionData,
+    pub cases: Vec<SwitchCase>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct SwitchCase {
-    test: Option<ExpressionData>,
-    consequent: Vec<StatementData>,
+    pub test: Option<ExpressionData>,
+    pub consequent: Vec<StatementData>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ThrowStatement {
-    argument: ExpressionData,
+    pub argument: ExpressionData,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct TryStatement {
-    block: BlockStatement,
-    handler: Option<CatchClause>,
-    finalizer: Option<BlockStatement>,
+    pub block: BlockStatement,
+    pub handler: Option<CatchClause>,
+    pub finalizer: Option<BlockStatement>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct CatchClause {
-    param: Pattern,
-    body: BlockStatement,
+    pub param: Pattern,
+    pub body: BlockStatement,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct WhileStatement {
-    test: ExpressionData,
-    body: Box<StatementData>,
+    pub test: ExpressionData,
+    pub body: Box<StatementData>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct DoWhileStatement {
-    body: Box<StatementData>,
-    test: ExpressionData,
+    pub body: Box<StatementData>,
+    pub test: ExpressionData,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ForStatement {
-    init: ForStatementInit,
-    test: Option<ExpressionData>,
-    update: Option<ExpressionData>,
-    body: Box<StatementData>,
+    pub init: ForStatementInit,
+    pub test: Option<ExpressionData>,
+    pub update: Option<ExpressionData>,
+    pub body: Box<StatementData>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -151,9 +151,9 @@ pub enum ForStatementInit {
 
 #[derive(Debug, PartialEq)]
 pub struct ForInStatement {
-    left: ForInStatementLeft,
-    right: ExpressionData,
-    body: Box<StatementData>,
+    pub left: ForInStatementLeft,
+    pub right: ExpressionData,
+    pub body: Box<StatementData>,
 }
 
 #[derive(Debug, PartialEq)]

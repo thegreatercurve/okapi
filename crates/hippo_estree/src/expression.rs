@@ -25,19 +25,19 @@ pub struct ThisExpression {}
 
 #[derive(Debug, PartialEq)]
 pub struct ArrayExpression {
-    elements: Vec<Option<Box<ExpressionData>>>,
+    pub elements: Vec<Option<Box<ExpressionData>>>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ObjectExpression {
-    properties: Vec<Property>,
+    pub properties: Vec<Property>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Property {
-    key: PropertyKey,
-    value: Box<ExpressionData>,
-    kind: ProprtyKind,
+    pub key: PropertyKey,
+    pub value: Box<ExpressionData>,
+    pub kind: ProprtyKind,
 }
 
 #[derive(Debug, PartialEq)]
@@ -58,9 +58,9 @@ pub struct FunctionExpression {}
 
 #[derive(Debug, PartialEq)]
 pub struct UnaryExpression {
-    operator: UnaryOperator,
-    prefix: bool,
-    argument: Box<ExpressionData>,
+    pub operator: UnaryOperator,
+    pub prefix: bool,
+    pub argument: Box<ExpressionData>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -76,9 +76,9 @@ pub enum UnaryOperator {
 
 #[derive(Debug, PartialEq)]
 pub struct UpdateExpression {
-    operator: UpdateOperator,
-    argument: Box<ExpressionData>,
-    prefix: bool,
+    pub operator: UpdateOperator,
+    pub argument: Box<ExpressionData>,
+    pub prefix: bool,
 }
 
 #[derive(Debug, PartialEq)]
@@ -121,9 +121,9 @@ pub enum BinaryOperator {
 
 #[derive(Debug, PartialEq)]
 pub struct AssignmentExpression {
-    operator: AssignmentOperator,
-    left: AssignmentExpressionLeft,
-    right: Box<ExpressionData>,
+    pub operator: AssignmentOperator,
+    pub left: AssignmentExpressionLeft,
+    pub right: Box<ExpressionData>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -150,9 +150,9 @@ pub enum AssignmentOperator {
 
 #[derive(Debug, PartialEq)]
 pub struct LogicalExpression {
-    operator: LogicalOperator,
-    left: Box<ExpressionData>,
-    right: Box<ExpressionData>,
+    pub operator: LogicalOperator,
+    pub left: Box<ExpressionData>,
+    pub right: Box<ExpressionData>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -163,31 +163,31 @@ pub enum LogicalOperator {
 
 #[derive(Debug, PartialEq)]
 pub struct MemberExpression {
-    object: Box<ExpressionData>,
-    property: Box<ExpressionData>,
-    computed: bool,
+    pub object: Box<ExpressionData>,
+    pub property: Box<ExpressionData>,
+    pub computed: bool,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ConditionalExpression {
-    test: Box<ExpressionData>,
-    alternate: Box<ExpressionData>,
-    consequent: Box<ExpressionData>,
+    pub test: Box<ExpressionData>,
+    pub alternate: Box<ExpressionData>,
+    pub consequent: Box<ExpressionData>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct CallExpression {
-    callee: Box<ExpressionData>,
-    arguments: Vec<ExpressionData>,
+    pub callee: Box<ExpressionData>,
+    pub arguments: Vec<ExpressionData>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct NewExpression {
-    callee: Box<ExpressionData>,
-    arguments: Vec<ExpressionData>,
+    pub callee: Box<ExpressionData>,
+    pub arguments: Vec<ExpressionData>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct SequenceExpression {
-    expressions: Vec<ExpressionData>,
+    pub expressions: Vec<ExpressionData>,
 }

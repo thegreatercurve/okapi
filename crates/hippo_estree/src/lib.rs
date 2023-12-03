@@ -34,9 +34,9 @@ pub struct RegExpLiteral {
 }
 
 #[derive(Debug, PartialEq)]
-struct Regex {
-    pattern: String,
-    flags: String,
+pub struct Regex {
+    pub pattern: String,
+    pub flags: String,
 }
 
 #[derive(Debug, PartialEq)]
@@ -50,8 +50,9 @@ pub enum ProgramBody {
     Statement(StatementData),
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Function {
-    id: Option<Identifier>,
-    params: Vec<Pattern>,
-    body: FunctionBody,
+    pub id: Option<Identifier>,
+    pub params: Vec<Pattern>,
+    pub body: FunctionBody,
 }
