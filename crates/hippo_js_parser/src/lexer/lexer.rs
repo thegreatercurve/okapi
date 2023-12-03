@@ -41,7 +41,7 @@ pub fn is_line_terminator(ch: char) -> bool {
 }
 
 #[derive(Debug)]
-pub struct Scanner<'a> {
+pub struct Lexer<'a> {
     ch: char,
     errors: Vec<ParserError>,
     read_index: usize,
@@ -72,16 +72,14 @@ fn is_punctuator_start(ch: char) -> bool {
     }
 }
 
-impl<'a> Scanner<'a> {
+impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
-        let lexer = Self {
+        Self {
             ch: input.chars().next().unwrap(),
             errors: Vec::new(),
             read_index: 0,
             source_str: input,
-        };
-
-        return lexer;
+        }
     }
 
     fn read_char(&mut self) {

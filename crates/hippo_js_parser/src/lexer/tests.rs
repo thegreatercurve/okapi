@@ -1,12 +1,12 @@
 use std::collections::VecDeque;
 
-use crate::{KeywordKind, Scanner, TokenType};
+use crate::{KeywordKind, Lexer, TokenType};
 
 macro_rules! assert_lexer_eq {
     ($input_str: expr, $tokens: expr) => {{
         let mut tests = VecDeque::from($tokens);
 
-        let mut scanner = Scanner::new($input_str);
+        let mut scanner = Lexer::new($input_str);
 
         while !scanner.is_end_of_file() {
             let token = scanner.next_token();
