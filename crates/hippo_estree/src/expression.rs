@@ -219,8 +219,13 @@ pub struct ConditionalExpression {
 pub struct CallExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub callee: Box<ExpressionData>,
+    pub callee: Box<CallExpressionCallee>,
     pub arguments: Vec<ExpressionData>,
+}
+#[derive(Debug, PartialEq, Serialize)]
+enum CallExpressionCallee {
+    ExpressionData,
+    Super,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -238,4 +243,12 @@ pub struct SequenceExpression {
     #[serde(flatten)]
     pub node: Node,
     pub expressions: Vec<ExpressionData>,
+}
+
+// es2015
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(tag = "type")]
+pub struct Super {
+    #[serde(flatten)]
+    pub node: Node,
 }

@@ -40,7 +40,7 @@ pub enum LiteralValue {
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct RegExpLiteral {
-    regex: Regex,
+    pub regex: Regex,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -57,19 +57,29 @@ pub struct Regex {
 pub struct Program {
     #[serde(flatten)]
     pub node: Node,
+    #[serde(rename = "camelCase")]
+    pub source_type: ProgramSourceTypes,
     pub body: Vec<ProgramBody>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+pub enum ProgramSourceTypes {
+    Script,
+    Module,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
 pub enum ProgramBody {
-    Directive(),
+    Directive,
     Statement(StatementData),
+    ImportOrExportDeclaration(ImportOrExportDeclaration),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct Function {
     #[serde(flatten)]
+    pub generator: bool,
     pub node: Node,
     pub id: Option<Identifier>,
     pub params: Vec<Pattern>,

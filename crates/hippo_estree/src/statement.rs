@@ -24,6 +24,7 @@ pub enum StatementData {
     DoWhile(DoWhileStatement),
     For(ForStatement),
     ForIn(ForInStatement),
+    ForOf(ForOfStatement),
 
     Declaration(DeclarationData),
 }
@@ -206,4 +207,13 @@ pub struct ForInStatement {
 pub enum ForInStatementLeft {
     Directive,
     Statement,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+pub struct ForOfStatement {
+    #[serde(flatten)]
+    pub node: Node,
+    pub left: ForInStatementLeft,
+    pub right: ExpressionData,
+    pub body: Box<StatementData>,
 }

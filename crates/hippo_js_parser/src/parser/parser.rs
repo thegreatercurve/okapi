@@ -38,7 +38,6 @@ impl<'a> Parser<'a> {
 
     pub fn parse(&mut self) -> Program {
         Program {
-            node: Node,
             body: vec![self.parse_statement()],
         }
     }
