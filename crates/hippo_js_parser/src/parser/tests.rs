@@ -12,11 +12,11 @@ macro_rules! assert_parser_eq {
 #[test]
 fn parser() {
     assert_parser_eq!(
-        "const foo = 'bar'",
+        "var foo = 'bar'",
         Program {
             body: vec![ProgramBody::Statement(StatementData::Declaration(
                 DeclarationData::Variable(VariableDeclaration {
-                    kind: VariableKind::Const,
+                    kind: VariableKind::Var,
                     declarations: vec![VariableDeclarator {
                         id: Pattern::Identifier(Identifier {
                             name: "foo".to_string()

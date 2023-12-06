@@ -1,6 +1,8 @@
-use crate::Identifier;
+use crate::Node;
+use serde::Serialize;
 
-#[derive(Debug, PartialEq)]
-pub enum Pattern {
-    Identifier(Identifier),
+#[derive(Debug, PartialEq, Serialize)]
+pub struct Pattern {
+    #[serde(flatten)]
+    pub node: Node,
 }

@@ -1,5 +1,12 @@
-use crate::{Lexer, TokenType};
-use hippo_estree::Program;
+use crate::{KeywordKind, Lexer, TokenType};
+use hippo_estree::{Node, Program, ProgramBody};
+
+fn is_lexical_declaration(token: &TokenType) -> bool {
+    match token {
+        TokenType::Keyword(KeywordKind::Const) | TokenType::Keyword(KeywordKind::Let) => true,
+        _ => false,
+    }
+}
 
 struct Context {
     strict_mode: bool,
@@ -30,7 +37,10 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&mut self) -> Program {
-        Program { body: vec![] }
+        Program {
+            node: Node,
+            body: vec![self.parse_statement()],
+        }
     }
 
     fn bump(&mut self) {
@@ -39,9 +49,23 @@ impl<'a> Parser<'a> {
         self.next_token = self.lexer.next_token();
     }
 
-    fn parse_expression(&mut self) {
+    // fn parse_expression(&mut self) {
+    //     match self.current_token {
+    //         TokenType::NumberLiteral => {}
+    //         _ => {}
+    //     }
+    // }
+
+    fn parse_declaration(&self) -> ProgramBody {
         match self.current_token {
-            TokenType::NumberLiteral => {}
+            _ if is_lexical_declaration(&self.current_token) => self.parse_lexical_declaration(),
+            _ => {}
+        }
+    }
+
+    fn parse_lexical_declaration(&self) {
+        match self.current_token {
+            TokenType::Keyword(KeywordKind::Const) | TokenType::Keyword(KeywordKind::Let) => {}
             _ => {}
         }
     }
