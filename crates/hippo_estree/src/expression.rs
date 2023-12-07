@@ -60,7 +60,13 @@ pub enum MemberExpressionElements {
 pub struct ObjectExpression {
     #[serde(flatten)]
     pub node: BaseNode,
-    pub properties: Vec<Property>,
+    pub properties: Vec<ObjectExpressionProperties>,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+pub enum ObjectExpressionProperties {
+    Property(Property),
+    SpreadElement(SpreadElement),
 }
 
 #[derive(Debug, PartialEq, Serialize)]

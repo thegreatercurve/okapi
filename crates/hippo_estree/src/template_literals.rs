@@ -1,4 +1,4 @@
-use crate::{BaseNode, ExpressionDataw};
+use crate::{BaseNode, ExpressionData};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -30,6 +30,6 @@ pub struct TemplateElement {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct TemplateElementValue {
-    pub cooked: String,
+    pub cooked: Option<String>,
     pub raw: String,
 }

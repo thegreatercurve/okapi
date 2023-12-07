@@ -20,7 +20,13 @@ pub struct AssignmentProperty {
 pub struct ObjectPattern {
     #[serde(flatten)]
     pub node: BaseNode,
-    pub properties: Vec<AssignmentProperty>,
+    pub properties: Vec<ObjectPatternProperties>,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+pub enum ObjectPatternProperties {
+    AssignmentProperty(AssignmentProperty),
+    RestElement(RestElement),
 }
 
 #[derive(Debug, PartialEq, Serialize)]

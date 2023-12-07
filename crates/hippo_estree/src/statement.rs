@@ -237,4 +237,6 @@ pub struct ForOfStatement {
     pub left: ForInStatementLeft,
     pub right: ExpressionData,
     pub body: Box<StatementData>,
+    #[serde(alias = "await")]
+    pub awaiting: bool,
 }
