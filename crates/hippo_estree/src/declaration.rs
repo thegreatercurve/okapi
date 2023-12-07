@@ -1,4 +1,4 @@
-use crate::{ExpressionData, Identifier, Node, Pattern};
+use crate::{BaseNode, ExpressionData, Identifier, Pattern};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -11,7 +11,7 @@ pub enum DeclarationData {
 #[serde(tag = "type")]
 pub struct FunctionDeclaration {
     #[serde(flatten)]
-    pub node: Node,
+    pub node: BaseNode,
     pub id: Identifier,
 }
 
@@ -19,7 +19,7 @@ pub struct FunctionDeclaration {
 #[serde(tag = "type")]
 pub struct VariableDeclaration {
     #[serde(flatten)]
-    pub node: Node,
+    pub node: BaseNode,
     pub declarations: Vec<VariableDeclarator>,
     pub kind: VariableKind,
 }
@@ -28,7 +28,7 @@ pub struct VariableDeclaration {
 #[serde(tag = "type")]
 pub struct VariableDeclarator {
     #[serde(flatten)]
-    pub node: Node,
+    pub node: BaseNode,
     pub id: Pattern,
     pub init: Option<ExpressionData>,
 }

@@ -1,5 +1,5 @@
 use crate::{KeywordKind, Lexer, TokenType};
-use hippo_estree::{Node, Program, ProgramBody};
+use hippo_estree::{Program, ProgramBody};
 
 fn is_lexical_declaration(token: &TokenType) -> bool {
     match token {

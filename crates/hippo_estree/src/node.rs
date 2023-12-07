@@ -1,8 +1,8 @@
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-pub struct Node {
+#[serde(tag = "type", rename = "Node")]
+pub struct BaseNode {
     pub loc: Option<SourceLocation>,
 }
 
