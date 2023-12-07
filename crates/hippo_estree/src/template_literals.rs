@@ -1,4 +1,4 @@
-use crate::{BaseNode, ExpressionDataw};
+use crate::{BaseNode, ExpressionData};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
