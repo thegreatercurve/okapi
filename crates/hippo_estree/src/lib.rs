@@ -90,4 +90,6 @@ pub struct Function {
     pub id: Option<Identifier>,
     pub params: Vec<Pattern>,
     pub body: FunctionBody,
+    #[serde(alias = "async")]
+    pub asynchronous: bool,
 }

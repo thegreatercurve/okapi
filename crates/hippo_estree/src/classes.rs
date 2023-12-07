@@ -7,6 +7,7 @@ pub struct Class {
     #[serde(flatten)]
     pub node: BaseNode,
     pub id: Option<Identifier>,
+    #[serde(rename = "camelCase")]
     pub super_class: Option<ExpressionData>,
     pub body: ClassBody,
 }

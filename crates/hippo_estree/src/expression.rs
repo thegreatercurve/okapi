@@ -28,6 +28,9 @@ pub enum ExpressionData {
     TaggedTemplate(TaggedTemplateExpression),
     MetaProperty(MetaProperty),
 
+    // ES2017
+    Await(AwaitExpression),
+
     Literal(Literal),
 }
 
@@ -160,6 +163,7 @@ pub enum BinaryOperator {
     Ampersand,
     In,
     Instanceof,
+    StarStar,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -192,6 +196,7 @@ pub enum AssignmentOperator {
     BarEqual,
     CaretEqual,
     AmpersandEqual,
+    StarStarEqual,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -318,4 +323,12 @@ pub struct YieldExpression {
     pub node: BaseNode,
     pub argument: Option<Box<ExpressionData>>,
     pub delegate: bool,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(tag = "type")]
+pub struct AwaitExpression {
+    #[serde(flatten)]
+    pub node: BaseNode,
+    pub argument: Box<ExpressionData>,
 }
