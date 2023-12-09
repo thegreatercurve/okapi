@@ -52,7 +52,7 @@ pub enum KeywordKind {
     Public,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Token {
     pub kind: TokenKind,
     pub start: usize,

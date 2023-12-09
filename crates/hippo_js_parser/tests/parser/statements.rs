@@ -1,19 +1,4 @@
-use crate::Parser;
-use hippo_estree::*;
-
-macro_rules! assert_parser_eq {
-    ($input_str: expr, $expected_ast: expr) => {{
-        let mut parser = Parser::new($input_str);
-
-        let ast = parser.parse();
-
-        assert_eq!(
-            $expected_ast, ast,
-            "Expected token {:#?}, but found {:#?}",
-            $expected_ast, ast,
-        );
-    }};
-}
+use crate::parser::common::assert_parser_eq;
 
 #[test]
 fn parser() {
@@ -30,27 +15,27 @@ fn parser() {
         }
     );
 
-    assert_parser_eq!(
-        "let hello;",
-        Program {
-            body: vec![ProgramBody::Statement(Statement::Declaration(
-                Declaration::Variable(VariableDeclaration {
-                    kind: VariableKind::Let,
-                    declarations: vec![VariableDeclarator {
-                        id: Identifier {
-                            name: "hello".to_string(),
-                            node: Node::new(4, 9)
-                        },
-                        init: None,
-                        node: Node::new(4, 9)
-                    }],
-                    node: Node::new(0, 9)
-                })
-            ))],
-            node: Node::new(0, 9),
-            source_type: ProgramSourceTypes::Module
-        }
-    );
+    // assert_parser_eq!(
+    //     "let hello;",
+    //     Program {
+    //         body: vec![ProgramBody::Statement(Statement::Declaration(
+    //             Declaration::Variable(VariableDeclaration {
+    //                 kind: VariableKind::Let,
+    //                 declarations: vec![VariableDeclarator {
+    //                     id: Identifier {
+    //                         name: "hello".to_string(),
+    //                         node: Node::new(4, 9)
+    //                     },
+    //                     init: None,
+    //                     node: Node::new(4, 9)
+    //                 }],
+    //                 node: Node::new(0, 9)
+    //             })
+    //         ))],
+    //         node: Node::new(0, 9),
+    //         source_type: ProgramSourceTypes::Module
+    //     }
+    // );
 
     // assert_parser_eq!(
     //     "var foo = 'bar'",

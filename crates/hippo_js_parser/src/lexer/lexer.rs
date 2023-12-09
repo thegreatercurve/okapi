@@ -150,7 +150,7 @@ impl<'a> Lexer<'a> {
 
         let token_type = match self.ch {
             '#' => self.scan_private_identifier(),
-            '1'..='9' => TokenKind::NumberLiteral,
+            '1'..='9' => self.scan_number_literal(),
             '\'' | '"' => self.scan_string_literal(),
             _ if is_punctuator_start(self.ch) => self.scan_punctuator(),
             _ if is_identifier_start(self.ch) => self.scan_identifier_name_or_keyword(),
@@ -177,7 +177,7 @@ impl<'a> Lexer<'a> {
     //   }
     // ```
     fn scan_punctuator(&mut self) -> TokenKind {
-        match self.ch {
+        let token_kind = match self.ch {
             '{' => TokenKind::LeftCurlyBrace,
             '}' => TokenKind::RightCurlyBrace,
             '(' => TokenKind::LeftParenthesis,
@@ -420,7 +420,11 @@ impl<'a> Lexer<'a> {
             }
             ':' => TokenKind::Colon,
             _ => TokenKind::Illegal,
-        }
+        };
+
+        self.read_char();
+
+        token_kind
     }
 
     // https://tc39.es/ecma262/#sec-names-and-keywords
@@ -583,6 +587,13 @@ impl<'a> Lexer<'a> {
         TokenKind::Identifier(identifer_name.to_string())
     }
 
+    fn scan_number_literal(&mut self) -> TokenKind {
+        // TODO
+        self.read_char();
+
+        TokenKind::NumberLiteral
+    }
+
     // https://tc39.es/ecma262/#sec-literals-string-literals
     // ```text
     // StringLiteral ::
@@ -621,6 +632,8 @@ impl<'a> Lexer<'a> {
 
             self.read_char();
         }
+
+        self.read_char();
 
         return TokenKind::StringLiteral;
     }
