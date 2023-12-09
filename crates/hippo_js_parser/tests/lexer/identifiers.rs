@@ -30,6 +30,21 @@ fn keywords_and_identifiers() {
         ]
     );
 
+    // assert_lexer_eq!(
+    //     "while (foo) { 11; };",
+    //     vec![
+    //         Token::new(TokenKind::Keyword(KeywordKind::While), 0, 5),
+    //         Token::new(TokenKind::LeftParenthesis, 6, 7),
+    //         Token::new(TokenKind::Identifier("foo".to_string()), 7, 10),
+    //         Token::new(TokenKind::RightParenthesis, 10, 11),
+    //         Token::new(TokenKind::LeftCurlyBrace, 12, 13),
+    //         Token::new(TokenKind::NumberLiteral, 14, 16), // TODO Fix this.
+    //         Token::new(TokenKind::Semicolon, 16, 17),
+    //         Token::new(TokenKind::RightCurlyBrace, 18, 19),
+    //         Token::new(TokenKind::Semicolon, 19, 20),
+    //     ]
+    // );
+
     assert_lexer_eq!(
         "let baz = 1;",
         vec![
