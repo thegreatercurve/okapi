@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use hippo_js_parser::{Token, TokenKind};
 
 use crate::lexer::common::assert_lexer_eq;
