@@ -2,10 +2,12 @@
 pub enum ParserError {
     SyntaxError,
 
-    IllegalIdentifierCharacter,
-    IllegalHexadecimalEscapeSequence,
-    IllegalUnicodeEscapeSequence,
-    IllegalUnicodeCodePointEscapeSequence,
+    InvalidIdentifierCharacter,
+    InvalidHexadecimalEscapeSequence,
+    InvalidUnicodeEscapeSequence,
+    InvalidUnicodeCodePointEscapeSequence,
+    InvalidOctalEscapeSequence,
+    InvalidOctalEscapeSequenceNotAllowedInStrictMode,
 
     UnterminatedStringLiteral,
     ScannerError,

@@ -1,11 +1,11 @@
 macro_rules! assert_lexer_eq {
     ($input_str: expr, $tokens: expr) => {{
-        use hippo_js_parser::Lexer;
+        use hippo_js_parser::{Config, Lexer};
         use std::collections::VecDeque;
 
         let mut tests = VecDeque::from($tokens);
 
-        let mut scanner = Lexer::new($input_str);
+        let mut scanner = Lexer::new($input_str, Config::default());
 
         while !scanner.is_end_of_file() {
             let token = scanner.next_token();

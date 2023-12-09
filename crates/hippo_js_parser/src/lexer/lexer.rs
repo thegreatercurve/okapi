@@ -1,19 +1,19 @@
-use crate::{errors::ParserError, tokens::Token, TokenKind};
+use crate::{errors::ParserError, parser::Config, tokens::Token, TokenKind};
 
 use super::utils::{is_identifier_start, is_line_terminator, is_punctuator_start, is_whitespace};
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
-    // ch: char,
+    pub config: Config,
     pub errors: Vec<ParserError>,
     pub read_index: usize,
     pub source_str: &'a str,
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(input: &'a str) -> Self {
+    pub fn new(input: &'a str, config: Config) -> Self {
         Self {
-            // ch: input.chars().next().unwrap(),
+            config: config,
             errors: Vec::new(),
             read_index: 0,
             source_str: input,
@@ -88,6 +88,8 @@ impl<'a> Lexer<'a> {
             _ => TokenKind::Illegal,
         };
 
-        Token::new(token_type, start_index, self.read_index)
+        let end_index = self.read_index;
+
+        Token::new(token_type, start_index, end_index)
     }
 }

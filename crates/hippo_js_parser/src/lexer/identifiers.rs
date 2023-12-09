@@ -54,7 +54,7 @@ impl<'a> Lexer<'a> {
             '$' | '_' | _ if self.current_char().is_ascii_alphabetic() => self.read_char(),
             '\\' => {
                 if self.peek_char() != 'u' {
-                    self.errors.push(ParserError::IllegalIdentifierCharacter);
+                    self.errors.push(ParserError::InvalidIdentifierCharacter);
 
                     return false;
                 }
@@ -62,7 +62,7 @@ impl<'a> Lexer<'a> {
                 self.read_unicode_escape_sequence();
             }
             _ if is_unicode_id_start(self.current_char()) => self.read_char(),
-            _ => self.errors.push(ParserError::IllegalIdentifierCharacter),
+            _ => self.errors.push(ParserError::InvalidIdentifierCharacter),
         };
 
         self.read_identifier_part()
@@ -72,7 +72,7 @@ impl<'a> Lexer<'a> {
         while is_identifier_part(self.current_char()) || self.current_char() == '\\' {
             if self.current_char() == '\\' {
                 if self.peek_char() != 'u' {
-                    self.errors.push(ParserError::IllegalIdentifierCharacter);
+                    self.errors.push(ParserError::InvalidIdentifierCharacter);
 
                     return false;
                 }

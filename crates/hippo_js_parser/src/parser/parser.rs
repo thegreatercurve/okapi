@@ -11,12 +11,19 @@ fn is_lexical_declaration(token: &TokenKind) -> bool {
     }
 }
 
-struct Context {
-    strict_mode: bool,
+#[derive(Clone, Debug)]
+pub struct Config {
+    pub strict_mode: bool,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self { strict_mode: true }
+    }
 }
 
 pub struct Parser<'a> {
-    context: Context,
+    config: Config,
     current_token: Token,
     next_token: Token,
     source_str: &'a str,
@@ -25,13 +32,15 @@ pub struct Parser<'a> {
 
 impl<'a> Parser<'a> {
     pub fn new(input: &'a str) -> Self {
-        let mut lexer = Lexer::new(input);
+        let config = Config::default();
+
+        let mut lexer = Lexer::new(input, config.clone());
 
         let current_token = lexer.next_token();
         let next_token = lexer.next_token();
 
         Self {
-            context: Context { strict_mode: false },
+            config,
             current_token,
             next_token,
             source_str: input,

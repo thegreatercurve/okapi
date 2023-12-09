@@ -57,11 +57,17 @@ pub struct Token {
     pub kind: TokenKind,
     pub start: usize,
     pub end: usize,
+    pub value: Option<String>,
 }
 
 impl Token {
     pub fn new(kind: TokenKind, start: usize, end: usize) -> Self {
-        Self { kind, start, end }
+        Self {
+            kind,
+            start,
+            end,
+            value: None,
+        }
     }
 }
 

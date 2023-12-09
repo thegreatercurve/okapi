@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 pub use lexer::Lexer;
-pub use parser::Parser;
+pub use parser::{Config, Parser};
 pub use tokens::{KeywordKind, Token, TokenKind};
 
 mod config;
