@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::{KeywordKind, Lexer, TokenType};
+use crate::{KeywordKind, Lexer, TokenKind};
 
 macro_rules! assert_lexer_eq {
     ($input_str: expr, $tokens: expr) => {{
@@ -16,9 +16,9 @@ macro_rules! assert_lexer_eq {
                 .unwrap_or_else(|| panic!("Unexpected end to queue"));
 
             assert_eq!(
-                expected_token, token,
+                expected_token, token.kind,
                 "Expected token {:?}, but found {:?}",
-                expected_token, token,
+                expected_token, token.kind,
             );
         }
     }};
@@ -29,33 +29,33 @@ fn keywords_and_identifiers() {
     assert_lexer_eq!(
         "const foo = 1;",
         vec![
-            TokenType::Keyword(KeywordKind::Const),
-            TokenType::Identifier("foo".to_string()),
-            TokenType::Assignment,
-            TokenType::NumberLiteral,
-            TokenType::Semicolon,
+            TokenKind::Keyword(KeywordKind::Const),
+            TokenKind::Identifier("foo".to_string()),
+            TokenKind::Assignment,
+            TokenKind::NumberLiteral,
+            TokenKind::Semicolon,
         ]
     );
 
     assert_lexer_eq!(
         "let baz = 1;",
         vec![
-            TokenType::Keyword(KeywordKind::Let),
-            TokenType::Identifier("baz".to_string()),
-            TokenType::Assignment,
-            TokenType::NumberLiteral,
-            TokenType::Semicolon,
+            TokenKind::Keyword(KeywordKind::Let),
+            TokenKind::Identifier("baz".to_string()),
+            TokenKind::Assignment,
+            TokenKind::NumberLiteral,
+            TokenKind::Semicolon,
         ]
     );
 
     assert_lexer_eq!(
         "var baz = 1;",
         vec![
-            TokenType::Keyword(KeywordKind::Var),
-            TokenType::Identifier("baz".to_string()),
-            TokenType::Assignment,
-            TokenType::NumberLiteral,
-            TokenType::Semicolon,
+            TokenKind::Keyword(KeywordKind::Var),
+            TokenKind::Identifier("baz".to_string()),
+            TokenKind::Assignment,
+            TokenKind::NumberLiteral,
+            TokenKind::Semicolon,
         ]
     );
 
@@ -73,15 +73,15 @@ fn keywords_and_identifiers() {
     assert_lexer_eq!(
         r#"class Foo { #bar = 1; }"#,
         vec![
-            TokenType::Keyword(KeywordKind::Class),
-            TokenType::Identifier("Foo".to_string()),
-            TokenType::LeftCurlyBrace,
-            TokenType::Identifier("#bar".to_string()),
-            TokenType::Assignment,
-            TokenType::NumberLiteral,
-            TokenType::Semicolon,
-            TokenType::RightCurlyBrace,
-            TokenType::Semicolon,
+            TokenKind::Keyword(KeywordKind::Class),
+            TokenKind::Identifier("Foo".to_string()),
+            TokenKind::LeftCurlyBrace,
+            TokenKind::Identifier("#bar".to_string()),
+            TokenKind::Assignment,
+            TokenKind::NumberLiteral,
+            TokenKind::Semicolon,
+            TokenKind::RightCurlyBrace,
+            TokenKind::Semicolon,
         ]
     );
 
@@ -93,107 +93,107 @@ fn punctuators() {
     assert_lexer_eq!(
         r#"?. { ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ** ++ -- << >> >>> & | ^ ! ~ && || ?? ? : = += -= *= %= **= <<= >>= >>>= &= |= ^= &&= ||= ??= => / /= }"#,
         vec![
-            TokenType::OptionalChaining,
-            TokenType::LeftCurlyBrace,
-            TokenType::LeftParenthesis,
-            TokenType::RightParenthesis,
-            TokenType::LeftSquareBracket,
-            TokenType::RightSquareBracket,
-            TokenType::Dot,
-            TokenType::Ellipsis,
-            TokenType::Semicolon,
-            TokenType::Comma,
-            TokenType::LessThan,
-            TokenType::GreaterThan,
-            TokenType::LessThanOrEqual,
-            TokenType::GreaterThanOrEqual,
-            TokenType::Equal,
-            TokenType::NotEqual,
-            TokenType::StrictEqual,
-            TokenType::StrictNotEqual,
-            TokenType::Addition,
-            TokenType::Subtraction,
-            TokenType::Multiplication,
-            TokenType::Modulus,
-            TokenType::Exponentiation,
-            TokenType::Increment,
-            TokenType::Decrement,
-            TokenType::LeftShift,
-            TokenType::RightShift,
-            TokenType::UnsignedRightShift,
-            TokenType::BitwiseAnd,
-            TokenType::BitwiseOr,
-            TokenType::BitwiseXor,
-            TokenType::LogicalNot,
-            TokenType::BitwiseNot,
-            TokenType::LogicalAnd,
-            TokenType::LogicalOr,
-            TokenType::NullishCoalescing,
-            TokenType::QuestionMark,
-            TokenType::Colon,
-            TokenType::Assignment,
-            TokenType::PlusAssignment,
-            TokenType::MinusAssignment,
-            TokenType::MultiplyAssignment,
-            TokenType::ModulusAssignment,
-            TokenType::ExponentiationAssignment,
-            TokenType::LeftShiftAssignment,
-            TokenType::RightShiftAssignment,
-            TokenType::UnsignedRightShiftAssignment,
-            TokenType::BitwiseAndAssignment,
-            TokenType::BitwiseOrAssignment,
-            TokenType::BitwiseXorAssignment,
-            TokenType::LogicalAndAssignment,
-            TokenType::LogicalOrAssignment,
-            TokenType::NullishCoalescingAssignment,
-            TokenType::ArrowFunction,
-            TokenType::Division,
-            TokenType::DivisionAssignment,
-            TokenType::RightCurlyBrace,
+            TokenKind::OptionalChaining,
+            TokenKind::LeftCurlyBrace,
+            TokenKind::LeftParenthesis,
+            TokenKind::RightParenthesis,
+            TokenKind::LeftSquareBracket,
+            TokenKind::RightSquareBracket,
+            TokenKind::Dot,
+            TokenKind::Ellipsis,
+            TokenKind::Semicolon,
+            TokenKind::Comma,
+            TokenKind::LessThan,
+            TokenKind::GreaterThan,
+            TokenKind::LessThanOrEqual,
+            TokenKind::GreaterThanOrEqual,
+            TokenKind::Equal,
+            TokenKind::NotEqual,
+            TokenKind::StrictEqual,
+            TokenKind::StrictNotEqual,
+            TokenKind::Addition,
+            TokenKind::Subtraction,
+            TokenKind::Multiplication,
+            TokenKind::Modulus,
+            TokenKind::Exponentiation,
+            TokenKind::Increment,
+            TokenKind::Decrement,
+            TokenKind::LeftShift,
+            TokenKind::RightShift,
+            TokenKind::UnsignedRightShift,
+            TokenKind::BitwiseAnd,
+            TokenKind::BitwiseOr,
+            TokenKind::BitwiseXor,
+            TokenKind::LogicalNot,
+            TokenKind::BitwiseNot,
+            TokenKind::LogicalAnd,
+            TokenKind::LogicalOr,
+            TokenKind::NullishCoalescing,
+            TokenKind::QuestionMark,
+            TokenKind::Colon,
+            TokenKind::Assignment,
+            TokenKind::PlusAssignment,
+            TokenKind::MinusAssignment,
+            TokenKind::MultiplyAssignment,
+            TokenKind::ModulusAssignment,
+            TokenKind::ExponentiationAssignment,
+            TokenKind::LeftShiftAssignment,
+            TokenKind::RightShiftAssignment,
+            TokenKind::UnsignedRightShiftAssignment,
+            TokenKind::BitwiseAndAssignment,
+            TokenKind::BitwiseOrAssignment,
+            TokenKind::BitwiseXorAssignment,
+            TokenKind::LogicalAndAssignment,
+            TokenKind::LogicalOrAssignment,
+            TokenKind::NullishCoalescingAssignment,
+            TokenKind::ArrowFunction,
+            TokenKind::Division,
+            TokenKind::DivisionAssignment,
+            TokenKind::RightCurlyBrace,
         ]
     );
 }
 
 #[test]
 fn string_literals() {
-    assert_lexer_eq!(r#""hello world""#, vec![TokenType::StringLiteral]);
-    assert_lexer_eq!("\"hello world\"", vec![TokenType::StringLiteral]);
+    assert_lexer_eq!(r#""hello world""#, vec![TokenKind::StringLiteral]);
+    assert_lexer_eq!("\"hello world\"", vec![TokenKind::StringLiteral]);
 
-    assert_lexer_eq!(r#""hello\n\tworld""#, vec![TokenType::StringLiteral]);
-    assert_lexer_eq!("\"hello\\b\\tworld\"", vec![TokenType::StringLiteral]);
+    assert_lexer_eq!(r#""hello\n\tworld""#, vec![TokenKind::StringLiteral]);
+    assert_lexer_eq!("\"hello\\b\\tworld\"", vec![TokenKind::StringLiteral]);
 
     // Hexadecimal escape sequence
-    assert_lexer_eq!("\"hello \x4A\x61vaScript\"", vec![TokenType::StringLiteral]);
+    assert_lexer_eq!("\"hello \x4A\x61vaScript\"", vec![TokenKind::StringLiteral]);
     assert_lexer_eq!(
         r#""hello \x4A\x61vaScript""#,
-        vec![TokenType::StringLiteral]
+        vec![TokenKind::StringLiteral]
     );
 
     // Unicode escape sequence
-    assert_lexer_eq!("\"hello\\u0020world\"", vec![TokenType::StringLiteral]);
-    assert_lexer_eq!(r#""hello\u0020world""#, vec![TokenType::StringLiteral]);
+    assert_lexer_eq!("\"hello\\u0020world\"", vec![TokenKind::StringLiteral]);
+    assert_lexer_eq!(r#""hello\u0020world""#, vec![TokenKind::StringLiteral]);
 
     // Unicode escape sequence with surrogate pairs
     assert_lexer_eq!(
         "\"hello\\u0020world\\uD83D\\uDE00\"",
-        vec![TokenType::StringLiteral]
+        vec![TokenKind::StringLiteral]
     );
     assert_lexer_eq!(
         r#""hello\u0020world\uD83D\uDE00""#,
-        vec![TokenType::StringLiteral]
+        vec![TokenKind::StringLiteral]
     );
 
     // Code point escape sequence with surrogate pairs
-    assert_lexer_eq!("\"hello world \\u{1F607}\"", vec![TokenType::StringLiteral]);
-    assert_lexer_eq!(r#""hello world \u{1F607}""#, vec![TokenType::StringLiteral]);
+    assert_lexer_eq!("\"hello world \\u{1F607}\"", vec![TokenKind::StringLiteral]);
+    assert_lexer_eq!(r#""hello world \u{1F607}""#, vec![TokenKind::StringLiteral]);
 
     // Unescaped string with complex graphemes.
     assert_lexer_eq!(
         r#""abcdefghijklmnopqrstuvwxyz🙂12345678910'\'10🎉""#,
-        vec![TokenType::StringLiteral]
+        vec![TokenKind::StringLiteral]
     );
     assert_lexer_eq!(
         "\"abcdefghijklmnopqrstuvwxyz🙂12345678910'\'10🎉\"",
-        vec![TokenType::StringLiteral]
+        vec![TokenKind::StringLiteral]
     );
 }

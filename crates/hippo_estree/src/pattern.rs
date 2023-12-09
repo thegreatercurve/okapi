@@ -1,17 +1,17 @@
-use crate::{BaseNode, ExpressionData};
+use crate::{Expression, Node};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Pattern {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type", rename = "Property")]
 pub struct AssignmentProperty {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub value: Pattern,
 }
 
@@ -19,7 +19,7 @@ pub struct AssignmentProperty {
 #[serde(tag = "type")]
 pub struct ObjectPattern {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub properties: Vec<ObjectPatternProperties>,
 }
 
@@ -33,7 +33,7 @@ pub enum ObjectPatternProperties {
 #[serde(tag = "type")]
 pub struct ArrayPattern {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub elements: Vec<Option<Pattern>>,
 }
 
@@ -41,7 +41,7 @@ pub struct ArrayPattern {
 #[serde(tag = "type")]
 pub struct RestElement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub argument: Pattern,
 }
 
@@ -49,7 +49,7 @@ pub struct RestElement {
 #[serde(tag = "type")]
 pub struct AssignmentPattern {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub left: Pattern,
-    pub right: ExpressionData,
+    pub right: Expression,
 }

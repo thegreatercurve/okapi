@@ -1,4 +1,6 @@
-use crate::{BaseNode, ClassDeclaration, ExpressionData, FunctionDeclaration, Identifier, Literal};
+use crate::{
+    ClassDeclaration, Declaration, Expression, FunctionDeclaration, Identifier, Literal, Node,
+};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -15,7 +17,7 @@ pub struct ModuleSpecifier {
 #[serde(tag = "type")]
 pub struct ImportDeclaration {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub specifiers: Vec<ImportSpecifiers>,
     pub source: Literal,
 }
@@ -31,7 +33,7 @@ pub enum ImportSpecifiers {
 #[serde(tag = "type")]
 pub struct ImportSpecifier {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub local: Identifier,
     pub imported: Identifier,
 }
@@ -40,7 +42,7 @@ pub struct ImportSpecifier {
 #[serde(tag = "type")]
 pub struct ImportDefaultSpecifier {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub local: Identifier,
 }
 
@@ -48,7 +50,7 @@ pub struct ImportDefaultSpecifier {
 #[serde(tag = "type")]
 pub struct ImportNamespaceSpecifier {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub local: Identifier,
 }
 
@@ -56,7 +58,7 @@ pub struct ImportNamespaceSpecifier {
 #[serde(tag = "type")]
 pub struct ExportNamedDeclaration {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub declaration: Option<Declaration>,
     pub specifiers: Vec<ExportSpecifier>,
     pub source: Option<Literal>,
@@ -66,7 +68,7 @@ pub struct ExportNamedDeclaration {
 #[serde(tag = "type")]
 pub struct ExportSpecifier {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub local: Identifier,
     pub exported: Identifier,
 }
@@ -75,37 +77,37 @@ pub struct ExportSpecifier {
 #[serde(tag = "type")]
 pub struct AnonymousDefaultExportedFunctionDeclaration {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct AnonymousDefaultExportedClassDeclaration {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ExportDefaultDeclaration {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub declaration: Declaration,
+    pub node: Node,
+    pub declaration: ExportDefaultDeclarationDeclaration,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub enum Declaration {
-    AnonymousDefaultExportedFunctionDeclaration(AnonymousDefaultExportedFunctionDeclaration),
-    FunctionDeclaration(FunctionDeclaration),
-    AnonymousDefaultExportedClassDeclaration(AnonymousDefaultExportedClassDeclaration),
-    ClassDeclaration(ClassDeclaration),
-    Expression(Box<ExpressionData>),
+pub enum ExportDefaultDeclarationDeclaration {
+    AnonymousDefaultExportedFunction(AnonymousDefaultExportedFunctionDeclaration),
+    Function(FunctionDeclaration),
+    AnonymousDefaultExportedClass(AnonymousDefaultExportedClassDeclaration),
+    Class(ClassDeclaration),
+    Expression(Box<Expression>),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ExportAllDeclaration {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub source: Literal,
 }

@@ -1,14 +1,14 @@
-use crate::{BaseNode, ExpressionData, FunctionExpression, Identifier};
+use crate::{Expression, FunctionExpression, Identifier, Node};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct Class {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub id: Option<Identifier>,
     #[serde(rename = "camelCase")]
-    pub super_class: Option<ExpressionData>,
+    pub super_class: Option<Expression>,
     pub body: ClassBody,
 }
 
@@ -16,7 +16,7 @@ pub struct Class {
 #[serde(tag = "type")]
 pub struct ClassBody {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub body: [MethodDefinition],
 }
 
@@ -24,8 +24,8 @@ pub struct ClassBody {
 #[serde(tag = "type")]
 pub struct MethodDefinition {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub key: ExpressionData,
+    pub node: Node,
+    pub key: Expression,
     pub value: FunctionExpression,
     pub kind: MethodDefinitionKind,
     pub computed: bool,
@@ -45,7 +45,7 @@ pub enum MethodDefinitionKind {
 #[serde(tag = "type")]
 pub struct ClassDeclaration {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub id: Identifier,
 }
 
@@ -53,14 +53,14 @@ pub struct ClassDeclaration {
 #[serde(tag = "type")]
 pub struct ClassExpression {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct MetaProperty {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub meta: Identifier,
     pub property: Identifier,
 }

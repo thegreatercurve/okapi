@@ -22,7 +22,7 @@ mod template_literals;
 #[serde(tag = "type")]
 pub struct Identifier {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub name: String,
 }
 
@@ -30,7 +30,7 @@ pub struct Identifier {
 #[serde(tag = "type")]
 pub struct Literal {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub value: LiteralValue,
 }
 
@@ -53,7 +53,7 @@ pub struct RegExpLiteral {
 #[serde(tag = "type")]
 pub struct Regex {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub pattern: String,
     pub flags: String,
 }
@@ -62,7 +62,7 @@ pub struct Regex {
 #[serde(tag = "type")]
 pub struct Program {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     #[serde(rename = "camelCase")]
     pub source_type: ProgramSourceTypes,
     pub body: Vec<ProgramBody>,
@@ -76,8 +76,8 @@ pub enum ProgramSourceTypes {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub enum ProgramBody {
-    Directive,
-    Statement(StatementData),
+    Directive(Directive),
+    Statement(Statement),
     ImportOrExportDeclaration(ImportOrExportDeclaration),
 }
 
@@ -86,7 +86,7 @@ pub enum ProgramBody {
 pub struct Function {
     #[serde(flatten)]
     pub generator: bool,
-    pub node: BaseNode,
+    pub node: Node,
     pub id: Option<Identifier>,
     pub params: Vec<Pattern>,
     pub body: FunctionBody,

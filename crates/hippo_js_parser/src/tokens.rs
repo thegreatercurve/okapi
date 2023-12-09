@@ -1,6 +1,6 @@
 // 12.7.2 Keywords and Reserved Words
 // https://tc39.es/ecma262/#sec-keywords-and-reserved-words
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum KeywordKind {
     Await,
     Break,
@@ -52,8 +52,21 @@ pub enum KeywordKind {
     Public,
 }
 
-#[derive(Debug, PartialEq)]
-pub enum TokenType {
+#[derive(Debug)]
+pub struct Token {
+    pub kind: TokenKind,
+    pub start: usize,
+    pub end: usize,
+}
+
+impl Token {
+    pub fn new(kind: TokenKind, start: usize, end: usize) -> Self {
+        Self { kind, start, end }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum TokenKind {
     // Keywords or Identifiers
     Keyword(KeywordKind),
     Identifier(String),

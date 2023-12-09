@@ -1,9 +1,9 @@
 use serde::Serialize;
 
-use crate::{BaseNode, DeclarationData, ExpressionData, Identifier, Literal, Pattern};
+use crate::{Declaration, Expression, Identifier, Literal, Node, Pattern};
 
 #[derive(Debug, PartialEq, Serialize)]
-pub enum StatementData {
+pub enum Statement {
     Expression(ExpressionStatement),
     Directive(Directive),
     Block(BlockStatement),
@@ -26,21 +26,21 @@ pub enum StatementData {
     ForIn(ForInStatement),
     ForOf(ForOfStatement),
 
-    Declaration(DeclarationData),
+    Declaration(Declaration),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ExpressionStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub expression: ExpressionData,
+    pub node: Node,
+    pub expression: Expression,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Directive {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub expression: Literal,
     pub directive: String,
 }
@@ -49,15 +49,15 @@ pub struct Directive {
 #[serde(tag = "type")]
 pub struct BlockStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub body: Vec<StatementData>,
+    pub node: Node,
+    pub body: Vec<Statement>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct FunctionBody {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub body: FunctionBodyBody,
 }
 
@@ -71,47 +71,47 @@ pub enum FunctionBodyBody {
 #[serde(tag = "type")]
 pub struct EmptyStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct DebuggerStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct WithStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub object: ExpressionData,
-    pub body: Box<StatementData>,
+    pub node: Node,
+    pub object: Expression,
+    pub body: Box<Statement>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ReturnStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub argument: Option<ExpressionData>,
+    pub node: Node,
+    pub argument: Option<Expression>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct LabeledStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub label: Identifier,
-    pub body: Box<StatementData>,
+    pub body: Box<Statement>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct BreakStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub label: Option<Identifier>,
 }
 
@@ -119,7 +119,7 @@ pub struct BreakStatement {
 #[serde(tag = "type")]
 pub struct ContinueStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub label: Option<Identifier>,
 }
 
@@ -127,18 +127,18 @@ pub struct ContinueStatement {
 #[serde(tag = "type")]
 pub struct IfStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub test: ExpressionData,
-    pub consequent: Box<StatementData>,
-    pub alternate: Option<Box<StatementData>>,
+    pub node: Node,
+    pub test: Expression,
+    pub consequent: Box<Statement>,
+    pub alternate: Option<Box<Statement>>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct SwitchStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub discriminant: ExpressionData,
+    pub node: Node,
+    pub discriminant: Expression,
     pub cases: Vec<SwitchCase>,
 }
 
@@ -146,24 +146,24 @@ pub struct SwitchStatement {
 #[serde(tag = "type")]
 pub struct SwitchCase {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub test: Option<ExpressionData>,
-    pub consequent: Vec<StatementData>,
+    pub node: Node,
+    pub test: Option<Expression>,
+    pub consequent: Vec<Statement>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ThrowStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub argument: ExpressionData,
+    pub node: Node,
+    pub argument: Expression,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct TryStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub block: BlockStatement,
     pub handler: Option<CatchClause>,
     pub finalizer: Option<BlockStatement>,
@@ -173,7 +173,7 @@ pub struct TryStatement {
 #[serde(tag = "type")]
 pub struct CatchClause {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub param: Pattern,
     pub body: BlockStatement,
 }
@@ -182,29 +182,29 @@ pub struct CatchClause {
 #[serde(tag = "type")]
 pub struct WhileStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub test: ExpressionData,
-    pub body: Box<StatementData>,
+    pub node: Node,
+    pub test: Expression,
+    pub body: Box<Statement>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct DoWhileStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
-    pub body: Box<StatementData>,
-    pub test: ExpressionData,
+    pub node: Node,
+    pub body: Box<Statement>,
+    pub test: Expression,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ForStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub init: ForStatementInit,
-    pub test: Option<ExpressionData>,
-    pub update: Option<ExpressionData>,
-    pub body: Box<StatementData>,
+    pub test: Option<Expression>,
+    pub update: Option<Expression>,
+    pub body: Box<Statement>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -217,10 +217,10 @@ pub enum ForStatementInit {
 #[serde(tag = "type")]
 pub struct ForInStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub left: ForInStatementLeft,
-    pub right: ExpressionData,
-    pub body: Box<StatementData>,
+    pub right: Expression,
+    pub body: Box<Statement>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -233,10 +233,10 @@ pub enum ForInStatementLeft {
 #[serde(tag = "type")]
 pub struct ForOfStatement {
     #[serde(flatten)]
-    pub node: BaseNode,
+    pub node: Node,
     pub left: ForInStatementLeft,
-    pub right: ExpressionData,
-    pub body: Box<StatementData>,
+    pub right: Expression,
+    pub body: Box<Statement>,
     #[serde(alias = "await")]
     pub awaiting: bool,
 }

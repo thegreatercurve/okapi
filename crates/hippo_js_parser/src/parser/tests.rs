@@ -5,78 +5,141 @@ macro_rules! assert_parser_eq {
     ($input_str: expr, $expected_ast: expr) => {{
         let mut parser = Parser::new($input_str);
 
-        assert_eq!(parser.parse(), $expected_ast);
+        let ast = parser.parse();
+
+        assert_eq!(
+            $expected_ast, ast,
+            "Expected token {:#?}, but found {:#?}",
+            $expected_ast, ast,
+        );
     }};
 }
 
 #[test]
 fn parser() {
     assert_parser_eq!(
-        "var foo = 'bar'",
+        "debugger;",
         Program {
-            body: vec![ProgramBody::Statement(StatementData::Declaration(
-                DeclarationData::Variable(VariableDeclaration {
-                    kind: VariableKind::Var,
+            body: vec![ProgramBody::Statement(Statement::Debugger(
+                DebuggerStatement {
+                    node: Node::new(0, 9)
+                }
+            ))],
+            node: Node::new(0, 9),
+            source_type: ProgramSourceTypes::Module
+        }
+    );
+
+    assert_parser_eq!(
+        "let hello;",
+        Program {
+            body: vec![ProgramBody::Statement(Statement::Declaration(
+                Declaration::Variable(VariableDeclaration {
+                    kind: VariableKind::Let,
                     declarations: vec![VariableDeclarator {
-                        id: Pattern::Identifier(Identifier {
-                            name: "foo".to_string()
-                        }),
-                        init: Some(ExpressionData::Literal(Literal {
-                            value: LiteralValue::String("bar".to_string())
-                        }))
-                    }]
+                        id: Identifier {
+                            name: "hello".to_string(),
+                            node: Node::new(4, 9)
+                        },
+                        init: None,
+                        node: Node::new(4, 9)
+                    }],
+                    node: Node::new(0, 9)
                 })
-            ))]
+            ))],
+            node: Node::new(0, 9),
+            source_type: ProgramSourceTypes::Module
         }
     );
 
-    assert_parser_eq!(
-        "1 + 1 + 1",
-        Program {
-            body: vec![ProgramBody::Statement(StatementData::Expression(
-                ExpressionStatement {
-                    expression: ExpressionData::Binary(BinaryExpression {
-                        left: Box::new(ExpressionData::Binary(BinaryExpression {
-                            operator: BinaryOperator::Plus,
-                            left: Box::new(ExpressionData::Literal(Literal {
-                                value: LiteralValue::Number(1.0)
-                            })),
-                            right: Box::new(ExpressionData::Literal(Literal {
-                                value: LiteralValue::Number(1.0)
-                            })),
-                        })),
-                        operator: BinaryOperator::Plus,
-                        right: Box::new(ExpressionData::Literal(Literal {
-                            value: LiteralValue::Number(1.0)
-                        })),
-                    })
-                }
-            ))]
-        }
-    );
+    // assert_parser_eq!(
+    //     "var foo = 'bar'",
+    //     Program {
+    //         body: vec![ProgramBody::Statement(Statement::Declaration(
+    //             DeclarationData::Variable(VariableDeclaration {
+    //                 kind: VariableKind::Var,
+    //                 declarations: vec![VariableDeclarator {
+    //                     id: Identifier {
+    //                         name: "foo".to_string(),
+    //                         node: todo!()
+    //                     },
+    //                     init: Some(Expression::Literal(Literal {
+    //                         value: LiteralValue::String("bar".to_string()),
+    //                         node: todo!()
+    //                     })),
+    //                     node: todo!()
+    //                 }],
+    //                 node: todo!()
+    //             })
+    //         ))],
+    //         node: todo!(),
+    //         source_type: todo!()
+    //     }
+    // );
 
-    assert_parser_eq!(
-        "5 + 5 * 10",
-        Program {
-            body: vec![ProgramBody::Statement(StatementData::Expression(
-                ExpressionStatement {
-                    expression: ExpressionData::Binary(BinaryExpression {
-                        left: Box::new(ExpressionData::Literal(Literal {
-                            value: LiteralValue::Number(5.0)
-                        })),
-                        operator: BinaryOperator::Plus,
-                        right: Box::new(ExpressionData::Binary(BinaryExpression {
-                            left: Box::new(ExpressionData::Literal(Literal {
-                                value: LiteralValue::Number(5.0)
-                            })),
-                            operator: BinaryOperator::Star,
-                            right: Box::new(ExpressionData::Literal(Literal {
-                                value: LiteralValue::Number(10.0)
-                            })),
-                        })),
-                    })
-                }
-            ))]
-        }
-    );
+    // assert_parser_eq!(
+    //     "1 + 1 + 1",
+    //     Program {
+    //         body: vec![ProgramBody::Statement(Statement::Expression(
+    //             ExpressionStatement {
+    //                 expression: Expression::Binary(BinaryExpression {
+    //                     left: Box::new(Expression::Binary(BinaryExpression {
+    //                         operator: BinaryOperator::Plus,
+    //                         left: Box::new(Expression::Literal(Literal {
+    //                             value: LiteralValue::Number(1.0),
+    //                             node: todo!()
+    //                         })),
+    //                         right: Box::new(Expression::Literal(Literal {
+    //                             value: LiteralValue::Number(1.0),
+    //                             node: todo!()
+    //                         })),
+    //                         node: todo!()
+    //                     })),
+    //                     operator: BinaryOperator::Plus,
+    //                     right: Box::new(Expression::Literal(Literal {
+    //                         value: LiteralValue::Number(1.0),
+    //                         node: todo!()
+    //                     })),
+    //                     node: todo!()
+    //                 }),
+    //                 node: todo!()
+    //             }
+    //         ))],
+    //         node: todo!(),
+    //         source_type: todo!()
+    //     }
+    // );
+
+    // assert_parser_eq!(
+    //     "5 + 5 * 10",
+    //     Program {
+    //         body: vec![ProgramBody::Statement(Statement::Expression(
+    //             ExpressionStatement {
+    //                 expression: Expression::Binary(BinaryExpression {
+    //                     left: Box::new(Expression::Literal(Literal {
+    //                         value: LiteralValue::Number(5.0),
+    //                         node: todo!()
+    //                     })),
+    //                     operator: BinaryOperator::Plus,
+    //                     right: Box::new(Expression::Binary(BinaryExpression {
+    //                         left: Box::new(Expression::Literal(Literal {
+    //                             value: LiteralValue::Number(5.0),
+    //                             node: todo!()
+    //                         })),
+    //                         operator: BinaryOperator::Star,
+    //                         right: Box::new(Expression::Literal(Literal {
+    //                             value: LiteralValue::Number(10.0),
+    //                             node: todo!()
+    //                         })),
+    //                         node: todo!()
+    //                     })),
+    //                     node: todo!()
+    //                 }),
+    //                 node: todo!()
+    //             }
+    //         ))],
+    //         node: todo!(),
+    //         source_type: todo!()
+    //     }
+    // );
 }

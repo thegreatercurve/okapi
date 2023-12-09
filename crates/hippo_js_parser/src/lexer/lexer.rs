@@ -1,6 +1,6 @@
 use hippo_unicode::{is_unicode_id_continue, is_unicode_id_start};
 
-use crate::{errors::ParserError, KeywordKind, TokenType};
+use crate::{errors::ParserError, tokens::Token, KeywordKind, TokenKind};
 
 // 12.1 Unicode Format-Control Characters
 // https://tc39.es/ecma262/#sec-unicode-format-control-characters
@@ -103,8 +103,12 @@ impl<'a> Lexer<'a> {
             .unwrap_or(0 as char)
     }
 
+    pub fn len(&self) -> usize {
+        self.source_str.chars().count()
+    }
+
     pub fn is_end_of_file(&mut self) -> bool {
-        self.read_index >= self.source_str.chars().count()
+        self.read_index >= self.len()
     }
 
     fn skip_whitespace(&mut self) {
@@ -113,11 +117,11 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn next_token(&mut self) -> TokenType {
+    pub fn next_token(&mut self) -> Token {
         self.skip_whitespace();
 
         if self.is_end_of_file() {
-            return TokenType::EOF;
+            return Token::new(TokenKind::EOF, self.read_index, self.read_index);
         }
 
         let token = self.advance();
@@ -127,11 +131,11 @@ impl<'a> Lexer<'a> {
         token
     }
 
-    pub fn peek_token(&mut self) -> TokenType {
+    pub fn peek_token(&mut self) -> Token {
         self.skip_whitespace();
 
         if self.is_end_of_file() {
-            return TokenType::EOF;
+            return Token::new(TokenKind::EOF, self.read_index, self.read_index);
         }
 
         let token = self.advance();
@@ -141,17 +145,19 @@ impl<'a> Lexer<'a> {
         token
     }
 
-    fn advance(&mut self) -> TokenType {
-        let token = match self.ch {
+    fn advance(&mut self) -> Token {
+        let start_index = self.read_index;
+
+        let token_type = match self.ch {
             '#' => self.scan_private_identifier(),
-            '1'..='9' => TokenType::NumberLiteral,
+            '1'..='9' => TokenKind::NumberLiteral,
             '\'' | '"' => self.scan_string_literal(),
             _ if is_punctuator_start(self.ch) => self.scan_punctuator(),
             _ if is_identifier_start(self.ch) => self.scan_identifier_name_or_keyword(),
-            _ => TokenType::Illegal,
+            _ => TokenKind::Illegal,
         };
 
-        token
+        Token::new(token_type, start_index, self.read_index)
     }
 
     // https://tc39.es/ecma262/#sec-punctuators
@@ -170,25 +176,25 @@ impl<'a> Lexer<'a> {
     // RightBracePunctuator ::
     //   }
     // ```
-    fn scan_punctuator(&mut self) -> TokenType {
+    fn scan_punctuator(&mut self) -> TokenKind {
         match self.ch {
-            '{' => TokenType::LeftCurlyBrace,
-            '}' => TokenType::RightCurlyBrace,
-            '(' => TokenType::LeftParenthesis,
-            ')' => TokenType::RightParenthesis,
-            '[' => TokenType::LeftSquareBracket,
-            ']' => TokenType::RightSquareBracket,
+            '{' => TokenKind::LeftCurlyBrace,
+            '}' => TokenKind::RightCurlyBrace,
+            '(' => TokenKind::LeftParenthesis,
+            ')' => TokenKind::RightParenthesis,
+            '[' => TokenKind::LeftSquareBracket,
+            ']' => TokenKind::RightSquareBracket,
             '.' => {
                 if self.peek_char() == '.' && self.peek_char_nth(1) == '.' {
                     self.read_char_nth(2);
 
-                    TokenType::Ellipsis
+                    TokenKind::Ellipsis
                 } else {
-                    TokenType::Dot
+                    TokenKind::Dot
                 }
             }
-            ';' => TokenType::Semicolon,
-            ',' => TokenType::Comma,
+            ';' => TokenKind::Semicolon,
+            ',' => TokenKind::Comma,
             '<' => {
                 let peek_char = self.peek_char();
                 let peek_char_1 = self.peek_char_nth(2);
@@ -196,17 +202,17 @@ impl<'a> Lexer<'a> {
                 if peek_char == '<' && peek_char_1 == '=' {
                     self.read_char_nth(2);
 
-                    TokenType::LeftShiftAssignment
+                    TokenKind::LeftShiftAssignment
                 } else if peek_char == '<' {
                     self.read_char();
 
-                    TokenType::LeftShift
+                    TokenKind::LeftShift
                 } else if peek_char == '=' {
                     self.read_char();
 
-                    TokenType::LessThanOrEqual
+                    TokenKind::LessThanOrEqual
                 } else {
-                    TokenType::LessThan
+                    TokenKind::LessThan
                 }
             }
             '>' => {
@@ -217,25 +223,25 @@ impl<'a> Lexer<'a> {
                 if peek_char == '>' && peek_char_1 == '>' && peek_char_2 == '=' {
                     self.read_char_nth(3);
 
-                    TokenType::UnsignedRightShiftAssignment
+                    TokenKind::UnsignedRightShiftAssignment
                 } else if peek_char == '>' && peek_char_1 == '>' {
                     self.read_char_nth(2);
 
-                    TokenType::UnsignedRightShift
+                    TokenKind::UnsignedRightShift
                 } else if peek_char == '>' && peek_char_1 == '=' {
                     self.read_char_nth(2);
 
-                    TokenType::RightShiftAssignment
+                    TokenKind::RightShiftAssignment
                 } else if peek_char == '>' {
                     self.read_char();
 
-                    TokenType::RightShift
+                    TokenKind::RightShift
                 } else if peek_char == '=' {
                     self.read_char();
 
-                    TokenType::GreaterThanOrEqual
+                    TokenKind::GreaterThanOrEqual
                 } else {
-                    TokenType::GreaterThan
+                    TokenKind::GreaterThan
                 }
             }
             '=' => {
@@ -245,17 +251,17 @@ impl<'a> Lexer<'a> {
                 if peek_char == '=' && peek_char_1 == '=' {
                     self.read_char_nth(2);
 
-                    TokenType::StrictEqual
+                    TokenKind::StrictEqual
                 } else if peek_char == '=' {
                     self.read_char();
 
-                    TokenType::Equal
+                    TokenKind::Equal
                 } else if peek_char == '>' {
                     self.read_char();
 
-                    TokenType::ArrowFunction
+                    TokenKind::ArrowFunction
                 } else {
-                    TokenType::Assignment
+                    TokenKind::Assignment
                 }
             }
             '!' => {
@@ -265,13 +271,13 @@ impl<'a> Lexer<'a> {
                 if peek_char == '=' && peek_char_1 == '=' {
                     self.read_char_nth(2);
 
-                    TokenType::StrictNotEqual
+                    TokenKind::StrictNotEqual
                 } else if peek_char == '=' {
                     self.read_char();
 
-                    TokenType::NotEqual
+                    TokenKind::NotEqual
                 } else {
-                    TokenType::LogicalNot
+                    TokenKind::LogicalNot
                 }
             }
             '+' => {
@@ -280,13 +286,13 @@ impl<'a> Lexer<'a> {
                 if peek_char == '=' {
                     self.read_char();
 
-                    TokenType::PlusAssignment
+                    TokenKind::PlusAssignment
                 } else if peek_char == '+' {
                     self.read_char();
 
-                    TokenType::Increment
+                    TokenKind::Increment
                 } else {
-                    TokenType::Addition
+                    TokenKind::Addition
                 }
             }
             '-' => {
@@ -295,13 +301,13 @@ impl<'a> Lexer<'a> {
                 if peek_char == '=' {
                     self.read_char();
 
-                    TokenType::MinusAssignment
+                    TokenKind::MinusAssignment
                 } else if peek_char == '-' {
                     self.read_char();
 
-                    TokenType::Decrement
+                    TokenKind::Decrement
                 } else {
-                    TokenType::Subtraction
+                    TokenKind::Subtraction
                 }
             }
             '*' => {
@@ -311,35 +317,35 @@ impl<'a> Lexer<'a> {
                 if peek_char == '*' && peek_char_1 == '=' {
                     self.read_char_nth(2);
 
-                    TokenType::ExponentiationAssignment
+                    TokenKind::ExponentiationAssignment
                 } else if peek_char == '=' {
                     self.read_char();
 
-                    TokenType::MultiplyAssignment
+                    TokenKind::MultiplyAssignment
                 } else if peek_char == '*' {
                     self.read_char();
 
-                    TokenType::Exponentiation
+                    TokenKind::Exponentiation
                 } else {
-                    TokenType::Multiplication
+                    TokenKind::Multiplication
                 }
             }
             '/' => {
                 if self.peek_char() == '=' {
                     self.read_char();
 
-                    TokenType::DivisionAssignment
+                    TokenKind::DivisionAssignment
                 } else {
-                    TokenType::Division
+                    TokenKind::Division
                 }
             }
             '%' => {
                 if self.peek_char() == '=' {
                     self.read_char();
 
-                    TokenType::ModulusAssignment
+                    TokenKind::ModulusAssignment
                 } else {
-                    TokenType::Modulus
+                    TokenKind::Modulus
                 }
             }
             '&' => {
@@ -349,17 +355,17 @@ impl<'a> Lexer<'a> {
                 if peek_char == '&' && peek_char_1 == '=' {
                     self.read_char_nth(2);
 
-                    TokenType::LogicalAndAssignment
+                    TokenKind::LogicalAndAssignment
                 } else if peek_char == '=' {
                     self.read_char();
 
-                    TokenType::BitwiseAndAssignment
+                    TokenKind::BitwiseAndAssignment
                 } else if peek_char == '&' {
                     self.read_char();
 
-                    TokenType::LogicalAnd
+                    TokenKind::LogicalAnd
                 } else {
-                    TokenType::BitwiseAnd
+                    TokenKind::BitwiseAnd
                 }
             }
             '|' => {
@@ -369,29 +375,29 @@ impl<'a> Lexer<'a> {
                 if peek_char == '|' && peek_char_1 == '=' {
                     self.read_char_nth(2);
 
-                    TokenType::LogicalOrAssignment
+                    TokenKind::LogicalOrAssignment
                 } else if peek_char == '=' {
                     self.read_char();
 
-                    TokenType::BitwiseOrAssignment
+                    TokenKind::BitwiseOrAssignment
                 } else if peek_char == '|' {
                     self.read_char();
 
-                    TokenType::LogicalOr
+                    TokenKind::LogicalOr
                 } else {
-                    TokenType::BitwiseOr
+                    TokenKind::BitwiseOr
                 }
             }
             '^' => {
                 if self.peek_char() == '=' {
                     self.read_char();
 
-                    TokenType::BitwiseXorAssignment
+                    TokenKind::BitwiseXorAssignment
                 } else {
-                    TokenType::BitwiseXor
+                    TokenKind::BitwiseXor
                 }
             }
-            '~' => TokenType::BitwiseNot,
+            '~' => TokenKind::BitwiseNot,
             '?' => {
                 let peek_char = self.peek_char();
                 let peek_char_1 = self.peek_char_nth(2);
@@ -399,21 +405,21 @@ impl<'a> Lexer<'a> {
                 if peek_char == '?' && peek_char_1 == '=' {
                     self.read_char_nth(2);
 
-                    TokenType::NullishCoalescingAssignment
+                    TokenKind::NullishCoalescingAssignment
                 } else if peek_char == '?' {
                     self.read_char();
 
-                    TokenType::NullishCoalescing
+                    TokenKind::NullishCoalescing
                 } else if peek_char == '.' {
                     self.read_char();
 
-                    TokenType::OptionalChaining
+                    TokenKind::OptionalChaining
                 } else {
-                    TokenType::QuestionMark
+                    TokenKind::QuestionMark
                 }
             }
-            ':' => TokenType::Colon,
-            _ => TokenType::Illegal,
+            ':' => TokenKind::Colon,
+            _ => TokenKind::Illegal,
         }
     }
 
@@ -446,18 +452,18 @@ impl<'a> Lexer<'a> {
     //   <ZWNJ>
     //   <ZWJ>
     // ```
-    fn scan_identifier_name_or_keyword(&mut self) -> TokenType {
+    fn scan_identifier_name_or_keyword(&mut self) -> TokenKind {
         let start_index = self.read_index;
 
         if !self.read_identifier_start() {
-            return TokenType::Illegal;
+            return TokenKind::Illegal;
         };
 
         let keyword_or_identifer_name = &self.source_str[start_index..self.read_index];
 
         match self.match_reserved_keyword(keyword_or_identifer_name) {
             Some(keyword_token) => keyword_token,
-            None => TokenType::Identifier(keyword_or_identifer_name.to_string()),
+            None => TokenKind::Identifier(keyword_or_identifer_name.to_string()),
         }
     }
 
@@ -504,56 +510,56 @@ impl<'a> Lexer<'a> {
     // ReservedWord :: one of
     //   await break case catch class const continue debugger default delete do else enum export extends false finally for function if import in instanceof new null return super switch this throw true try typeof var void while with yield
     // ```
-    fn match_reserved_keyword(&self, keyword_or_identifer: &str) -> Option<TokenType> {
+    fn match_reserved_keyword(&self, keyword_or_identifer: &str) -> Option<TokenKind> {
         match keyword_or_identifer {
-            "await" => Some(TokenType::Keyword(KeywordKind::Await)),
-            "break" => Some(TokenType::Keyword(KeywordKind::Break)),
-            "case" => Some(TokenType::Keyword(KeywordKind::Case)),
-            "catch" => Some(TokenType::Keyword(KeywordKind::Catch)),
-            "class" => Some(TokenType::Keyword(KeywordKind::Class)),
-            "const" => Some(TokenType::Keyword(KeywordKind::Const)),
-            "continue" => Some(TokenType::Keyword(KeywordKind::Continue)),
-            "debugger" => Some(TokenType::Keyword(KeywordKind::Debugger)),
-            "default" => Some(TokenType::Keyword(KeywordKind::Default)),
-            "delete" => Some(TokenType::Keyword(KeywordKind::Delete)),
-            "do" => Some(TokenType::Keyword(KeywordKind::Do)),
-            "else" => Some(TokenType::Keyword(KeywordKind::Else)),
-            "enum" => Some(TokenType::Keyword(KeywordKind::Enum)),
-            "export" => Some(TokenType::Keyword(KeywordKind::Export)),
-            "extends" => Some(TokenType::Keyword(KeywordKind::Extends)),
-            "false" => Some(TokenType::Keyword(KeywordKind::False)),
-            "finally" => Some(TokenType::Keyword(KeywordKind::Finally)),
-            "for" => Some(TokenType::Keyword(KeywordKind::For)),
-            "function" => Some(TokenType::Keyword(KeywordKind::Function)),
-            "if" => Some(TokenType::Keyword(KeywordKind::If)),
-            "import" => Some(TokenType::Keyword(KeywordKind::Import)),
-            "in" => Some(TokenType::Keyword(KeywordKind::In)),
-            "instanceof" => Some(TokenType::Keyword(KeywordKind::Instanceof)),
-            "new" => Some(TokenType::Keyword(KeywordKind::New)),
-            "null" => Some(TokenType::Keyword(KeywordKind::Null)),
-            "return" => Some(TokenType::Keyword(KeywordKind::Return)),
-            "super" => Some(TokenType::Keyword(KeywordKind::Super)),
-            "switch" => Some(TokenType::Keyword(KeywordKind::Switch)),
-            "this" => Some(TokenType::Keyword(KeywordKind::This)),
-            "throw" => Some(TokenType::Keyword(KeywordKind::Throw)),
-            "true" => Some(TokenType::Keyword(KeywordKind::True)),
-            "try" => Some(TokenType::Keyword(KeywordKind::Try)),
-            "typeof" => Some(TokenType::Keyword(KeywordKind::Typeof)),
-            "var" => Some(TokenType::Keyword(KeywordKind::Var)),
-            "void" => Some(TokenType::Keyword(KeywordKind::Void)),
-            "while" => Some(TokenType::Keyword(KeywordKind::While)),
-            "with" => Some(TokenType::Keyword(KeywordKind::With)),
-            "yield" => Some(TokenType::Keyword(KeywordKind::Yield)),
+            "await" => Some(TokenKind::Keyword(KeywordKind::Await)),
+            "break" => Some(TokenKind::Keyword(KeywordKind::Break)),
+            "case" => Some(TokenKind::Keyword(KeywordKind::Case)),
+            "catch" => Some(TokenKind::Keyword(KeywordKind::Catch)),
+            "class" => Some(TokenKind::Keyword(KeywordKind::Class)),
+            "const" => Some(TokenKind::Keyword(KeywordKind::Const)),
+            "continue" => Some(TokenKind::Keyword(KeywordKind::Continue)),
+            "debugger" => Some(TokenKind::Keyword(KeywordKind::Debugger)),
+            "default" => Some(TokenKind::Keyword(KeywordKind::Default)),
+            "delete" => Some(TokenKind::Keyword(KeywordKind::Delete)),
+            "do" => Some(TokenKind::Keyword(KeywordKind::Do)),
+            "else" => Some(TokenKind::Keyword(KeywordKind::Else)),
+            "enum" => Some(TokenKind::Keyword(KeywordKind::Enum)),
+            "export" => Some(TokenKind::Keyword(KeywordKind::Export)),
+            "extends" => Some(TokenKind::Keyword(KeywordKind::Extends)),
+            "false" => Some(TokenKind::Keyword(KeywordKind::False)),
+            "finally" => Some(TokenKind::Keyword(KeywordKind::Finally)),
+            "for" => Some(TokenKind::Keyword(KeywordKind::For)),
+            "function" => Some(TokenKind::Keyword(KeywordKind::Function)),
+            "if" => Some(TokenKind::Keyword(KeywordKind::If)),
+            "import" => Some(TokenKind::Keyword(KeywordKind::Import)),
+            "in" => Some(TokenKind::Keyword(KeywordKind::In)),
+            "instanceof" => Some(TokenKind::Keyword(KeywordKind::Instanceof)),
+            "new" => Some(TokenKind::Keyword(KeywordKind::New)),
+            "null" => Some(TokenKind::Keyword(KeywordKind::Null)),
+            "return" => Some(TokenKind::Keyword(KeywordKind::Return)),
+            "super" => Some(TokenKind::Keyword(KeywordKind::Super)),
+            "switch" => Some(TokenKind::Keyword(KeywordKind::Switch)),
+            "this" => Some(TokenKind::Keyword(KeywordKind::This)),
+            "throw" => Some(TokenKind::Keyword(KeywordKind::Throw)),
+            "true" => Some(TokenKind::Keyword(KeywordKind::True)),
+            "try" => Some(TokenKind::Keyword(KeywordKind::Try)),
+            "typeof" => Some(TokenKind::Keyword(KeywordKind::Typeof)),
+            "var" => Some(TokenKind::Keyword(KeywordKind::Var)),
+            "void" => Some(TokenKind::Keyword(KeywordKind::Void)),
+            "while" => Some(TokenKind::Keyword(KeywordKind::While)),
+            "with" => Some(TokenKind::Keyword(KeywordKind::With)),
+            "yield" => Some(TokenKind::Keyword(KeywordKind::Yield)),
 
             // Strict mode future reserved words
-            "let" => Some(TokenType::Keyword(KeywordKind::Let)),
-            "static" => Some(TokenType::Keyword(KeywordKind::Static)),
-            "implements" => Some(TokenType::Keyword(KeywordKind::Implements)),
-            "interface" => Some(TokenType::Keyword(KeywordKind::Interface)),
-            "package" => Some(TokenType::Keyword(KeywordKind::Package)),
-            "private" => Some(TokenType::Keyword(KeywordKind::Private)),
-            "protected" => Some(TokenType::Keyword(KeywordKind::Protected)),
-            "public" => Some(TokenType::Keyword(KeywordKind::Public)),
+            "let" => Some(TokenKind::Keyword(KeywordKind::Let)),
+            "static" => Some(TokenKind::Keyword(KeywordKind::Static)),
+            "implements" => Some(TokenKind::Keyword(KeywordKind::Implements)),
+            "interface" => Some(TokenKind::Keyword(KeywordKind::Interface)),
+            "package" => Some(TokenKind::Keyword(KeywordKind::Package)),
+            "private" => Some(TokenKind::Keyword(KeywordKind::Private)),
+            "protected" => Some(TokenKind::Keyword(KeywordKind::Protected)),
+            "public" => Some(TokenKind::Keyword(KeywordKind::Public)),
             _ => None,
         }
     }
@@ -563,18 +569,18 @@ impl<'a> Lexer<'a> {
     // PrivateIdentifier ::
     //   # IdentifierName
     // ```
-    fn scan_private_identifier(&mut self) -> TokenType {
+    fn scan_private_identifier(&mut self) -> TokenKind {
         let start_index = self.read_index;
 
         self.read_char();
 
         if !self.read_identifier_start() {
-            return TokenType::Illegal;
+            return TokenKind::Illegal;
         };
 
         let identifer_name = &self.source_str[start_index..self.read_index];
 
-        TokenType::Identifier(identifer_name.to_string())
+        TokenKind::Identifier(identifer_name.to_string())
     }
 
     // https://tc39.es/ecma262/#sec-literals-string-literals
@@ -599,7 +605,7 @@ impl<'a> Lexer<'a> {
     //   \ EscapeSequence
     //   LineContinuation
     // ```
-    fn scan_string_literal(&mut self) -> TokenType {
+    fn scan_string_literal(&mut self) -> TokenKind {
         let start_quote_character = self.ch; // '\'' | '"'
 
         self.read_char();
@@ -608,7 +614,7 @@ impl<'a> Lexer<'a> {
             if self.ch == CR || self.ch == LF {
                 self.errors.push(ParserError::UnterminatedStringLiteral);
 
-                return TokenType::Illegal;
+                return TokenKind::Illegal;
             } else if self.ch == '\\' {
                 self.read_escape_sequence();
             }
@@ -616,7 +622,7 @@ impl<'a> Lexer<'a> {
             self.read_char();
         }
 
-        return TokenType::StringLiteral;
+        return TokenKind::StringLiteral;
     }
 
     fn read_escape_sequence(&mut self) -> bool {
