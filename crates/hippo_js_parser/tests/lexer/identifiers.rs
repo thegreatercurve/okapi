@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use hippo_js_parser::{KeywordKind, Token, TokenKind};
 
 use crate::lexer::common::assert_lexer_eq;
@@ -13,7 +11,22 @@ fn keywords_and_identifiers() {
             Token::new(TokenKind::Identifier("foo".to_string()), 6, 9),
             Token::new(TokenKind::Assignment, 10, 11),
             Token::new(TokenKind::NumberLiteral, 12, 13),
-            Token::new(TokenKind::Semicolon, 14, 15),
+            Token::new(TokenKind::Semicolon, 13, 14),
+        ]
+    );
+
+    assert_lexer_eq!(
+        "while (foo) { 11; };",
+        vec![
+            Token::new(TokenKind::Keyword(KeywordKind::While), 0, 5),
+            Token::new(TokenKind::LeftParenthesis, 6, 7),
+            Token::new(TokenKind::Identifier("foo".to_string()), 7, 10),
+            Token::new(TokenKind::RightParenthesis, 10, 11),
+            Token::new(TokenKind::LeftCurlyBrace, 12, 13),
+            Token::new(TokenKind::NumberLiteral, 14, 16),
+            Token::new(TokenKind::Semicolon, 16, 17),
+            Token::new(TokenKind::RightCurlyBrace, 18, 19),
+            Token::new(TokenKind::Semicolon, 19, 20),
         ]
     );
 
@@ -24,7 +37,7 @@ fn keywords_and_identifiers() {
             Token::new(TokenKind::Identifier("baz".to_string()), 4, 7),
             Token::new(TokenKind::Assignment, 8, 9),
             Token::new(TokenKind::NumberLiteral, 10, 11),
-            Token::new(TokenKind::Semicolon, 12, 13),
+            Token::new(TokenKind::Semicolon, 11, 12),
         ]
     );
 
@@ -35,18 +48,19 @@ fn keywords_and_identifiers() {
             Token::new(TokenKind::Identifier("baz".to_string()), 4, 7),
             Token::new(TokenKind::Assignment, 8, 9),
             Token::new(TokenKind::NumberLiteral, 10, 11),
-            Token::new(TokenKind::Semicolon, 12, 13),
+            Token::new(TokenKind::Semicolon, 11, 12),
         ]
     );
 
+    // TODO Handle surrogate unciode pairs
     // assert_lexer_eq!(
     //     r#"var \u{0042}\u{0041}z = 1;"#,
     //     vec![
-    //         TokenType::Keyword(KeywordKind::Var),
-    //         TokenType::Identifier("baz".to_string()),
-    //         TokenType::Assignment,
-    //         TokenType::NumberLiteral,
-    //         TokenType::Semicolon,
+    //         Token::new(TokenKind::Keyword(KeywordKind::Var), 0, 3),
+    //         Token::new(TokenKind::Identifier("baz".to_string()), 4, 7),
+    //         Token::new(TokenKind::Assignment, 8, 9),
+    //         Token::new(TokenKind::NumberLiteral, 10, 11),
+    //         Token::new(TokenKind::Semicolon, 11, 12),
     //     ]
     // );
 
@@ -65,6 +79,4 @@ fn keywords_and_identifiers() {
             Token::new(TokenKind::Semicolon, 23, 24),
         ]
     );
-
-    // TODO Handle surrogate unciode pairs
 }
