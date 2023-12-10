@@ -78,7 +78,7 @@ pub enum TokenKind {
     Identifier(String),
 
     // Literals
-    StringLiteral,
+    StringLiteral(String),
     NumberLiteral,
 
     // Punctuators
