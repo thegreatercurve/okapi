@@ -16,7 +16,7 @@ macro_rules! assert_lexer_eq {
 
             assert_eq!(
                 expected_token, token,
-                "Expected token {:#?}, but found {:#?}",
+                "Expected token {:?}, but found {:?}",
                 expected_token, token,
             );
         }

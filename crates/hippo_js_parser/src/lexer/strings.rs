@@ -28,43 +28,77 @@ impl<'a> Lexer<'a> {
     pub(crate) fn scan_string_literal(&mut self) -> TokenKind {
         let start_quote_character = self.current_char(); // '\'' | '"'
 
+        let mut string_literal = String::new();
+
         self.read_char();
 
         while self.current_char() != start_quote_character {
-            if self.current_char() == CR || self.current_char() == LF {
+            let current_char = self.current_char();
+
+            if current_char == CR || current_char == LF {
                 self.errors.push(ParserError::UnterminatedStringLiteral);
 
                 return TokenKind::Illegal;
-            } else if self.current_char() == '\\' {
-                self.read_escape_sequence();
+            } else if current_char == '\\' {
+                let peek_char = self.peek_char();
 
-                // return match valid_escape_sequence {
-                //     Some(string_literal) => TokenKind::StringLiteral(string_literal.to_string()),
-                //     _ => TokenKind::Illegal,
-                // };
+                if is_escape_sequence_that_should_be_unescaped(peek_char) {
+                    self.read_char(); // Eat \ char.
+                } else {
+                    match peek_char {
+                        '\'' | '"' | '\\' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' => {
+                            string_literal.push(current_char);
+                            string_literal.push(peek_char);
+
+                            self.read_char_nth(2);
+
+                            continue;
+                        }
+                        _ => {
+                            self.errors.push(ParserError::InvalidGeneralEscapeSequence);
+
+                            return TokenKind::Illegal;
+                        }
+                    }
+                }
+
+                if let Some(unescaped_char) = self.read_escape_sequence() {
+                    string_literal.push(unescaped_char);
+                } else {
+                    self.errors.push(ParserError::InvalidGeneralEscapeSequence);
+
+                    return TokenKind::Illegal;
+                }
+            } else {
+                string_literal.push(self.current_char());
+
+                self.read_char();
             }
-
-            self.read_char();
         }
 
         self.read_char();
 
-        TokenKind::StringLiteral("".to_string())
+        TokenKind::StringLiteral(string_literal)
     }
 
     fn read_escape_sequence(&mut self) -> Option<char> {
-        match self.current_char() {
-            '\'' | '"' | '\\' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' => {
-                self.read_char();
+        let current_char = self.current_char();
 
-                Some('x')
+        match current_char {
+            'x' => {
+                self.read_char(); // Eat x char.
+
+                self.read_hexadecimal_escape_sequence()
             }
-            'x' => self.read_hexadecimal_escape_sequence(),
             'u' => {
-                if self.peek_char() == '{' {
-                    self.read_unicode_escape_sequence()
-                } else {
+                self.read_char(); // Eat u char.
+
+                if self.current_char() == '{' {
+                    self.read_char(); // Eat { char.
+
                     self.read_code_point_escape_sequence()
+                } else {
+                    self.read_unicode_escape_sequence()
                 }
             }
             '0'..='7' => self.read_octal_escape_sequence(),
@@ -171,6 +205,10 @@ impl<'a> Lexer<'a> {
         let start_index = self.read_index;
 
         for _ in 0..6 {
+            if self.current_char() == '}' {
+                break;
+            }
+
             if !self.current_char().is_ascii_hexdigit() {
                 self.errors
                     .push(ParserError::InvalidUnicodeCodePointEscapeSequence);
@@ -203,14 +241,14 @@ impl<'a> Lexer<'a> {
             return None;
         }
 
-        if self.peek_char() != '}' {
+        if self.current_char() != '}' {
             self.errors
                 .push(ParserError::InvalidUnicodeCodePointEscapeSequence);
 
             return None;
         }
 
-        self.read_char();
+        self.read_char(); // Eat } char.
 
         let unescaped_char = unescape_unicode_escape_sequence(code_point_value);
 
@@ -254,6 +292,13 @@ impl<'a> Lexer<'a> {
         }
 
         Some('x')
+    }
+}
+
+fn is_escape_sequence_that_should_be_unescaped(ch: char) -> bool {
+    match ch {
+        'x' | 'u' | '0'..='7' => true,
+        _ => false,
     }
 }
 
