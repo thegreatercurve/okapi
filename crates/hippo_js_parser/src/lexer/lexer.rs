@@ -79,17 +79,20 @@ impl<'a> Lexer<'a> {
     fn advance(&mut self) -> Token {
         let start_index = self.read_index;
 
-        let token_type = match self.current_char() {
+        let mut token: Token = match self.current_char() {
             '#' => self.scan_private_identifier(),
             '1'..='9' => self.scan_number_literal(),
             '\'' | '"' => self.scan_string_literal(),
             _ if is_punctuator_start(self.current_char()) => self.scan_punctuator(),
             _ if is_identifier_start(self.current_char()) => self.scan_identifier_name_or_keyword(),
-            _ => TokenKind::Illegal,
+            _ => Token::default(TokenKind::Illegal),
         };
 
         let end_index = self.read_index;
 
-        Token::new(token_type, start_index, end_index)
+        token.start = start_index;
+        token.end = end_index;
+
+        token
     }
 }

@@ -1,6 +1,0 @@
-{
-  "devDependencies": {
-    "@types/node": "^20.9.2",
-    "tslib": "^2.6.2"
-  }
-}

@@ -1,4 +1,4 @@
-use crate::{errors::ParserError, Lexer, TokenKind};
+use crate::{errors::ParserError, Lexer, Token, TokenKind};
 
 use super::utils::{is_ascii_octaldigit, CR, LF};
 
@@ -25,7 +25,7 @@ impl<'a> Lexer<'a> {
     //   \ EscapeSequence
     //   LineContinuation
     // ```
-    pub(crate) fn scan_string_literal(&mut self) -> TokenKind {
+    pub(crate) fn scan_string_literal(&mut self) -> Token {
         let start_quote_character = self.current_char(); // '\'' | '"'
 
         let mut string_literal = String::new();
@@ -38,7 +38,7 @@ impl<'a> Lexer<'a> {
             if current_char == CR || current_char == LF {
                 self.errors.push(ParserError::UnterminatedStringLiteral);
 
-                return TokenKind::Illegal;
+                return Token::default(TokenKind::Illegal);
             } else if current_char == '\\' {
                 let peek_char = self.peek_char();
 
@@ -57,7 +57,7 @@ impl<'a> Lexer<'a> {
                         _ => {
                             self.errors.push(ParserError::InvalidGeneralEscapeSequence);
 
-                            return TokenKind::Illegal;
+                            return Token::default(TokenKind::Illegal);
                         }
                     }
                 }
@@ -67,7 +67,7 @@ impl<'a> Lexer<'a> {
                 } else {
                     self.errors.push(ParserError::InvalidGeneralEscapeSequence);
 
-                    return TokenKind::Illegal;
+                    return Token::default(TokenKind::Illegal);
                 }
             } else {
                 string_literal.push(self.current_char());
@@ -78,7 +78,7 @@ impl<'a> Lexer<'a> {
 
         self.read_char();
 
-        TokenKind::StringLiteral(string_literal)
+        Token::default_string_literal(string_literal)
     }
 
     fn read_escape_sequence(&mut self) -> Option<char> {

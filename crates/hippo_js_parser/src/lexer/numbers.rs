@@ -1,11 +1,11 @@
-use crate::{Lexer, TokenKind};
+use crate::{Lexer, Token, TokenKind};
 
 impl<'a> Lexer<'a> {
-    pub(crate) fn scan_number_literal(&mut self) -> TokenKind {
+    pub(crate) fn scan_number_literal(&mut self) -> Token {
         while self.current_char().is_numeric() {
             self.read_char();
         }
 
-        TokenKind::NumberLiteral
+        Token::default(TokenKind::NumberLiteral)
     }
 }

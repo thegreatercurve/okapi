@@ -1,4 +1,4 @@
-use crate::{Lexer, TokenKind};
+use crate::{Lexer, Token, TokenKind};
 
 impl<'a> Lexer<'a> {
     // https://tc39.es/ecma262/#sec-punctuators
@@ -17,7 +17,7 @@ impl<'a> Lexer<'a> {
     // RightBracePunctuator ::
     //   }
     // ```
-    pub(crate) fn scan_punctuator(&mut self) -> TokenKind {
+    pub(crate) fn scan_punctuator(&mut self) -> Token {
         let token_kind = match self.current_char() {
             '{' => TokenKind::LeftCurlyBrace,
             '}' => TokenKind::RightCurlyBrace,
@@ -265,6 +265,6 @@ impl<'a> Lexer<'a> {
 
         self.read_char();
 
-        token_kind
+        Token::default(token_kind)
     }
 }

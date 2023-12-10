@@ -1,6 +1,6 @@
 use hippo_unicode::is_unicode_id_start;
 
-use crate::{errors::ParserError, KeywordKind, Lexer, TokenKind};
+use crate::{errors::ParserError, KeywordKind, Lexer, Token, TokenKind};
 
 use super::utils::is_identifier_part;
 
@@ -34,18 +34,18 @@ impl<'a> Lexer<'a> {
     //   <ZWNJ>
     //   <ZWJ>
     // ```
-    pub(crate) fn scan_identifier_name_or_keyword(&mut self) -> TokenKind {
+    pub(crate) fn scan_identifier_name_or_keyword(&mut self) -> Token {
         let start_index = self.read_index;
 
         if !self.read_identifier_start() {
-            return TokenKind::Illegal;
+            return Token::default(TokenKind::Illegal);
         };
 
         let keyword_or_identifer_name = &self.source_str[start_index..self.read_index];
 
         match self.match_reserved_keyword(keyword_or_identifer_name) {
-            Some(keyword_token) => keyword_token,
-            None => TokenKind::Identifier(keyword_or_identifer_name.to_string()),
+            Some(keyword_token) => Token::default(keyword_token),
+            None => Token::default_identifier(keyword_or_identifer_name.to_string()),
         }
     }
 
@@ -151,17 +151,17 @@ impl<'a> Lexer<'a> {
     // PrivateIdentifier ::
     //   # IdentifierName
     // ```
-    pub(crate) fn scan_private_identifier(&mut self) -> TokenKind {
+    pub(crate) fn scan_private_identifier(&mut self) -> Token {
         let start_index = self.read_index;
 
         self.read_char();
 
         if !self.read_identifier_start() {
-            return TokenKind::Illegal;
+            return Token::default(TokenKind::Illegal);
         };
 
         let identifer_name = &self.source_str[start_index..self.read_index];
 
-        TokenKind::Identifier(identifer_name.to_string())
+        Token::default_identifier(identifer_name.to_string())
     }
 }

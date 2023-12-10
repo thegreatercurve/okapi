@@ -8,7 +8,7 @@ fn keywords_and_identifiers() {
         "const foo = 1;",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Const), 0, 5),
-            Token::new(TokenKind::Identifier("foo".to_string()), 6, 9),
+            Token::identifier("foo".to_string(), 6, 9),
             Token::new(TokenKind::Assignment, 10, 11),
             Token::new(TokenKind::NumberLiteral, 12, 13),
             Token::new(TokenKind::Semicolon, 13, 14),
@@ -20,7 +20,7 @@ fn keywords_and_identifiers() {
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::While), 0, 5),
             Token::new(TokenKind::LeftParenthesis, 6, 7),
-            Token::new(TokenKind::Identifier("foo".to_string()), 7, 10),
+            Token::identifier("foo".to_string(), 7, 10),
             Token::new(TokenKind::RightParenthesis, 10, 11),
             Token::new(TokenKind::LeftCurlyBrace, 12, 13),
             Token::new(TokenKind::NumberLiteral, 14, 16),
@@ -35,7 +35,7 @@ fn keywords_and_identifiers() {
     //     vec![
     //         Token::new(TokenKind::Keyword(KeywordKind::While), 0, 5),
     //         Token::new(TokenKind::LeftParenthesis, 6, 7),
-    //         Token::new(TokenKind::Identifier("foo".to_string()), 7, 10),
+    //         Token::new("foo".to_string(), 7, 10),
     //         Token::new(TokenKind::RightParenthesis, 10, 11),
     //         Token::new(TokenKind::LeftCurlyBrace, 12, 13),
     //         Token::new(TokenKind::NumberLiteral, 14, 16), // TODO Fix this.
@@ -49,7 +49,7 @@ fn keywords_and_identifiers() {
         "let baz = 1;",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Let), 0, 3),
-            Token::new(TokenKind::Identifier("baz".to_string()), 4, 7),
+            Token::identifier("baz".to_string(), 4, 7),
             Token::new(TokenKind::Assignment, 8, 9),
             Token::new(TokenKind::NumberLiteral, 10, 11),
             Token::new(TokenKind::Semicolon, 11, 12),
@@ -60,7 +60,7 @@ fn keywords_and_identifiers() {
         "var baz = 1;",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Var), 0, 3),
-            Token::new(TokenKind::Identifier("baz".to_string()), 4, 7),
+            Token::identifier("baz".to_string(), 4, 7),
             Token::new(TokenKind::Assignment, 8, 9),
             Token::new(TokenKind::NumberLiteral, 10, 11),
             Token::new(TokenKind::Semicolon, 11, 12),
@@ -72,7 +72,7 @@ fn keywords_and_identifiers() {
     //     r#"var \u{0042}\u{0041}z = 1;"#,
     //     vec![
     //         Token::new(TokenKind::Keyword(KeywordKind::Var), 0, 3),
-    //         Token::new(TokenKind::Identifier("baz".to_string()), 4, 7),
+    //         Token::new("baz".to_string(), 4, 7),
     //         Token::new(TokenKind::Assignment, 8, 9),
     //         Token::new(TokenKind::NumberLiteral, 10, 11),
     //         Token::new(TokenKind::Semicolon, 11, 12),
@@ -84,9 +84,9 @@ fn keywords_and_identifiers() {
         r#"class Foo { #bar = 1; };"#,
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Class), 0, 5),
-            Token::new(TokenKind::Identifier("Foo".to_string()), 6, 9),
+            Token::identifier("Foo".to_string(), 6, 9),
             Token::new(TokenKind::LeftCurlyBrace, 10, 11),
-            Token::new(TokenKind::Identifier("#bar".to_string()), 12, 16),
+            Token::identifier("#bar".to_string(), 12, 16),
             Token::new(TokenKind::Assignment, 17, 18),
             Token::new(TokenKind::NumberLiteral, 19, 20),
             Token::new(TokenKind::Semicolon, 20, 21),

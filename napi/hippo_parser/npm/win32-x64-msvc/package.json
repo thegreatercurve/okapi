@@ -1,0 +1,18 @@
+{
+  "name": "hippo_parser-win32-x64-msvc",
+  "version": "0.0.0",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "hippo_parser.win32-x64-msvc.node",
+  "files": [
+    "hippo_parser.win32-x64-msvc.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}

@@ -110,22 +110,24 @@ impl<'a> Parser<'a> {
         let mut declarations = Vec::new();
 
         while self.current_token_type() != TokenKind::EOF {
-            match self.current_token_type() {
-                TokenKind::Identifier(identifier) => {
+            match self.current_token.kind {
+                TokenKind::Identifier => {
                     let start_node = self.start_node();
 
                     self.bump();
 
                     let declaration = self.finish_node(&start_node);
 
-                    declarations.push(VariableDeclarator {
-                        node: declaration,
-                        id: Identifier {
+                    if let Some(identifier) = &self.current_token.value {
+                        declarations.push(VariableDeclarator {
                             node: declaration,
-                            name: identifier.clone(),
-                        },
-                        init: None,
-                    });
+                            id: Identifier {
+                                node: declaration,
+                                name: identifier.clone(),
+                            },
+                            init: None,
+                        });
+                    }
                 }
                 _ => break,
             }

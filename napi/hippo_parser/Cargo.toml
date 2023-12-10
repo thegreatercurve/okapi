@@ -1,0 +1,17 @@
+[package]
+name = "hippo_parser"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "2.12.2", default-features = false, features = ["napi4"] }
+napi-derive = "2.12.2"
+
+hippo_js_parser = { workspace = true }
+
+[build-dependencies]
+napi-build = "2.0.1"
