@@ -12,6 +12,8 @@ pub struct Lexer<'a> {
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str, config: Config) -> Self {
+        println!("input: {}", input);
+
         Self {
             config: config,
             errors: Vec::new(),

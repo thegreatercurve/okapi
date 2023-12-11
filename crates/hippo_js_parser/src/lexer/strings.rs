@@ -1,6 +1,6 @@
 use crate::{errors::ParserError, Lexer, Token, TokenKind};
 
-use super::utils::{is_ascii_octaldigit, CR, LF};
+use super::utils::{CR, LF};
 
 impl<'a> Lexer<'a> {
     // https://tc39.es/ecma262/#sec-literals-string-literals
@@ -292,6 +292,13 @@ impl<'a> Lexer<'a> {
         }
 
         Some('x')
+    }
+}
+
+pub fn is_ascii_octaldigit(ch: char) -> bool {
+    match ch {
+        '0'..='7' => true,
+        _ => false,
     }
 }
 

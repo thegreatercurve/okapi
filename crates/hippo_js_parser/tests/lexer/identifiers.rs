@@ -16,7 +16,7 @@ fn keywords_and_identifiers() {
     );
 
     assert_lexer_eq!(
-        "while (foo) { 11; };",
+        r"while (foo) { 11; };",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::While), 0, 5),
             Token::new(TokenKind::LeftParenthesis, 6, 7),
@@ -81,7 +81,7 @@ fn keywords_and_identifiers() {
 
     // Private identifiers
     assert_lexer_eq!(
-        r#"class Foo { #bar = 1; };"#,
+        r"class Foo { #bar = 1; };",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Class), 0, 5),
             Token::identifier("Foo".to_string(), 6, 9),

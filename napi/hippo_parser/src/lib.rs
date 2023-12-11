@@ -19,7 +19,11 @@ pub fn tokenize_sync(source_text: String) -> Vec<Token> {
 
   let mut scanner = Lexer::new(&source_text, Config::default());
 
-  while !scanner.is_end_of_file() {
+  let mut loop_count = 0;
+
+  while loop_count < 10 {
+    print!("loop_count: {}", loop_count);
+
     let token = scanner.next_token();
 
     let token_value = Token {
@@ -30,6 +34,8 @@ pub fn tokenize_sync(source_text: String) -> Vec<Token> {
     };
 
     tokens.push(token_value);
+
+    loop_count += 1;
   }
 
   tokens
