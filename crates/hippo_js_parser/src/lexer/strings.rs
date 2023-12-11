@@ -37,6 +37,8 @@ impl<'a> Lexer<'a> {
         while current_char != start_quote_character {
             current_char = self.current_char();
 
+            let potential_high_surrogate = current_char;
+
             match current_char {
                 _ if current_char == start_quote_character => break,
                 '\\' => {
@@ -50,13 +52,11 @@ impl<'a> Lexer<'a> {
                             string_literal.push(current_char);
                         }
                         'x' | 'u' | '0'..='7' => {
-                            if let Some(unescaped_char) = self.escape_sequence_to_char() {
-                                string_literal.push(unescaped_char);
+                            if let Some(ch) = self.escape_sequence_to_char() {
+                                string_literal.push(ch);
 
                                 continue;
                             } else {
-                                self.errors.push(ParserError::InvalidEscapeSequence);
-
                                 return Token::default(TokenKind::Illegal);
                             }
                         }
@@ -113,9 +113,16 @@ impl<'a> Lexer<'a> {
         };
 
         if let Some(code_str) = code_str_option {
-            return unescape_escape_sequence(code_str, radix);
+            if let Ok(unicode_unescaped_32) = u32::from_str_radix(code_str, radix) {
+                if let Some(ch) = std::char::from_u32(unicode_unescaped_32) {
+                    return Some(ch);
+                }
+            }
+
+            return None;
         } else {
-            self.errors.push(ParserError::InvalidEscapeSequence);
+            self.errors
+                .push(ParserError::InvalidEscapeSequenceCannotBeFormatted);
 
             return None;
         }
@@ -138,11 +145,7 @@ impl<'a> Lexer<'a> {
             }
 
             self.read_char();
-
-            println!("loop");
         }
-
-        println!("start_index: {}", self.current_char());
 
         let hex_escape = &self.source_str[start_index..self.read_index];
 
@@ -283,12 +286,13 @@ impl<'a> Lexer<'a> {
                 self.read_char_nth(2)
             }
             _ => {
-                self.errors
-                    .push(ParserError::InvalidOctalEscapeSequenceNotAllowedInStrictMode);
+                self.errors.push(ParserError::InvalidOctalEscapeSequence);
 
                 return None;
             }
         }
+
+        self.read_char();
 
         let octal_value = &self.source_str[start_index..self.read_index];
 
@@ -301,14 +305,4 @@ pub fn is_ascii_octaldigit(ch: char) -> bool {
         '0'..='7' => true,
         _ => false,
     }
-}
-
-fn unescape_escape_sequence(unicode: &str, radix: u32) -> Option<char> {
-    if let Ok(unicode_unescaped_32) = u32::from_str_radix(unicode, radix) {
-        if let Some(ch) = std::char::from_u32(unicode_unescaped_32) {
-            return Some(ch);
-        }
-    }
-
-    None
 }

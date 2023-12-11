@@ -5,6 +5,7 @@ pub enum ParserError {
     InvalidIdentifierCharacter,
 
     InvalidEscapeSequence,
+    InvalidEscapeSequenceCannotBeFormatted,
     InvalidHexadecimalEscapeSequence,
     InvalidUnicodeEscapeSequence,
     InvalidUnicodeCodePointEscapeSequence,
