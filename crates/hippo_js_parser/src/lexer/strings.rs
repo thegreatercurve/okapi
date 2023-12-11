@@ -45,21 +45,12 @@ impl<'a> Lexer<'a> {
                 if is_escape_sequence_that_should_be_unescaped(peek_char) {
                     self.read_char(); // Eat \ char.
                 } else {
-                    match peek_char {
-                        '\'' | '"' | '\\' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' => {
-                            string_literal.push(current_char);
-                            string_literal.push(peek_char);
+                    string_literal.push(current_char);
+                    string_literal.push(peek_char);
 
-                            self.read_char_nth(2);
+                    self.read_char_nth(2);
 
-                            continue;
-                        }
-                        _ => {
-                            self.errors.push(ParserError::InvalidGeneralEscapeSequence);
-
-                            return Token::default(TokenKind::Illegal);
-                        }
-                    }
+                    continue;
                 }
 
                 if let Some(unescaped_char) = self.read_escape_sequence() {
@@ -291,7 +282,7 @@ impl<'a> Lexer<'a> {
             max_length -= 1;
         }
 
-        Some('x')
+        Some('x') // TODO Fix this.
     }
 }
 
