@@ -50,7 +50,7 @@ impl<'a> Lexer<'a> {
                             string_literal.push(current_char);
                         }
                         'x' | 'u' | '0'..='7' => {
-                            if let Some(unescaped_char) = self.format_escape_sequence() {
+                            if let Some(unescaped_char) = self.escape_sequence_to_char() {
                                 string_literal.push(unescaped_char);
 
                                 continue;
@@ -82,14 +82,16 @@ impl<'a> Lexer<'a> {
         Token::default_string_literal(string_literal)
     }
 
-    fn format_escape_sequence(&mut self) -> Option<char> {
+    fn escape_sequence_to_char(&mut self) -> Option<char> {
         let current_char = self.current_char();
+
+        let mut radix = 16;
 
         let code_str_option = match current_char {
             'x' => {
                 self.read_char(); // Eat x char.
 
-                self.read_hexadecimal_escape_sequence()
+                self.read_hexadecimal_escape_sequence_str()
             }
             'u' => {
                 self.read_char(); // Eat u char.
@@ -97,17 +99,21 @@ impl<'a> Lexer<'a> {
                 if self.current_char() == '{' {
                     self.read_char(); // Eat { char.
 
-                    self.read_code_point_escape_sequence()
+                    self.read_code_point_escape_sequence_str()
                 } else {
-                    self.read_unicode_escape_sequence()
+                    self.read_unicode_escape_sequence_str()
                 }
             }
-            '0'..='7' => self.read_octal_escape_sequence(),
+            '0'..='7' => {
+                radix = 8;
+
+                self.read_octal_escape_sequence_str()
+            }
             _ => None,
         };
 
         if let Some(code_str) = code_str_option {
-            return unescape_unicode_escape_sequence(code_str);
+            return unescape_escape_sequence(code_str, radix);
         } else {
             self.errors.push(ParserError::InvalidEscapeSequence);
 
@@ -120,7 +126,7 @@ impl<'a> Lexer<'a> {
     // HexEscapeSequence ::
     //   x HexDigit HexDigit
     // ```
-    fn read_hexadecimal_escape_sequence(&mut self) -> Option<&str> {
+    fn read_hexadecimal_escape_sequence_str(&mut self) -> Option<&str> {
         let start_index = self.read_index;
 
         for _ in 0..2 {
@@ -151,7 +157,7 @@ impl<'a> Lexer<'a> {
     // Hex4Digits ::
     //   HexDigit HexDigit HexDigit HexDigit
     // ```
-    pub fn read_unicode_escape_sequence(&mut self) -> Option<&str> {
+    pub fn read_unicode_escape_sequence_str(&mut self) -> Option<&str> {
         let start_index = self.read_index;
 
         for _ in 0..4 {
@@ -195,7 +201,7 @@ impl<'a> Lexer<'a> {
     // CodePoint ::
     //   HexDigits[~Sep] but only if MV of HexDigits ≤ 0x10FFFF
     // ```
-    fn read_code_point_escape_sequence(&mut self) -> Option<&str> {
+    fn read_code_point_escape_sequence_str(&mut self) -> Option<&str> {
         let start_index = self.read_index;
 
         for _ in 0..6 {
@@ -256,7 +262,7 @@ impl<'a> Lexer<'a> {
     //   FourToSeven OctalDigit
     //   ZeroToThree OctalDigit OctalDigit
     // ```
-    fn read_octal_escape_sequence(&mut self) -> Option<&str> {
+    fn read_octal_escape_sequence_str(&mut self) -> Option<&str> {
         if !self.config.strict_mode {
             self.errors
                 .push(ParserError::InvalidOctalEscapeSequenceNotAllowedInStrictMode);
@@ -264,19 +270,29 @@ impl<'a> Lexer<'a> {
             return None;
         }
 
-        let mut max_length = 3;
+        let start_index = self.read_index;
 
-        if ('4'..='7').contains(&self.current_char()) {
-            max_length = 2;
+        self.read_char(); // Eat start 0..=7 char.
+
+        let current_char = self.current_char();
+        let peek_char = self.peek_char();
+
+        match current_char {
+            '1'..='3' if is_ascii_octaldigit(current_char) => self.read_char(),
+            '4'..='7' if is_ascii_octaldigit(current_char) || is_ascii_octaldigit(peek_char) => {
+                self.read_char_nth(2)
+            }
+            _ => {
+                self.errors
+                    .push(ParserError::InvalidOctalEscapeSequenceNotAllowedInStrictMode);
+
+                return None;
+            }
         }
 
-        while is_ascii_octaldigit(self.current_char()) && max_length > 0 {
-            self.read_char();
+        let octal_value = &self.source_str[start_index..self.read_index];
 
-            max_length -= 1;
-        }
-
-        Some("") // TODO Fix this.
+        Some(octal_value)
     }
 }
 
@@ -287,8 +303,8 @@ pub fn is_ascii_octaldigit(ch: char) -> bool {
     }
 }
 
-fn unescape_unicode_escape_sequence(unicode: &str) -> Option<char> {
-    if let Ok(unicode_unescaped_32) = u32::from_str_radix(unicode, 16) {
+fn unescape_escape_sequence(unicode: &str, radix: u32) -> Option<char> {
+    if let Ok(unicode_unescaped_32) = u32::from_str_radix(unicode, radix) {
         if let Some(ch) = std::char::from_u32(unicode_unescaped_32) {
             return Some(ch);
         }
