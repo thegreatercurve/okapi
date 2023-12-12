@@ -73,8 +73,7 @@ impl<'a> Lexer<'a> {
 
                     match current_char {
                         '\'' | '"' | '\\' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' => {
-                            string_literal.push('\\');
-                            string_literal.push(current_char);
+                            string_literal.push_str(format!("\\{}", current_char).as_str());
                         }
                         'x' => {
                             self.read_char(); // Eat x char.
@@ -82,7 +81,7 @@ impl<'a> Lexer<'a> {
                             let escape_sequence_u32 =
                                 self.read_hexadecimal_escape_sequence_u32().unwrap();
 
-                            if let Some(ch) = std::char::from_u32(escape_sequence_u32) {
+                            if let Some(ch) = char::from_u32(escape_sequence_u32) {
                                 string_literal.push(ch);
 
                                 continue;
@@ -98,31 +97,40 @@ impl<'a> Lexer<'a> {
                                 self.read_potential_unicode_or_code_point_surrogate_pairs();
 
                             match escape_sequence_u32 {
-                                SurrogatePair::LeadingInvalid(escape_sequence_u32)
-                                | SurrogatePair::AstralCodePoint(escape_sequence_u32) => {
-                                    if let Some(ch) = std::char::from_u32(escape_sequence_u32) {
+                                SurrogatePair::LeadingInvalid(escape_sequence_u32) => {
+                                    if let Some(ch) = char::from_u32(escape_sequence_u32) {
                                         string_literal.push(ch);
 
                                         continue;
-                                    } else {
-                                        return Token::default(TokenKind::Illegal);
                                     }
+
+                                    return Token::default(TokenKind::Illegal);
+                                }
+                                SurrogatePair::AstralCodePoint(escape_sequence_u32) => {
+                                    if let Some(ch) = char::from_u32(escape_sequence_u32) {
+                                        string_literal.push(ch);
+
+                                        continue;
+                                    }
+
+                                    return Token::default(TokenKind::Illegal);
                                 }
                                 SurrogatePair::LeadingValidTrailingInvalid(
                                     leading_escape_sequence_u32,
                                     trailing_escape_sequence_u32,
                                 ) => {
-                                    if let Some(ch) =
-                                        std::char::from_u32(leading_escape_sequence_u32)
-                                    {
+                                    if let Some(ch) = char::from_u32(leading_escape_sequence_u32) {
                                         string_literal.push(ch);
                                     } else {
-                                        return Token::default(TokenKind::Illegal);
+                                        let leading_code_point_str = format!(
+                                            "\\u{{{}}}",
+                                            &leading_escape_sequence_u32.to_string()
+                                        );
+
+                                        string_literal.push_str(leading_code_point_str.as_str());
                                     }
 
-                                    if let Some(ch) =
-                                        std::char::from_u32(trailing_escape_sequence_u32)
-                                    {
+                                    if let Ok(ch) = char::try_from(trailing_escape_sequence_u32) {
                                         string_literal.push(ch);
 
                                         continue;
@@ -136,7 +144,7 @@ impl<'a> Lexer<'a> {
                             let escape_sequence_u32 =
                                 self.read_octal_escape_sequence_u32().unwrap();
 
-                            if let Some(ch) = std::char::from_u32(escape_sequence_u32) {
+                            if let Some(ch) = char::from_u32(escape_sequence_u32) {
                                 string_literal.push(ch);
 
                                 continue;
@@ -235,7 +243,7 @@ impl<'a> Lexer<'a> {
         }
 
         let astral_code_point =
-            (leading_surrogate - 55296) * 1024 + (trailing_surrogate - 56320) + 65536;
+            (leading_surrogate - 55296) * 1024 + trailing_surrogate - 56320 + 65536;
 
         SurrogatePair::AstralCodePoint(astral_code_point)
     }
