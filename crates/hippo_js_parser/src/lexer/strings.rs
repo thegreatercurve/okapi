@@ -2,6 +2,33 @@ use crate::{errors::ParserError, Lexer, Token, TokenKind};
 
 use super::utils::{CR, LF};
 
+enum SurrogatePair {
+    LeadingInvalid(u32),
+    LeadingValidTrailingInvalid(u32, u32),
+    AstralCodePoint(u32),
+}
+
+fn is_ascii_octaldigit(ch: char) -> bool {
+    match ch {
+        '0'..='7' => true,
+        _ => false,
+    }
+}
+
+fn is_high_surrogate(c: u32) -> bool {
+    match c {
+        55296..=56319 => true, // 0xD800..=0xDBFF as u32
+        _ => false,
+    }
+}
+
+fn is_low_surrogate(c: u32) -> bool {
+    match c {
+        56320..=57343 => true, // 0xDC00..=0xDFFF as u32,
+        _ => false,
+    }
+}
+
 impl<'a> Lexer<'a> {
     // https://tc39.es/ecma262/#sec-literals-string-literals
     // ```text
@@ -37,8 +64,6 @@ impl<'a> Lexer<'a> {
         while current_char != start_quote_character {
             current_char = self.current_char();
 
-            let potential_high_surrogate = current_char;
-
             match current_char {
                 _ if current_char == start_quote_character => break,
                 '\\' => {
@@ -51,8 +76,67 @@ impl<'a> Lexer<'a> {
                             string_literal.push('\\');
                             string_literal.push(current_char);
                         }
-                        'x' | 'u' | '0'..='7' => {
-                            if let Some(ch) = self.escape_sequence_to_char() {
+                        'x' => {
+                            self.read_char(); // Eat x char.
+
+                            let escape_sequence_u32 =
+                                self.read_hexadecimal_escape_sequence_u32().unwrap();
+
+                            if let Some(ch) = std::char::from_u32(escape_sequence_u32) {
+                                string_literal.push(ch);
+
+                                continue;
+                            } else {
+                                return Token::default(TokenKind::Illegal);
+                            }
+                        }
+
+                        'u' => {
+                            self.read_char(); // Eat u char.
+
+                            let escape_sequence_u32 =
+                                self.read_potential_unicode_or_code_point_surrogate_pairs();
+
+                            match escape_sequence_u32 {
+                                SurrogatePair::LeadingInvalid(escape_sequence_u32)
+                                | SurrogatePair::AstralCodePoint(escape_sequence_u32) => {
+                                    if let Some(ch) = std::char::from_u32(escape_sequence_u32) {
+                                        string_literal.push(ch);
+
+                                        continue;
+                                    } else {
+                                        return Token::default(TokenKind::Illegal);
+                                    }
+                                }
+                                SurrogatePair::LeadingValidTrailingInvalid(
+                                    leading_escape_sequence_u32,
+                                    trailing_escape_sequence_u32,
+                                ) => {
+                                    if let Some(ch) =
+                                        std::char::from_u32(leading_escape_sequence_u32)
+                                    {
+                                        string_literal.push(ch);
+                                    } else {
+                                        return Token::default(TokenKind::Illegal);
+                                    }
+
+                                    if let Some(ch) =
+                                        std::char::from_u32(trailing_escape_sequence_u32)
+                                    {
+                                        string_literal.push(ch);
+
+                                        continue;
+                                    } else {
+                                        return Token::default(TokenKind::Illegal);
+                                    }
+                                }
+                            }
+                        }
+                        '0'..='7' => {
+                            let escape_sequence_u32 =
+                                self.read_octal_escape_sequence_u32().unwrap();
+
+                            if let Some(ch) = std::char::from_u32(escape_sequence_u32) {
                                 string_literal.push(ch);
 
                                 continue;
@@ -82,58 +166,12 @@ impl<'a> Lexer<'a> {
         Token::default_string_literal(string_literal)
     }
 
-    fn escape_sequence_to_char(&mut self) -> Option<char> {
-        let current_char = self.current_char();
-
-        let mut radix = 16;
-
-        let code_str_option = match current_char {
-            'x' => {
-                self.read_char(); // Eat x char.
-
-                self.read_hexadecimal_escape_sequence_str()
-            }
-            'u' => {
-                self.read_char(); // Eat u char.
-
-                if self.current_char() == '{' {
-                    self.read_char(); // Eat { char.
-
-                    self.read_code_point_escape_sequence_str()
-                } else {
-                    self.read_unicode_escape_sequence_str()
-                }
-            }
-            '0'..='7' => {
-                radix = 8;
-
-                self.read_octal_escape_sequence_str()
-            }
-            _ => None,
-        };
-
-        if let Some(code_str) = code_str_option {
-            if let Ok(unicode_unescaped_32) = u32::from_str_radix(code_str, radix) {
-                if let Some(ch) = std::char::from_u32(unicode_unescaped_32) {
-                    return Some(ch);
-                }
-            }
-
-            return None;
-        } else {
-            self.errors
-                .push(ParserError::InvalidEscapeSequenceCannotBeFormatted);
-
-            return None;
-        }
-    }
-
     // https://tc39.es/ecma262/#prod-HexEscapeSequence
     // ```text
     // HexEscapeSequence ::
     //   x HexDigit HexDigit
     // ```
-    fn read_hexadecimal_escape_sequence_str(&mut self) -> Option<&str> {
+    fn read_hexadecimal_escape_sequence_u32(&mut self) -> Option<u32> {
         let start_index = self.read_index;
 
         for _ in 0..2 {
@@ -149,7 +187,57 @@ impl<'a> Lexer<'a> {
 
         let hex_escape = &self.source_str[start_index..self.read_index];
 
-        Some(hex_escape)
+        if let Ok(hex_value_u32) = u32::from_str_radix(hex_escape, 16) {
+            return Some(hex_value_u32);
+        }
+
+        self.errors
+            .push(ParserError::InvalidHexadecimalEscapeSequence);
+
+        return None;
+    }
+
+    // https://tc39.es/ecma262
+    // Check for surrogate pairs before parsing unicode or code_point escape sequences.
+    // > A sequence of two code units, where the first code unit c1 is a leading surrogate
+    // > and the second code unit c2 a trailing surrogate, is a surrogate pair and is interpreted
+    // > as a code point with the value (c1 - 0xD800) × 0x400 + (c2 - 0xDC00) + 0x10000.
+    fn read_potential_unicode_or_code_point_surrogate_pairs(&mut self) -> SurrogatePair {
+        let leading_surrogate = if self.current_char() == '{' {
+            self.read_code_point_escape_sequence_u32()
+        } else {
+            self.read_unicode_escape_sequence_u32()
+        }
+        .unwrap();
+
+        if !is_high_surrogate(leading_surrogate)
+            && self.current_char() != '\\'
+            && self.peek_char() != 'u'
+        {
+            return SurrogatePair::LeadingInvalid(leading_surrogate);
+        }
+
+        self.read_char(); // Eat \ char.
+        self.read_char(); // Eat u char.
+
+        let trailing_surrogate = if self.current_char() == '{' {
+            self.read_code_point_escape_sequence_u32()
+        } else {
+            self.read_unicode_escape_sequence_u32()
+        }
+        .unwrap();
+
+        if !is_low_surrogate(trailing_surrogate) {
+            return SurrogatePair::LeadingValidTrailingInvalid(
+                leading_surrogate,
+                trailing_surrogate,
+            );
+        }
+
+        let astral_code_point =
+            (leading_surrogate - 55296) * 1024 + (trailing_surrogate - 56320) + 65536;
+
+        SurrogatePair::AstralCodePoint(astral_code_point)
     }
 
     // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
@@ -160,7 +248,7 @@ impl<'a> Lexer<'a> {
     // Hex4Digits ::
     //   HexDigit HexDigit HexDigit HexDigit
     // ```
-    pub fn read_unicode_escape_sequence_str(&mut self) -> Option<&str> {
+    pub fn read_unicode_escape_sequence_u32(&mut self) -> Option<u32> {
         let start_index = self.read_index;
 
         for _ in 0..4 {
@@ -181,19 +269,16 @@ impl<'a> Lexer<'a> {
             return None;
         }
 
-        let hex_value_u32 = u32::from_str_radix(unicode_value, 16).unwrap_or_else(|_| {
-            // Next value up from 0xFFFF
-            0x10000
-        });
-
-        // Check that it's not outside of range of the Basic Multilingual Plane.
-        if !(0x0000..=0xFFFF).contains(&hex_value_u32) {
-            self.errors.push(ParserError::InvalidUnicodeEscapeSequence);
-
-            return None;
+        if let Ok(unicode_value_u32) = u32::from_str_radix(unicode_value, 16) {
+            // Check that it's inside of the range of the Basic Multilingual Plane.
+            if (0x0000..=0xFFFF).contains(&unicode_value_u32) {
+                return Some(unicode_value_u32);
+            }
         }
 
-        Some(unicode_value)
+        self.errors.push(ParserError::InvalidUnicodeEscapeSequence);
+
+        return None;
     }
 
     // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
@@ -204,7 +289,9 @@ impl<'a> Lexer<'a> {
     // CodePoint ::
     //   HexDigits[~Sep] but only if MV of HexDigits ≤ 0x10FFFF
     // ```
-    fn read_code_point_escape_sequence_str(&mut self) -> Option<&str> {
+    fn read_code_point_escape_sequence_u32(&mut self) -> Option<u32> {
+        self.read_char(); // Eat { char.
+
         let start_index = self.read_index;
 
         for _ in 0..6 {
@@ -230,30 +317,18 @@ impl<'a> Lexer<'a> {
             return None;
         }
 
-        let code_point_value_u32 = u32::from_str_radix(code_point_value, 16).unwrap_or_else(|_| {
-            self.errors.push(ParserError::InvalidUnicodeEscapeSequence);
+        if let Ok(code_point_value_u32) = u32::from_str_radix(code_point_value, 16) {
+            if code_point_value_u32 < 0x10FFFF && self.current_char() == '}' {
+                self.read_char(); // Eat } char.
 
-            // Next value up from 0x10FFFF
-            0x110000
-        });
-
-        if code_point_value_u32 > 0x10FFFF {
-            self.errors
-                .push(ParserError::InvalidUnicodeCodePointEscapeSequence);
-
-            return None;
+                return Some(code_point_value_u32);
+            }
         }
 
-        if self.current_char() != '}' {
-            self.errors
-                .push(ParserError::InvalidUnicodeCodePointEscapeSequence);
+        self.errors
+            .push(ParserError::InvalidUnicodeCodePointEscapeSequence);
 
-            return None;
-        }
-
-        self.read_char(); // Eat } char.
-
-        Some(code_point_value)
+        None
     }
 
     // https://tc39.es/ecma262/#prod-LegacyOctalEscapeSequence
@@ -265,7 +340,7 @@ impl<'a> Lexer<'a> {
     //   FourToSeven OctalDigit
     //   ZeroToThree OctalDigit OctalDigit
     // ```
-    fn read_octal_escape_sequence_str(&mut self) -> Option<&str> {
+    fn read_octal_escape_sequence_u32(&mut self) -> Option<u32> {
         if !self.config.strict_mode {
             self.errors
                 .push(ParserError::InvalidOctalEscapeSequenceNotAllowedInStrictMode);
@@ -296,13 +371,12 @@ impl<'a> Lexer<'a> {
 
         let octal_value = &self.source_str[start_index..self.read_index];
 
-        Some(octal_value)
-    }
-}
+        if let Ok(octal_value_u32) = u32::from_str_radix(octal_value, 8) {
+            return Some(octal_value_u32);
+        }
 
-pub fn is_ascii_octaldigit(ch: char) -> bool {
-    match ch {
-        '0'..='7' => true,
-        _ => false,
+        self.errors.push(ParserError::InvalidOctalEscapeSequence);
+
+        return None;
     }
 }

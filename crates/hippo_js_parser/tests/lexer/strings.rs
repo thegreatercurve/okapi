@@ -36,20 +36,26 @@ fn strings_unicode_escape_sequence() {
 }
 
 #[test]
-fn strings_unicode_escape_sequence_surrogate_pairs() {
+fn strings_escape_sequence_with_surrogate_pairs() {
     assert_lexer_eq!(
-        r"'hello\u0020world\u{D83D}\u{DE04}\u{1F607}'",
-        vec![Token::string_literal(r"".to_string(), 0, 43)]
+        r"'\uD83D\uDE00'",
+        vec![Token::string_literal(r"😀".to_string(), 0, 14)]
     );
 
-    // assert_lexer_eq!(
-    //     r"'\uD83D\uDE00'",
-    //     vec![Token::string_literal(r"".to_string(), 0, 43)]
-    // );
+    assert_lexer_eq!(
+        r"'hello\u0020world\u{D83D}\u{DE04}\u{1F607}'",
+        vec![Token::string_literal(r"hello world😄😇".to_string(), 0, 43)]
+    );
+
+    // Second trailing surogate is invalid.
+    assert_lexer_eq!(
+        r"'hello\u0020world\u{DE04}\u{1F607}'",
+        vec![Token::string_literal(r"hello world😄😇".to_string(), 0, 43)]
+    );
 }
 
 #[test]
-fn strings_code_points_escape_sequenc() {
+fn strings_code_points_escape_sequence() {
     assert_lexer_eq!(
         r"'hello world \u{1F607}\u{1F506}'",
         vec![Token::string_literal("hello world 😇🔆".to_string(), 0, 32)]

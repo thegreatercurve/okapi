@@ -59,7 +59,7 @@ impl<'a> Lexer<'a> {
                     return false;
                 }
 
-                self.read_unicode_escape_sequence_str();
+                self.read_unicode_escape_sequence_u32();
             }
             _ if is_unicode_id_start(self.current_char()) => self.read_char(),
             _ => self.errors.push(ParserError::InvalidIdentifierCharacter),
@@ -77,7 +77,7 @@ impl<'a> Lexer<'a> {
                     return false;
                 }
 
-                self.read_unicode_escape_sequence_str();
+                self.read_unicode_escape_sequence_u32();
             }
 
             self.read_char();
