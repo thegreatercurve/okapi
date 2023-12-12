@@ -4,6 +4,7 @@ use super::utils::{CR, LF};
 
 enum SurrogatePair {
     LeadingInvalid(u32),
+    LeadingValidMissingTrailing(u32),
     LeadingValidTrailingInvalid(u32, u32),
     AstralCodePoint(u32),
 }
@@ -15,18 +16,22 @@ fn is_ascii_octaldigit(ch: char) -> bool {
     }
 }
 
-fn is_high_surrogate(c: u32) -> bool {
+fn is_leading_surrogate(c: u32) -> bool {
     match c {
         55296..=56319 => true, // 0xD800..=0xDBFF as u32
         _ => false,
     }
 }
 
-fn is_low_surrogate(c: u32) -> bool {
+fn is_trailing_surrogate(c: u32) -> bool {
     match c {
         56320..=57343 => true, // 0xDC00..=0xDFFF as u32,
         _ => false,
     }
+}
+
+fn format_invalid_code_point_string(code_point_u32: u32) -> String {
+    format!(r"\u{{{}}}", code_point_u32.to_string())
 }
 
 impl<'a> Lexer<'a> {
@@ -97,17 +102,21 @@ impl<'a> Lexer<'a> {
                                 self.read_potential_unicode_or_code_point_surrogate_pairs();
 
                             match escape_sequence_u32 {
-                                SurrogatePair::LeadingInvalid(escape_sequence_u32) => {
-                                    if let Some(ch) = char::from_u32(escape_sequence_u32) {
+                                SurrogatePair::LeadingInvalid(code_point_u32) => {
+                                    if let Some(ch) = char::from_u32(code_point_u32) {
                                         string_literal.push(ch);
-
-                                        continue;
+                                    } else {
+                                        string_literal.push_str(
+                                            format_invalid_code_point_string(code_point_u32)
+                                                .as_str(),
+                                        );
                                     }
 
-                                    return Token::default(TokenKind::Illegal);
+                                    continue;
                                 }
-                                SurrogatePair::AstralCodePoint(escape_sequence_u32) => {
-                                    if let Some(ch) = char::from_u32(escape_sequence_u32) {
+                                SurrogatePair::LeadingValidMissingTrailing(code_point_u32)
+                                | SurrogatePair::AstralCodePoint(code_point_u32) => {
+                                    if let Some(ch) = char::from_u32(code_point_u32) {
                                         string_literal.push(ch);
 
                                         continue;
@@ -116,27 +125,23 @@ impl<'a> Lexer<'a> {
                                     return Token::default(TokenKind::Illegal);
                                 }
                                 SurrogatePair::LeadingValidTrailingInvalid(
-                                    leading_escape_sequence_u32,
-                                    trailing_escape_sequence_u32,
+                                    leading_code_point_u32,
+                                    trailing_code_point_u32,
                                 ) => {
-                                    if let Some(ch) = char::from_u32(leading_escape_sequence_u32) {
-                                        string_literal.push(ch);
-                                    } else {
-                                        let leading_code_point_str = format!(
-                                            "\\u{{{}}}",
-                                            &leading_escape_sequence_u32.to_string()
-                                        );
-
-                                        string_literal.push_str(leading_code_point_str.as_str());
+                                    for code_point_u32 in
+                                        vec![leading_code_point_u32, trailing_code_point_u32]
+                                    {
+                                        if let Some(ch) = char::from_u32(code_point_u32) {
+                                            string_literal.push(ch);
+                                        } else {
+                                            string_literal.push_str(
+                                                format_invalid_code_point_string(code_point_u32)
+                                                    .as_str(),
+                                            );
+                                        }
                                     }
 
-                                    if let Ok(ch) = char::try_from(trailing_escape_sequence_u32) {
-                                        string_literal.push(ch);
-
-                                        continue;
-                                    } else {
-                                        return Token::default(TokenKind::Illegal);
-                                    }
+                                    continue;
                                 }
                             }
                         }
@@ -218,34 +223,35 @@ impl<'a> Lexer<'a> {
         }
         .unwrap();
 
-        if !is_high_surrogate(leading_surrogate)
-            && self.current_char() != '\\'
-            && self.peek_char() != 'u'
-        {
+        if is_leading_surrogate(leading_surrogate) {
+            if self.current_char() != '\\' && self.peek_char() != 'u' {
+                return SurrogatePair::LeadingValidMissingTrailing(leading_surrogate);
+            }
+
+            self.read_char(); // Eat \ char.
+            self.read_char(); // Eat u char.
+
+            let trailing_surrogate = if self.current_char() == '{' {
+                self.read_code_point_escape_sequence_u32()
+            } else {
+                self.read_unicode_escape_sequence_u32()
+            }
+            .unwrap();
+
+            if !is_trailing_surrogate(trailing_surrogate) {
+                return SurrogatePair::LeadingValidTrailingInvalid(
+                    leading_surrogate,
+                    trailing_surrogate,
+                );
+            }
+
+            let astral_code_point =
+                (leading_surrogate - 55296) * 1024 + trailing_surrogate - 56320 + 65536;
+
+            SurrogatePair::AstralCodePoint(astral_code_point)
+        } else {
             return SurrogatePair::LeadingInvalid(leading_surrogate);
         }
-
-        self.read_char(); // Eat \ char.
-        self.read_char(); // Eat u char.
-
-        let trailing_surrogate = if self.current_char() == '{' {
-            self.read_code_point_escape_sequence_u32()
-        } else {
-            self.read_unicode_escape_sequence_u32()
-        }
-        .unwrap();
-
-        if !is_low_surrogate(trailing_surrogate) {
-            return SurrogatePair::LeadingValidTrailingInvalid(
-                leading_surrogate,
-                trailing_surrogate,
-            );
-        }
-
-        let astral_code_point =
-            (leading_surrogate - 55296) * 1024 + trailing_surrogate - 56320 + 65536;
-
-        SurrogatePair::AstralCodePoint(astral_code_point)
     }
 
     // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
