@@ -2,7 +2,7 @@ use hippo_js_parser::{KeywordKind, Token, TokenKind};
 
 use crate::lexer::{
     common::assert_lexer_eq,
-    utils::{create_identifier, create_number_literal},
+    utils::{identifier, number_literal},
 };
 
 #[test]
@@ -11,9 +11,9 @@ fn keywords_and_identifiers() {
         "const foo = 1;",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Const), 0, 5, None),
-            create_identifier("foo".to_string(), 6, 9),
+            identifier("foo".to_string(), 6, 9),
             Token::new(TokenKind::Assignment, 10, 11, None),
-            create_number_literal("1".to_string(), 12, 13),
+            number_literal("1".to_string(), 12, 13),
             Token::new(TokenKind::Semicolon, 13, 14, None),
         ]
     );
@@ -23,10 +23,10 @@ fn keywords_and_identifiers() {
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::While), 0, 5, None),
             Token::new(TokenKind::LeftParenthesis, 6, 7, None),
-            create_identifier("foo".to_string(), 7, 10),
+            identifier("foo".to_string(), 7, 10),
             Token::new(TokenKind::RightParenthesis, 10, 11, None),
             Token::new(TokenKind::LeftCurlyBrace, 12, 13, None),
-            create_number_literal("11".to_string(), 14, 16),
+            number_literal("11".to_string(), 14, 16),
             Token::new(TokenKind::Semicolon, 16, 17, None),
             Token::new(TokenKind::RightCurlyBrace, 18, 19, None),
             Token::new(TokenKind::Semicolon, 19, 20, None),
@@ -38,10 +38,10 @@ fn keywords_and_identifiers() {
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::While), 0, 5, None),
             Token::new(TokenKind::LeftParenthesis, 6, 7, None),
-            create_identifier("foo".to_string(), 7, 10),
+            identifier("foo".to_string(), 7, 10),
             Token::new(TokenKind::RightParenthesis, 10, 11, None),
             Token::new(TokenKind::LeftCurlyBrace, 12, 13, None),
-            create_number_literal("11".to_string(), 14, 16),
+            number_literal("11".to_string(), 14, 16),
             Token::new(TokenKind::Semicolon, 16, 17, None),
             Token::new(TokenKind::RightCurlyBrace, 18, 19, None),
             Token::new(TokenKind::Semicolon, 19, 20, None),
@@ -52,9 +52,9 @@ fn keywords_and_identifiers() {
         "let baz = 1;",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Let), 0, 3, None),
-            create_identifier("baz".to_string(), 4, 7),
+            identifier("baz".to_string(), 4, 7),
             Token::new(TokenKind::Assignment, 8, 9, None),
-            create_number_literal("1".to_string(), 10, 11),
+            number_literal("1".to_string(), 10, 11),
             Token::new(TokenKind::Semicolon, 11, 12, None),
         ]
     );
@@ -63,9 +63,9 @@ fn keywords_and_identifiers() {
         "var baz = 1;",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Var), 0, 3, None),
-            create_identifier("baz".to_string(), 4, 7),
+            identifier("baz".to_string(), 4, 7),
             Token::new(TokenKind::Assignment, 8, 9, None),
-            create_number_literal("1".to_string(), 10, 11),
+            number_literal("1".to_string(), 10, 11),
             Token::new(TokenKind::Semicolon, 11, 12, None),
         ]
     );
@@ -87,11 +87,11 @@ fn keywords_and_identifiers() {
         r"class Foo { #bar = 1; };",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Class), 0, 5, None),
-            create_identifier("Foo".to_string(), 6, 9),
+            identifier("Foo".to_string(), 6, 9),
             Token::new(TokenKind::LeftCurlyBrace, 10, 11, None),
-            create_identifier("#bar".to_string(), 12, 16),
+            identifier("#bar".to_string(), 12, 16),
             Token::new(TokenKind::Assignment, 17, 18, None),
-            create_number_literal("1".to_string(), 19, 20),
+            number_literal("1".to_string(), 19, 20),
             Token::new(TokenKind::Semicolon, 20, 21, None),
             Token::new(TokenKind::RightCurlyBrace, 22, 23, None),
             Token::new(TokenKind::Semicolon, 23, 24, None),
