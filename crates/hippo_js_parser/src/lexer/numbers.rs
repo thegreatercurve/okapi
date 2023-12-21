@@ -6,8 +6,11 @@ fn is_ascii_digit_or_separator(c: char) -> bool {
     c.is_ascii_digit() || c == NUMERIC_LITERAL_SEPARATOR
 }
 
-fn is_ascii_decimal_digit_or_separator(c: char) -> bool {
-    c.is_ascii_digit() || c == '.' || c == NUMERIC_LITERAL_SEPARATOR
+fn is_ascii_decimal_digit_or_separator_or_exponent(c: char) -> bool {
+    match c {
+        '0'..='9' | '.' | NUMERIC_LITERAL_SEPARATOR | 'e' | 'E' | '+' | '-' => true,
+        _ => false,
+    }
 }
 
 fn is_radix_ascii_digit_or_separator(c: char, radix: u32) -> bool {
@@ -21,7 +24,20 @@ fn is_ascii_octaldigit(ch: char) -> bool {
     }
 }
 
-fn validate_numeric_literal_separators(number_literal: &str) -> Result<(), ParserError> {
+fn is_big_int_start(current_char: char, peek_char: char) -> bool {
+    match (current_char, peek_char) {
+        ('0', 'n') | ('1'..='9', _) | ('0', 'b' | 'B') | ('0', 'o' | 'O') | ('0', 'x' | 'X') => {
+            true
+        }
+        (_, _) => false,
+    }
+}
+
+fn has_exponent(number_literal_str: &str) -> bool {
+    number_literal_str.contains('e') || number_literal_str.contains('E')
+}
+
+fn validate_big_int(number_literal: &str) -> Result<(), ParserError> {
     let sibling_separators = format!("{NUMERIC_LITERAL_SEPARATOR}{NUMERIC_LITERAL_SEPARATOR}",);
 
     if number_literal.contains(sibling_separators.as_str()) {
@@ -43,7 +59,8 @@ impl<'a> Lexer<'a> {
         let peek_char = self.peek_char();
 
         let number_literal_u64 = match (current_char, peek_char) {
-            ('0', '.') | ('.', _) | ('1'..='9', _) => self.read_decimal_literal(),
+            ('0', '.') | ('.', _) => self.read_decimal_literal(),
+            ('1'..='9', _) => self.read_decimal_literal(),
             ('0', 'b' | 'B') => self.read_non_decimal_integer_literal(
                 2,
                 ParserError::InvalidNonDecimalBinaryNumberLiteral,
@@ -62,6 +79,25 @@ impl<'a> Lexer<'a> {
             ('0', _) => self.read_decimal_literal(),
             (_, _) => Err(ParserError::SyntaxError),
         };
+
+        let number_literal_str = &self.source_str[start_index..self.read_index];
+
+        if number_literal_u64.is_ok()
+            && is_big_int_start(current_char, peek_char)
+            && !has_exponent(number_literal_str)
+            && self.peek_char() == 'n'
+        {
+            self.read_char(); // Eat 'n' char.
+
+            let number_literal_str = &self.source_str[start_index..self.read_index];
+
+            Token::new(
+                TokenKind::BigIntLiteral,
+                start_index,
+                self.read_index,
+                Some(number_literal_str.to_string()),
+            );
+        }
 
         match number_literal_u64 {
             Ok(number_literal) => Token::new(
@@ -84,20 +120,18 @@ impl<'a> Lexer<'a> {
 
         let mut current_char = self.current_char();
 
-        while is_ascii_decimal_digit_or_separator(current_char) {
+        while is_ascii_decimal_digit_or_separator_or_exponent(current_char) {
             self.read_char();
 
             current_char = self.current_char();
         }
 
-        let number_literal_str = &self.source_str[start_index..self.read_index];
+        let decimal_str = &self.source_str[start_index..self.read_index];
 
-        validate_numeric_literal_separators(number_literal_str)?;
+        let decimal_without_separators_str: String =
+            decimal_str.replace(NUMERIC_LITERAL_SEPARATOR, "");
 
-        let number_literal_without_separators_str: String =
-            number_literal_str.replace(NUMERIC_LITERAL_SEPARATOR, "");
-
-        number_literal_without_separators_str
+        decimal_without_separators_str
             .parse::<f64>()
             .map_err(|_| ParserError::InvalidIntegerLiteral)
     }
@@ -121,8 +155,6 @@ impl<'a> Lexer<'a> {
         }
 
         let non_decimal_str = &self.source_str[start_index..self.read_index];
-
-        validate_numeric_literal_separators(non_decimal_str)?;
 
         let non_decimal_without_separators_str: String =
             non_decimal_str.replace(NUMERIC_LITERAL_SEPARATOR, "");

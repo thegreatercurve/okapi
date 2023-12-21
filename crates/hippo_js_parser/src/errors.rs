@@ -25,6 +25,8 @@ pub enum ParserError {
     InvalidNumericSeparatorAtSibling,
     InvalidNumericSeparatorAtEnd,
 
+    InvalidBigIntLiteralExponentNotAllowed,
+
     ScannerError,
 }
 
@@ -76,6 +78,9 @@ impl std::fmt::Display for ParserError {
             }
             ParserError::InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode => {
                 write!(f, "InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode")
+            }
+            ParserError::InvalidBigIntLiteralExponentNotAllowed => {
+                write!(f, "InvalidBigIntLiteralExponentNotAllowed")
             }
         }
     }

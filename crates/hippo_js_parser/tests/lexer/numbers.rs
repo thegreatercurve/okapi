@@ -1,9 +1,14 @@
-use hippo_js_parser::ParserError;
+use hippo_js_parser::{ParserError, Token, TokenKind};
 
 use crate::lexer::{
     common::assert_lexer_eq,
     utils::{identifier, illegal, number_literal},
 };
+
+#[test]
+fn numbers_zero() {
+    assert_lexer_eq!("0", vec![number_literal("0", 0, 1)]);
+}
 
 #[test]
 fn numbers_integers() {
@@ -123,6 +128,63 @@ fn numbers_numeric_separator_invalid() {
 }
 
 #[test]
-fn numbers_zero() {
-    assert_lexer_eq!("0", vec![number_literal("0", 0, 1)]);
+fn numbers_exponent() {
+    assert_lexer_eq!(
+        "123.123123e+12",
+        vec![Token {
+            kind: TokenKind::NumberLiteral,
+            start: 0,
+            end: 14,
+            value: Some("123123123000000".to_string()),
+        }]
+    );
+    assert_lexer_eq!(
+        "123.123123E+12",
+        vec![Token {
+            kind: TokenKind::NumberLiteral,
+            start: 0,
+            end: 14,
+            value: Some("123123123000000".to_string()),
+        }]
+    );
+    assert_lexer_eq!(
+        "123.123123e-15",
+        vec![Token {
+            kind: TokenKind::NumberLiteral,
+            start: 0,
+            end: 14,
+            value: Some("0.000000000000123123123".to_string()),
+        }]
+    );
+    assert_lexer_eq!(
+        "123.123123E-15",
+        vec![Token {
+            kind: TokenKind::NumberLiteral,
+            start: 0,
+            end: 14,
+            value: Some("0.000000000000123123123".to_string()),
+        }]
+    );
+}
+
+#[test]
+fn numbers_big_int() {
+    assert_lexer_eq!(
+        "123n",
+        vec![Token {
+            kind: TokenKind::BigIntLiteral,
+            start: 0,
+            end: 0,
+            value: Some("123n".to_string()),
+        }]
+    );
+    assert_lexer_eq!(
+        "0n",
+        vec![Token {
+            kind: TokenKind::BigIntLiteral,
+            start: 0,
+            end: 0,
+            value: Some("0n".to_string()),
+        }]
+    );
 }
