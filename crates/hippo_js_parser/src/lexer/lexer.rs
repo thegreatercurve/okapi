@@ -11,8 +11,6 @@ pub struct Lexer<'a> {
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str, config: Config) -> Self {
-        println!("input: {}", input);
-
         Self {
             config: config,
             read_index: 0,
@@ -84,7 +82,7 @@ impl<'a> Lexer<'a> {
             '\'' | '"' => self.scan_string_literal(),
             _ if is_punctuator_start(current_char) => self.scan_punctuator(),
             _ if is_identifier_start(current_char) => self.scan_identifier_name_or_keyword(),
-            _ => Token::new(TokenKind::Illegal, 0, 0, None),
+            _ => Token::new(TokenKind::Illegal, start_index, self.read_index, None),
         };
 
         let end_index = self.read_index;

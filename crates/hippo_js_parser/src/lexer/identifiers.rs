@@ -42,8 +42,8 @@ impl<'a> Lexer<'a> {
         if identifier.is_err() {
             return Token::new(
                 TokenKind::Illegal,
-                0,
-                0,
+                start_index,
+                self.read_index,
                 Some(identifier.unwrap_err().to_string()),
             );
         };
@@ -51,11 +51,11 @@ impl<'a> Lexer<'a> {
         let keyword_or_identifer_name = &self.source_str[start_index..self.read_index];
 
         match self.match_reserved_keyword(keyword_or_identifer_name) {
-            Some(keyword_token) => Token::new(keyword_token, 0, 0, None),
+            Some(keyword_token) => Token::new(keyword_token, start_index, self.read_index, None),
             None => Token::new(
                 TokenKind::Identifier,
-                0,
-                0,
+                start_index,
+                self.read_index,
                 Some(keyword_or_identifer_name.to_string()),
             ),
         }
@@ -176,22 +176,21 @@ impl<'a> Lexer<'a> {
 
         let identifier = self.read_identifier_start();
 
-        if identifier.is_err() {
-            return Token::new(
-                TokenKind::Illegal,
-                0,
-                0,
-                Some(identifier.unwrap_err().to_string()),
-            );
-        };
-
         let identifer_name = &self.source_str[start_index..self.read_index];
 
-        Token::new(
-            TokenKind::Identifier,
-            0,
-            0,
-            Some(identifer_name.to_string()),
-        )
+        match identifier {
+            Ok(_) => Token::new(
+                TokenKind::Identifier,
+                start_index,
+                self.read_index,
+                Some(identifer_name.to_string()),
+            ),
+            Err(error) => Token::new(
+                TokenKind::Illegal,
+                start_index,
+                self.read_index,
+                Some(error.to_string()),
+            ),
+        }
     }
 }

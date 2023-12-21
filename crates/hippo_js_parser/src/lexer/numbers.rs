@@ -2,6 +2,10 @@ use crate::{errors::ParserError, Lexer, Token, TokenKind};
 
 const NUMERIC_LITERAL_SEPARATOR: char = '_'; // TODO - Can't have similar siblings.
 
+fn is_ascii_digit_or_separator(c: char) -> bool {
+    c.is_ascii_digit() || c == NUMERIC_LITERAL_SEPARATOR
+}
+
 impl<'a> Lexer<'a> {
     pub(crate) fn scan_number_literal(&mut self) -> Token {
         let start_index: usize = self.read_index;
@@ -32,23 +36,20 @@ impl<'a> Lexer<'a> {
             (_, _) => Err(ParserError::InvalidNumberLiteral),
         };
 
-        let number_literal_str = &self.source_str[start_index..self.read_index];
-
-        if number_literal_u64.is_err() {
-            return Token::new(
+        match number_literal_u64 {
+            Ok(number_literal) => Token::new(
+                TokenKind::NumberLiteral,
+                start_index,
+                self.read_index,
+                Some(number_literal.to_string()),
+            ),
+            Err(error) => Token::new(
                 TokenKind::Illegal,
                 start_index,
                 self.read_index,
-                Some(number_literal_u64.unwrap_err().to_string()),
-            );
+                Some(error.to_string()),
+            ),
         }
-
-        Token::new(
-            TokenKind::NumberLiteral,
-            start_index,
-            self.read_index,
-            Some(number_literal_str.to_string()),
-        )
     }
 
     fn read_integer_literal(&mut self) -> Result<u64, ParserError> {
@@ -90,10 +91,10 @@ impl<'a> Lexer<'a> {
         radix: u32,
         error: ParserError,
     ) -> Result<u64, ParserError> {
-        let start_index: usize = self.read_index;
-
         self.read_char(); // Eat '0' char.
         self.read_char(); // Eat 'b', 'o' or 'x' char.
+
+        let start_index: usize = self.read_index;
 
         let mut current_char = self.current_char();
 
@@ -113,8 +114,4 @@ impl<'a> Lexer<'a> {
     }
 
     fn read_invalid_numeric_separator() {}
-}
-
-fn is_ascii_digit_or_separator(c: char) -> bool {
-    c.is_ascii_digit() || c == NUMERIC_LITERAL_SEPARATOR
 }

@@ -18,6 +18,8 @@ impl<'a> Lexer<'a> {
     //   }
     // ```
     pub(crate) fn scan_punctuator(&mut self) -> Token {
+        let start_index = self.read_index;
+
         let token_kind = match self.current_char() {
             '{' => TokenKind::LeftCurlyBrace,
             '}' => TokenKind::RightCurlyBrace,
@@ -265,6 +267,6 @@ impl<'a> Lexer<'a> {
 
         self.read_char();
 
-        Token::new(token_kind, 0, 0, None)
+        Token::new(token_kind, start_index, self.read_index, None)
     }
 }
