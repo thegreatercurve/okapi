@@ -91,7 +91,7 @@ impl<'a> Lexer<'a> {
 
                                 continue;
                             } else {
-                                return Token::default(TokenKind::Illegal);
+                                return Token::new(TokenKind::Illegal, 0, 0, None);
                             }
                         }
 
@@ -122,7 +122,7 @@ impl<'a> Lexer<'a> {
                                         continue;
                                     }
 
-                                    return Token::default(TokenKind::Illegal);
+                                    return Token::new(TokenKind::Illegal, 0, 0, None);
                                 }
                                 SurrogatePair::LeadingValidTrailingInvalid(
                                     leading_code_point_u32,
@@ -154,7 +154,7 @@ impl<'a> Lexer<'a> {
 
                                 continue;
                             } else {
-                                return Token::default(TokenKind::Illegal);
+                                return Token::new(TokenKind::Illegal, 0, 0, None);
                             }
                         }
                         _ => {
@@ -166,7 +166,7 @@ impl<'a> Lexer<'a> {
                 CR | LF => {
                     self.errors.push(ParserError::UnterminatedStringLiteral);
 
-                    return Token::default(TokenKind::Illegal);
+                    return Token::new(TokenKind::Illegal, 0, 0, None);
                 }
                 _ => string_literal.push(current_char),
             }
@@ -176,7 +176,7 @@ impl<'a> Lexer<'a> {
 
         self.read_char(); // Eat end quote char.
 
-        Token::default_string_literal(string_literal)
+        Token::new(TokenKind::StringLiteral, 0, 0, Some(string_literal))
     }
 
     // https://tc39.es/ecma262/#prod-HexEscapeSequence

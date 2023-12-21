@@ -38,14 +38,19 @@ impl<'a> Lexer<'a> {
         let start_index = self.read_index;
 
         if !self.read_identifier_start() {
-            return Token::default(TokenKind::Illegal);
+            return Token::new(TokenKind::Illegal, 0, 0, None);
         };
 
         let keyword_or_identifer_name = &self.source_str[start_index..self.read_index];
 
         match self.match_reserved_keyword(keyword_or_identifer_name) {
-            Some(keyword_token) => Token::default(keyword_token),
-            None => Token::default_identifier(keyword_or_identifer_name.to_string()),
+            Some(keyword_token) => Token::new(keyword_token, 0, 0, None),
+            None => Token::new(
+                TokenKind::Identifier,
+                0,
+                0,
+                Some(keyword_or_identifer_name.to_string()),
+            ),
         }
     }
 
@@ -157,11 +162,16 @@ impl<'a> Lexer<'a> {
         self.read_char();
 
         if !self.read_identifier_start() {
-            return Token::default(TokenKind::Illegal);
+            return Token::new(TokenKind::Illegal, 0, 0, None);
         };
 
         let identifer_name = &self.source_str[start_index..self.read_index];
 
-        Token::default_identifier(identifer_name.to_string())
+        Token::new(
+            TokenKind::Identifier,
+            0,
+            0,
+            Some(identifer_name.to_string()),
+        )
     }
 }

@@ -61,75 +61,12 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn new(kind: TokenKind, start: usize, end: usize) -> Self {
+    pub fn new(kind: TokenKind, start: usize, end: usize, value: Option<String>) -> Self {
         Self {
             kind,
             start,
             end,
-            value: None,
-        }
-    }
-
-    pub fn default(kind: TokenKind) -> Self {
-        Self {
-            kind,
-            start: 0,
-            end: 0,
-            value: None,
-        }
-    }
-
-    pub fn identifier(value: String, start: usize, end: usize) -> Self {
-        Self {
-            kind: TokenKind::Identifier,
-            start,
-            end,
-            value: Some(value),
-        }
-    }
-
-    pub fn default_identifier(value: String) -> Self {
-        Self {
-            kind: TokenKind::Identifier,
-            start: 0,
-            end: 0,
-            value: Some(value),
-        }
-    }
-
-    pub fn default_string_literal(value: String) -> Self {
-        Self {
-            kind: TokenKind::StringLiteral,
-            start: 0,
-            end: 0,
-            value: Some(value),
-        }
-    }
-
-    pub fn string_literal(value: String, start: usize, end: usize) -> Self {
-        Self {
-            kind: TokenKind::StringLiteral,
-            start,
-            end,
-            value: Some(value),
-        }
-    }
-
-    pub fn default_number_literal(value: String) -> Self {
-        Self {
-            kind: TokenKind::NumberLiteral,
-            start: 0,
-            end: 0,
-            value: Some(value),
-        }
-    }
-
-    pub fn number_literal(value: String, start: usize, end: usize) -> Self {
-        Self {
-            kind: TokenKind::NumberLiteral,
-            start,
-            end,
-            value: Some(value),
+            value,
         }
     }
 }

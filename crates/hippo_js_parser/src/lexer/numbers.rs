@@ -18,12 +18,17 @@ impl<'a> Lexer<'a> {
             ('0', _) => self.scan_numeric_literal(),
             ('1'..='9', _) => self.read_integer_literal(),
             ('.', _) => self.read_decimal_number_literal(),
-            (_, _) => Token::default(TokenKind::Illegal),
+            (_, _) => Token::new(TokenKind::Illegal, 0, 0, None),
         };
 
         let number_literal_str = &self.source_str[start_index..self.read_index];
 
-        Token::number_literal(number_literal_str.to_string(), start_index, self.read_index)
+        Token::new(
+            TokenKind::NumberLiteral,
+            start_index,
+            self.read_index,
+            Some(number_literal_str.to_string()),
+        )
     }
 
     fn read_integer_literal(&mut self) -> Token {
@@ -39,7 +44,12 @@ impl<'a> Lexer<'a> {
 
         let number_literal_str = &self.source_str[start_index..self.read_index];
 
-        Token::number_literal(number_literal_str.to_string(), start_index, self.read_index)
+        Token::new(
+            TokenKind::NumberLiteral,
+            start_index,
+            self.read_index,
+            Some(number_literal_str.to_string()),
+        )
     }
 
     fn read_decimal_number_literal(&mut self) -> Token {
@@ -57,7 +67,12 @@ impl<'a> Lexer<'a> {
 
         let number_literal_str = &self.source_str[start_index..self.read_index];
 
-        Token::number_literal(number_literal_str.to_string(), start_index, self.read_index)
+        Token::new(
+            TokenKind::NumberLiteral,
+            start_index,
+            self.read_index,
+            Some(number_literal_str.to_string()),
+        )
     }
 
     fn read_non_decimal_integer_literal(&mut self) -> Token {
@@ -78,10 +93,11 @@ impl<'a> Lexer<'a> {
             let number_literal_u64 = self.parse_non_decimal_integer_literal(radix, error);
 
             if let Some(number_literal_u64) = number_literal_u64 {
-                return Token::number_literal(
-                    number_literal_u64.to_string(),
+                return Token::new(
+                    TokenKind::NumberLiteral,
                     start_index,
                     self.read_index,
+                    Some(number_literal_u64.to_string()),
                 );
             }
         }
@@ -89,7 +105,7 @@ impl<'a> Lexer<'a> {
         self.errors
             .push(ParserError::InvalidNonDecimalNumberLiteral);
 
-        Token::default(TokenKind::Illegal)
+        Token::new(TokenKind::Illegal, 0, 0, None)
     }
 
     fn parse_non_decimal_integer_literal(&mut self, radix: u32, error: ParserError) -> Option<u64> {

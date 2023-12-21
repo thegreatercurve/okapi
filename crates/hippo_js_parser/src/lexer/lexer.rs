@@ -66,7 +66,7 @@ impl<'a> Lexer<'a> {
         self.skip_whitespace();
 
         if self.is_end_of_file() {
-            return Token::new(TokenKind::EOF, self.read_index, self.read_index);
+            return Token::new(TokenKind::EOF, self.read_index, self.read_index, None);
         }
 
         let token = self.advance();
@@ -74,15 +74,10 @@ impl<'a> Lexer<'a> {
         token
     }
 
-    pub fn peek_token(&mut self) -> Token {
-        todo!("peek_token")
-    }
-
     fn advance(&mut self) -> Token {
         let start_index = self.read_index;
 
         let current_char = self.current_char();
-        let peek_char = self.peek_char();
 
         let mut token: Token = match current_char {
             '#' => self.scan_private_identifier(),
@@ -91,7 +86,7 @@ impl<'a> Lexer<'a> {
             '\'' | '"' => self.scan_string_literal(),
             _ if is_punctuator_start(current_char) => self.scan_punctuator(),
             _ if is_identifier_start(current_char) => self.scan_identifier_name_or_keyword(),
-            _ => Token::default(TokenKind::Illegal),
+            _ => Token::new(TokenKind::Illegal, 0, 0, None),
         };
 
         let end_index = self.read_index;

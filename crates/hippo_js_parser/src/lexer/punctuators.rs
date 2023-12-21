@@ -265,6 +265,6 @@ impl<'a> Lexer<'a> {
 
         self.read_char();
 
-        Token::default(token_kind)
+        Token::new(token_kind, 0, 0, None)
     }
 }
