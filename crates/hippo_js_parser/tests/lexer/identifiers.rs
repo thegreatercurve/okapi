@@ -6,7 +6,21 @@ use crate::lexer::{
 };
 
 #[test]
-fn keywords_and_identifiers() {
+fn identifier_start() {
+    assert_lexer_eq!("abc", vec![identifier("abc".to_string(), 0, 3)]);
+    assert_lexer_eq!("_123", vec![identifier("_123".to_string(), 0, 4)]);
+    assert_lexer_eq!("$123", vec![identifier("$123".to_string(), 0, 4)]);
+}
+
+#[test]
+fn identifier_part() {
+    assert_lexer_eq!("abc__", vec![identifier("abc__".to_string(), 0, 5)]);
+    assert_lexer_eq!("__1", vec![identifier("__1".to_string(), 0, 3)]);
+    assert_lexer_eq!("$$$$", vec![identifier("$$$$".to_string(), 0, 4)]);
+}
+
+#[test]
+fn compelx_keywords_and_identifiers() {
     assert_lexer_eq!(
         "const foo = 1;",
         vec![

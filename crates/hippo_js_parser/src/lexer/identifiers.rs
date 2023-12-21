@@ -1,6 +1,6 @@
 use hippo_unicode::is_unicode_id_start;
 
-use crate::{errors::ParserError, KeywordKind, Lexer, Token, TokenKind};
+use crate::{KeywordKind, Lexer, ParserError, Token, TokenKind};
 
 use super::utils::is_identifier_part;
 
@@ -62,20 +62,23 @@ impl<'a> Lexer<'a> {
     }
 
     fn read_identifier_start(&mut self) -> Result<(), ParserError> {
-        match self.current_char() {
-            '$' | '_' | _ if self.current_char().is_ascii_alphabetic() => self.read_char(),
+        let current_char = self.current_char();
+
+        match current_char {
+            '$' | '_' => self.read_char(),
+            _ if current_char.is_ascii_alphabetic() => self.read_char(),
             '\\' => {
                 if self.peek_char() != 'u' {
                     return Err(ParserError::InvalidIdentifierCharacter);
                 }
 
-                let unicode_escape_sequence_u32 = self.read_unicode_escape_sequence_u32();
+                let unicode_escape_sequence_u32 = self.read_unicode_escape_sequence();
 
                 if unicode_escape_sequence_u32.is_err() {
                     return Err(unicode_escape_sequence_u32.unwrap_err());
                 }
             }
-            _ if is_unicode_id_start(self.current_char()) => self.read_char(),
+            _ if is_unicode_id_start(current_char) => self.read_char(),
             _ => {
                 return Err(ParserError::InvalidIdentifierCharacter);
             }
@@ -91,7 +94,7 @@ impl<'a> Lexer<'a> {
                     return Err(ParserError::InvalidIdentifierCharacter);
                 }
 
-                let unicode_escape_sequence_u32 = self.read_unicode_escape_sequence_u32();
+                let unicode_escape_sequence_u32 = self.read_unicode_escape_sequence();
 
                 if unicode_escape_sequence_u32.is_err() {
                     return Err(unicode_escape_sequence_u32.unwrap_err());

@@ -1,4 +1,4 @@
-use crate::{errors::ParserError, Lexer, Token, TokenKind};
+use crate::{Lexer, ParserError, Token, TokenKind};
 
 use super::utils::{CR, LF};
 
@@ -158,8 +158,7 @@ impl<'a> Lexer<'a> {
                             }
                         }
                         '0'..='7' => {
-                            let escape_sequence_u32 =
-                                self.read_octal_escape_sequence_u32().unwrap();
+                            let escape_sequence_u32 = self.read_octal_escape_sequence().unwrap();
 
                             if let Some(ch) = char::from_u32(escape_sequence_u32) {
                                 string_literal.push(ch);
@@ -222,11 +221,10 @@ impl<'a> Lexer<'a> {
 
         let hex_str = &self.source_str[start_index..self.read_index];
 
-        if let Ok(hex_u32) = u32::from_str_radix(hex_str, 16) {
-            return Ok(hex_u32);
+        match u32::from_str_radix(hex_str, 16) {
+            Ok(hex_u32) => Ok(hex_u32),
+            Err(_) => Err(ParserError::InvalidHexadecimalEscapeSequence),
         }
-
-        Err(ParserError::InvalidHexadecimalEscapeSequence)
     }
 
     // https://tc39.es/ecma262
@@ -236,9 +234,9 @@ impl<'a> Lexer<'a> {
     // > as a code point with the value (c1 - 0xD800) × 0x400 + (c2 - 0xDC00) + 0x10000.
     fn read_potential_unicode_or_code_point_surrogate_pairs(&mut self) -> SurrogatePair {
         let leading_surrogate = if self.current_char() == '{' {
-            self.read_code_point_escape_sequence_u32()
+            self.read_code_point_escape_sequence()
         } else {
-            self.read_unicode_escape_sequence_u32()
+            self.read_unicode_escape_sequence()
         }
         .unwrap();
 
@@ -251,9 +249,9 @@ impl<'a> Lexer<'a> {
             self.read_char(); // Eat u char.
 
             let trailing_surrogate = if self.current_char() == '{' {
-                self.read_code_point_escape_sequence_u32()
+                self.read_code_point_escape_sequence()
             } else {
-                self.read_unicode_escape_sequence_u32()
+                self.read_unicode_escape_sequence()
             }
             .unwrap();
 
@@ -281,7 +279,7 @@ impl<'a> Lexer<'a> {
     // Hex4Digits ::
     //   HexDigit HexDigit HexDigit HexDigit
     // ```
-    pub fn read_unicode_escape_sequence_u32(&mut self) -> Result<u32, ParserError> {
+    pub fn read_unicode_escape_sequence(&mut self) -> Result<u32, ParserError> {
         let start_index = self.read_index;
 
         for _ in 0..4 {
@@ -316,7 +314,7 @@ impl<'a> Lexer<'a> {
     // CodePoint ::
     //   HexDigits[~Sep] but only if MV of HexDigits ≤ 0x10FFFF
     // ```
-    fn read_code_point_escape_sequence_u32(&mut self) -> Result<u32, ParserError> {
+    fn read_code_point_escape_sequence(&mut self) -> Result<u32, ParserError> {
         self.read_char(); // Eat { char.
 
         let start_index = self.read_index;
@@ -359,9 +357,9 @@ impl<'a> Lexer<'a> {
     //   FourToSeven OctalDigit
     //   ZeroToThree OctalDigit OctalDigit
     // ```
-    fn read_octal_escape_sequence_u32(&mut self) -> Result<u32, ParserError> {
+    fn read_octal_escape_sequence(&mut self) -> Result<u32, ParserError> {
         if !self.config.strict_mode {
-            return Err(ParserError::InvalidOctalEscapeSequenceNotAllowedInStrictMode);
+            return Err(ParserError::InvalidLegacyOctalEscapeSequenceNotAllowedInStrictMode);
         }
 
         let start_index = self.read_index;
@@ -376,17 +374,16 @@ impl<'a> Lexer<'a> {
             '4'..='7' if is_ascii_octaldigit(current_char) || is_ascii_octaldigit(peek_char) => {
                 self.read_char_nth(2)
             }
-            _ => return Err(ParserError::InvalidOctalEscapeSequence),
+            _ => return Err(ParserError::InvalidLegacyOctalEscapeSequence),
         }
 
         self.read_char();
 
         let octal_str = &self.source_str[start_index..self.read_index];
 
-        if let Ok(octal_u32) = u32::from_str_radix(octal_str, 8) {
-            return Ok(octal_u32);
+        match u32::from_str_radix(octal_str, 8) {
+            Ok(octal_u32) => Ok(octal_u32),
+            Err(_) => Err(ParserError::InvalidLegacyOctalEscapeSequence),
         }
-
-        Err(ParserError::InvalidOctalEscapeSequence)
     }
 }

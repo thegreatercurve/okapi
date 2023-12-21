@@ -26,3 +26,12 @@ pub fn number_literal(value: String, start: usize, end: usize) -> Token {
         value: Some(value),
     }
 }
+
+pub fn illegal(value: String, start: usize, end: usize) -> Token {
+    Token {
+        kind: TokenKind::Illegal,
+        start,
+        end,
+        value: Some(value),
+    }
+}

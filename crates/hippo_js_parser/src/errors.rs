@@ -11,14 +11,19 @@ pub enum ParserError {
     InvalidHexadecimalEscapeSequence,
     InvalidUnicodeEscapeSequence,
     InvalidUnicodeCodePointEscapeSequence,
-    InvalidOctalEscapeSequence,
-    InvalidOctalEscapeSequenceNotAllowedInStrictMode,
+    InvalidLegacyOctalEscapeSequence,
+    InvalidLegacyOctalEscapeSequenceNotAllowedInStrictMode,
 
     // Number literals
-    InvalidNumberLiteral,
+    InvalidIntegerLiteral,
     InvalidNonDecimalBinaryNumberLiteral,
     InvalidNonDecimalOctalNumberLiteral,
     InvalidNonDecimalHexadecimalNumberLiteral,
+    InvalidLegacyOctalNumberLiteral,
+    InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode,
+
+    InvalidNumericSeparatorAtSibling,
+    InvalidNumericSeparatorAtEnd,
 
     ScannerError,
 }
@@ -39,12 +44,11 @@ impl std::fmt::Display for ParserError {
             ParserError::InvalidUnicodeCodePointEscapeSequence => {
                 write!(f, "InvalidUnicodeCodePointEscapeSequence")
             }
-            ParserError::InvalidOctalEscapeSequence => write!(f, "InvalidOctalEscapeSequence"),
-            ParserError::InvalidOctalEscapeSequenceNotAllowedInStrictMode => {
-                write!(f, "InvalidOctalEscapeSequenceNotAllowedInStrictMode")
+            ParserError::InvalidLegacyOctalEscapeSequence => {
+                write!(f, "InvalidOctalEscapeSequence")
             }
-            ParserError::InvalidNumberLiteral => {
-                write!(f, "InvalidNonNumberLiteral")
+            ParserError::InvalidLegacyOctalEscapeSequenceNotAllowedInStrictMode => {
+                write!(f, "InvalidOctalEscapeSequenceNotAllowedInStrictMode")
             }
             ParserError::InvalidNonDecimalBinaryNumberLiteral => {
                 write!(f, "InvalidNonDecimalBinaryNumberLiteral")
@@ -57,6 +61,22 @@ impl std::fmt::Display for ParserError {
             }
             ParserError::UnterminatedStringLiteral => write!(f, "UnterminatedStringLiteral"),
             ParserError::ScannerError => write!(f, "ScannerError"),
+            ParserError::InvalidIntegerLiteral => {
+                write!(f, "InvalidIntergetLiteral")
+            }
+
+            ParserError::InvalidNumericSeparatorAtSibling => {
+                write!(f, "InvalidNumericSeparatorAtSibling")
+            }
+            ParserError::InvalidNumericSeparatorAtEnd => {
+                write!(f, "InvalidNumericSeparatorAtEnd")
+            }
+            ParserError::InvalidLegacyOctalNumberLiteral => {
+                write!(f, "InvalidLegacyOctalNumberLiteral")
+            }
+            ParserError::InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode => {
+                write!(f, "InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode")
+            }
         }
     }
 }

@@ -6,7 +6,6 @@ fn strings_simple() {
         r"'hello world'",
         vec![string_literal("hello world".to_string(), 0, 13)]
     );
-
     assert_lexer_eq!(
         r"'hello\n\tworld'",
         vec![string_literal(r"hello\n\tworld".to_string(), 0, 16)]
@@ -35,7 +34,6 @@ fn strings_escape_sequence_with_surrogate_pairs_valid() {
         r"'\uD83D\uDE00'",
         vec![string_literal(r"😀".to_string(), 0, 14)]
     );
-
     assert_lexer_eq!(
         r"'hello\u0020world\u{D83D}\u{DE04}\u{1F607}'",
         vec![string_literal(r"hello world😄😇".to_string(), 0, 43)]
@@ -49,13 +47,11 @@ fn strings_escape_sequence_with_surrogate_pairs_invalid() {
         r"'hello world\u{1F607}\u{DE04}'",
         vec![string_literal(r"hello world😇\u{56836}".to_string(), 0, 30)]
     );
-
     // Trailing surrogate is invalid.
     assert_lexer_eq!(
         r"'hello\u0020world\u{D83D}\u{1F607}'",
         vec![string_literal(r"hello world\u{55357}😇".to_string(), 0, 35)]
     );
-
     // Invalid leading surrogate is nested.
     assert_lexer_eq!(
         r"'hello world\u{1F607}\u{D83D}\u{1F607}'",
@@ -65,7 +61,6 @@ fn strings_escape_sequence_with_surrogate_pairs_invalid() {
             39
         )]
     );
-
     // Complex combination of valid and invalid surrogate pairs.
     assert_lexer_eq!(
         r"'hello world\u{D83D}\u{D83D}\u{D83D}\u{DE04}\u{1F607}\u{DE04}'",
