@@ -17,10 +17,10 @@ fn numbers_integers() {
 
 #[test]
 fn numbers_floats() {
-    // assert_lexer_eq!(
-    //     "12345.67890",
-    //     vec![Token::number_literal("12345.67890".to_string(), 0, 13)]
-    // );
+    assert_lexer_eq!(
+        "12345.67890",
+        vec![Token::number_literal("12345.67890".to_string(), 0, 13)]
+    );
 
     assert_lexer_eq!(
         "0.1234567890",
@@ -46,6 +46,14 @@ fn numbers_binary_integer_literals() {
     );
 }
 
+// #[test]
+// fn numbers_binary_integer_literals_invalid() {
+//     assert_lexer_eq!(
+//         "0b1012",
+//         vec![Token::number_literal("170".to_string(), 0, 10)]
+//     );
+// }
+
 #[test]
 fn numbers_octal_integer_literals_legacy() {
     assert_lexer_eq!(
@@ -58,6 +66,14 @@ fn numbers_octal_integer_literals_legacy() {
         vec![Token::number_literal("2739128".to_string(), 0, 10)]
     );
 }
+
+// #[test]
+// fn numbers_octal_integer_literals_legacy_invalid() {
+//     assert_lexer_eq!(
+//         "0o123456780",
+//         vec![Token::number_literal("2739128".to_string(), 0, 10)]
+//     );
+// }
 
 // #[test]
 // fn numbers_octal_integer_literals_modern() {
@@ -92,6 +108,18 @@ fn numbers_hexadecimal_integer_literals() {
         )]
     );
 }
+
+// #[test]
+// fn numbers_hexadecimal_integer_literals_invalid() {
+//     assert_lexer_eq!(
+//         "0X1234567890abcdefg",
+//         vec![Token::number_literal(
+//             "1311768467294899695".to_string(),
+//             0,
+//             18
+//         )]
+//     );
+// }
 
 // #[test]
 // fn numbers_numeric_separator() {

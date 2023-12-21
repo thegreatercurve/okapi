@@ -86,10 +86,8 @@ impl<'a> Lexer<'a> {
 
         let mut token: Token = match current_char {
             '#' => self.scan_private_identifier(),
-            '0' if peek_char == '.' => self.scan_decimal_number_literal(),
-            '0' => self.scan_non_decimal_integer_literal(),
-            '1'..='9' => self.scan_integer_literal(),
-            '.' if peek_char.is_ascii_digit() => self.scan_decimal_number_literal(),
+            // '0'..='9' => self.scan_numeric_literal(),
+            // '.' if peek_char.is_ascii_digit() => self.scan_numeric_literal(),
             '\'' | '"' => self.scan_string_literal(),
             _ if is_punctuator_start(current_char) => self.scan_punctuator(),
             _ if is_identifier_start(current_char) => self.scan_identifier_name_or_keyword(),
