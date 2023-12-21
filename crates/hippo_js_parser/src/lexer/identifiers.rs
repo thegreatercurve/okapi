@@ -37,8 +37,15 @@ impl<'a> Lexer<'a> {
     pub(crate) fn scan_identifier_name_or_keyword(&mut self) -> Token {
         let start_index = self.read_index;
 
-        if !self.read_identifier_start() {
-            return Token::new(TokenKind::Illegal, 0, 0, None);
+        let identifier = self.read_identifier_start();
+
+        if identifier.is_err() {
+            return Token::new(
+                TokenKind::Illegal,
+                0,
+                0,
+                Some(identifier.unwrap_err().to_string()),
+            );
         };
 
         let keyword_or_identifer_name = &self.source_str[start_index..self.read_index];
@@ -54,41 +61,47 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn read_identifier_start(&mut self) -> bool {
+    fn read_identifier_start(&mut self) -> Result<(), ParserError> {
         match self.current_char() {
             '$' | '_' | _ if self.current_char().is_ascii_alphabetic() => self.read_char(),
             '\\' => {
                 if self.peek_char() != 'u' {
-                    self.errors.push(ParserError::InvalidIdentifierCharacter);
-
-                    return false;
+                    return Err(ParserError::InvalidIdentifierCharacter);
                 }
 
-                self.read_unicode_escape_sequence_u32();
+                let unicode_escape_sequence_u32 = self.read_unicode_escape_sequence_u32();
+
+                if unicode_escape_sequence_u32.is_err() {
+                    return Err(unicode_escape_sequence_u32.unwrap_err());
+                }
             }
             _ if is_unicode_id_start(self.current_char()) => self.read_char(),
-            _ => self.errors.push(ParserError::InvalidIdentifierCharacter),
+            _ => {
+                return Err(ParserError::InvalidIdentifierCharacter);
+            }
         };
 
         self.read_identifier_part()
     }
 
-    fn read_identifier_part(&mut self) -> bool {
+    fn read_identifier_part(&mut self) -> Result<(), ParserError> {
         while is_identifier_part(self.current_char()) || self.current_char() == '\\' {
             if self.current_char() == '\\' {
                 if self.peek_char() != 'u' {
-                    self.errors.push(ParserError::InvalidIdentifierCharacter);
-
-                    return false;
+                    return Err(ParserError::InvalidIdentifierCharacter);
                 }
 
-                self.read_unicode_escape_sequence_u32();
+                let unicode_escape_sequence_u32 = self.read_unicode_escape_sequence_u32();
+
+                if unicode_escape_sequence_u32.is_err() {
+                    return Err(unicode_escape_sequence_u32.unwrap_err());
+                }
             }
 
             self.read_char();
         }
 
-        true
+        Ok(())
     }
 
     // https://tc39.es/ecma262/#sec-keywords-and-reserved-words
@@ -161,8 +174,15 @@ impl<'a> Lexer<'a> {
 
         self.read_char();
 
-        if !self.read_identifier_start() {
-            return Token::new(TokenKind::Illegal, 0, 0, None);
+        let identifier = self.read_identifier_start();
+
+        if identifier.is_err() {
+            return Token::new(
+                TokenKind::Illegal,
+                0,
+                0,
+                Some(identifier.unwrap_err().to_string()),
+            );
         };
 
         let identifer_name = &self.source_str[start_index..self.read_index];

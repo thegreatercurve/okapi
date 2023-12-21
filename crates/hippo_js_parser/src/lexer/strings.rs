@@ -58,6 +58,8 @@ impl<'a> Lexer<'a> {
     //   LineContinuation
     // ```
     pub(crate) fn scan_string_literal(&mut self) -> Token {
+        let start_index = self.read_index;
+
         let start_quote_character = self.current_char(); // '\'' | '"'
 
         let mut string_literal = String::new();
@@ -91,7 +93,12 @@ impl<'a> Lexer<'a> {
 
                                 continue;
                             } else {
-                                return Token::new(TokenKind::Illegal, 0, 0, None);
+                                return Token::new(
+                                    TokenKind::Illegal,
+                                    start_index,
+                                    self.read_index,
+                                    Some(ParserError::InvalidHexadecimalEscapeSequence.to_string()),
+                                );
                             }
                         }
 
@@ -122,7 +129,12 @@ impl<'a> Lexer<'a> {
                                         continue;
                                     }
 
-                                    return Token::new(TokenKind::Illegal, 0, 0, None);
+                                    return Token::new(
+                                        TokenKind::Illegal,
+                                        start_index,
+                                        self.read_index,
+                                        None,
+                                    );
                                 }
                                 SurrogatePair::LeadingValidTrailingInvalid(
                                     leading_code_point_u32,
@@ -154,7 +166,12 @@ impl<'a> Lexer<'a> {
 
                                 continue;
                             } else {
-                                return Token::new(TokenKind::Illegal, 0, 0, None);
+                                return Token::new(
+                                    TokenKind::Illegal,
+                                    start_index,
+                                    self.read_index,
+                                    None,
+                                );
                             }
                         }
                         _ => {
@@ -164,9 +181,12 @@ impl<'a> Lexer<'a> {
                 }
                 // Invalid line terminator chars.
                 CR | LF => {
-                    self.errors.push(ParserError::UnterminatedStringLiteral);
-
-                    return Token::new(TokenKind::Illegal, 0, 0, None);
+                    return Token::new(
+                        TokenKind::Illegal,
+                        start_index,
+                        self.read_index,
+                        Some(ParserError::UnterminatedStringLiteral.to_string()),
+                    );
                 }
                 _ => string_literal.push(current_char),
             }
@@ -176,7 +196,12 @@ impl<'a> Lexer<'a> {
 
         self.read_char(); // Eat end quote char.
 
-        Token::new(TokenKind::StringLiteral, 0, 0, Some(string_literal))
+        Token::new(
+            TokenKind::StringLiteral,
+            start_index,
+            self.read_index,
+            Some(string_literal),
+        )
     }
 
     // https://tc39.es/ecma262/#prod-HexEscapeSequence
@@ -184,15 +209,12 @@ impl<'a> Lexer<'a> {
     // HexEscapeSequence ::
     //   x HexDigit HexDigit
     // ```
-    fn read_hexadecimal_escape_sequence_u32(&mut self) -> Option<u32> {
+    fn read_hexadecimal_escape_sequence_u32(&mut self) -> Result<u32, ParserError> {
         let start_index = self.read_index;
 
         for _ in 0..2 {
             if !self.current_char().is_ascii_hexdigit() {
-                self.errors
-                    .push(ParserError::InvalidHexadecimalEscapeSequence);
-
-                return None;
+                return Err(ParserError::InvalidHexadecimalEscapeSequence);
             }
 
             self.read_char();
@@ -201,13 +223,10 @@ impl<'a> Lexer<'a> {
         let hex_str = &self.source_str[start_index..self.read_index];
 
         if let Ok(hex_u32) = u32::from_str_radix(hex_str, 16) {
-            return Some(hex_u32);
+            return Ok(hex_u32);
         }
 
-        self.errors
-            .push(ParserError::InvalidHexadecimalEscapeSequence);
-
-        return None;
+        Err(ParserError::InvalidHexadecimalEscapeSequence)
     }
 
     // https://tc39.es/ecma262
@@ -262,14 +281,12 @@ impl<'a> Lexer<'a> {
     // Hex4Digits ::
     //   HexDigit HexDigit HexDigit HexDigit
     // ```
-    pub fn read_unicode_escape_sequence_u32(&mut self) -> Option<u32> {
+    pub fn read_unicode_escape_sequence_u32(&mut self) -> Result<u32, ParserError> {
         let start_index = self.read_index;
 
         for _ in 0..4 {
             if !self.current_char().is_ascii_hexdigit() {
-                self.errors.push(ParserError::InvalidUnicodeEscapeSequence);
-
-                return None;
+                return Err(ParserError::InvalidUnicodeEscapeSequence);
             }
 
             self.read_char();
@@ -278,21 +295,17 @@ impl<'a> Lexer<'a> {
         let unicode_str = &self.source_str[start_index..self.read_index];
 
         if unicode_str.len() < 4 {
-            self.errors.push(ParserError::InvalidUnicodeEscapeSequence);
-
-            return None;
+            return Err(ParserError::InvalidUnicodeEscapeSequence);
         }
 
         if let Ok(unicode_u32) = u32::from_str_radix(unicode_str, 16) {
             // Check that it's inside of the range of the Basic Multilingual Plane.
             if (0x0000..=0xFFFF).contains(&unicode_u32) {
-                return Some(unicode_u32);
+                return Ok(unicode_u32);
             }
         }
 
-        self.errors.push(ParserError::InvalidUnicodeEscapeSequence);
-
-        return None;
+        Err(ParserError::InvalidUnicodeEscapeSequence)
     }
 
     // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
@@ -303,7 +316,7 @@ impl<'a> Lexer<'a> {
     // CodePoint ::
     //   HexDigits[~Sep] but only if MV of HexDigits ≤ 0x10FFFF
     // ```
-    fn read_code_point_escape_sequence_u32(&mut self) -> Option<u32> {
+    fn read_code_point_escape_sequence_u32(&mut self) -> Result<u32, ParserError> {
         self.read_char(); // Eat { char.
 
         let start_index = self.read_index;
@@ -314,10 +327,7 @@ impl<'a> Lexer<'a> {
             }
 
             if !self.current_char().is_ascii_hexdigit() {
-                self.errors
-                    .push(ParserError::InvalidUnicodeCodePointEscapeSequence);
-
-                return None;
+                return Err(ParserError::InvalidUnicodeCodePointEscapeSequence);
             }
 
             self.read_char();
@@ -326,23 +336,18 @@ impl<'a> Lexer<'a> {
         let code_point_str = &self.source_str[start_index..self.read_index];
 
         if code_point_str.len() < 4 {
-            self.errors.push(ParserError::InvalidUnicodeEscapeSequence);
-
-            return None;
+            return Err(ParserError::InvalidUnicodeEscapeSequence);
         }
 
         if let Ok(code_point_value_u32) = u32::from_str_radix(code_point_str, 16) {
             if code_point_value_u32 < 0x10FFFF && self.current_char() == '}' {
                 self.read_char(); // Eat } char.
 
-                return Some(code_point_value_u32);
+                return Ok(code_point_value_u32);
             }
         }
 
-        self.errors
-            .push(ParserError::InvalidUnicodeCodePointEscapeSequence);
-
-        None
+        Err(ParserError::InvalidUnicodeCodePointEscapeSequence)
     }
 
     // https://tc39.es/ecma262/#prod-LegacyOctalEscapeSequence
@@ -354,12 +359,9 @@ impl<'a> Lexer<'a> {
     //   FourToSeven OctalDigit
     //   ZeroToThree OctalDigit OctalDigit
     // ```
-    fn read_octal_escape_sequence_u32(&mut self) -> Option<u32> {
+    fn read_octal_escape_sequence_u32(&mut self) -> Result<u32, ParserError> {
         if !self.config.strict_mode {
-            self.errors
-                .push(ParserError::InvalidOctalEscapeSequenceNotAllowedInStrictMode);
-
-            return None;
+            return Err(ParserError::InvalidOctalEscapeSequenceNotAllowedInStrictMode);
         }
 
         let start_index = self.read_index;
@@ -374,11 +376,7 @@ impl<'a> Lexer<'a> {
             '4'..='7' if is_ascii_octaldigit(current_char) || is_ascii_octaldigit(peek_char) => {
                 self.read_char_nth(2)
             }
-            _ => {
-                self.errors.push(ParserError::InvalidOctalEscapeSequence);
-
-                return None;
-            }
+            _ => return Err(ParserError::InvalidOctalEscapeSequence),
         }
 
         self.read_char();
@@ -386,11 +384,9 @@ impl<'a> Lexer<'a> {
         let octal_str = &self.source_str[start_index..self.read_index];
 
         if let Ok(octal_u32) = u32::from_str_radix(octal_str, 8) {
-            return Some(octal_u32);
+            return Ok(octal_u32);
         }
 
-        self.errors.push(ParserError::InvalidOctalEscapeSequence);
-
-        return None;
+        Err(ParserError::InvalidOctalEscapeSequence)
     }
 }

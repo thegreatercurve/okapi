@@ -92,7 +92,7 @@ impl<'a> Lexer<'a> {
         if let Some((radix, error)) = radix_and_error {
             let number_literal_u64 = self.parse_non_decimal_integer_literal(radix, error);
 
-            if let Some(number_literal_u64) = number_literal_u64 {
+            if let Ok(number_literal_u64) = number_literal_u64 {
                 return Token::new(
                     TokenKind::NumberLiteral,
                     start_index,
@@ -102,13 +102,19 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        self.errors
-            .push(ParserError::InvalidNonDecimalNumberLiteral);
-
-        Token::new(TokenKind::Illegal, 0, 0, None)
+        Token::new(
+            TokenKind::Illegal,
+            start_index,
+            self.read_index,
+            Some(ParserError::InvalidNonDecimalNumberLiteral.to_string()),
+        )
     }
 
-    fn parse_non_decimal_integer_literal(&mut self, radix: u32, error: ParserError) -> Option<u64> {
+    fn parse_non_decimal_integer_literal(
+        &mut self,
+        radix: u32,
+        error: ParserError,
+    ) -> Result<u64, ParserError> {
         self.read_char(); // Eat 'b', 'o' or 'x' char.
 
         let start_index = self.read_index;
@@ -124,12 +130,10 @@ impl<'a> Lexer<'a> {
         let binary_str = &self.source_str[start_index..self.read_index];
 
         if let Ok(unicode_u64) = u64::from_str_radix(binary_str, radix) {
-            return Some(unicode_u64);
+            return Ok(unicode_u64);
         }
 
-        self.errors.push(error);
-
-        return None;
+        Err(error)
     }
 
     fn read_invalid_numeric_separator() {}

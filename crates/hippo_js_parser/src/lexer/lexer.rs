@@ -1,11 +1,10 @@
-use crate::{errors::ParserError, parser::Config, tokens::Token, TokenKind};
+use crate::{parser::Config, tokens::Token, TokenKind};
 
 use super::utils::{is_identifier_start, is_line_terminator, is_punctuator_start, is_whitespace};
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
     pub config: Config,
-    pub errors: Vec<ParserError>,
     pub read_index: usize,
     pub source_str: &'a str,
 }
@@ -16,7 +15,6 @@ impl<'a> Lexer<'a> {
 
         Self {
             config: config,
-            errors: Vec::new(),
             read_index: 0,
             source_str: input,
         }
