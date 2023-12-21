@@ -3,25 +3,45 @@ use crate::{errors::ParserError, Lexer, Token, TokenKind};
 const NUMERIC_LITERAL_SEPARATOR: char = '_'; // TODO - Can't have similar siblings.
 
 impl<'a> Lexer<'a> {
-    pub(crate) fn scan_numeric_literal(&mut self) -> Token {
+    pub(crate) fn scan_number_literal(&mut self) -> Token {
         let start_index: usize = self.read_index;
 
         let current_char = self.current_char();
         let peek_char = self.peek_char();
 
-        match (current_char, peek_char) {
+        let number_literal_u64 = match (current_char, peek_char) {
             ('0', '.') => {
                 self.read_char(); // Eat '0' char.
 
                 self.read_decimal_number_literal()
             }
-            ('0', _) => self.scan_numeric_literal(),
-            ('1'..='9', _) => self.read_integer_literal(),
             ('.', _) => self.read_decimal_number_literal(),
-            (_, _) => Token::new(TokenKind::Illegal, 0, 0, None),
+            ('0', 'b' | 'B') => self.read_non_decimal_integer_literal(
+                2,
+                ParserError::InvalidNonDecimalBinaryNumberLiteral,
+            ),
+            ('0', 'o' | 'O') => self.read_non_decimal_integer_literal(
+                8,
+                ParserError::InvalidNonDecimalOctalNumberLiteral,
+            ),
+            ('0', 'x' | 'X') => self.read_non_decimal_integer_literal(
+                16,
+                ParserError::InvalidNonDecimalHexadecimalNumberLiteral,
+            ),
+            ('1'..='9', _) => self.read_integer_literal(),
+            (_, _) => Err(ParserError::InvalidNumberLiteral),
         };
 
         let number_literal_str = &self.source_str[start_index..self.read_index];
+
+        if number_literal_u64.is_err() {
+            return Token::new(
+                TokenKind::Illegal,
+                start_index,
+                self.read_index,
+                Some(number_literal_u64.unwrap_err().to_string()),
+            );
+        }
 
         Token::new(
             TokenKind::NumberLiteral,
@@ -31,7 +51,7 @@ impl<'a> Lexer<'a> {
         )
     }
 
-    fn read_integer_literal(&mut self) -> Token {
+    fn read_integer_literal(&mut self) -> Result<u64, ParserError> {
         let start_index: usize = self.read_index;
 
         let mut current_char = self.current_char();
@@ -44,15 +64,10 @@ impl<'a> Lexer<'a> {
 
         let number_literal_str = &self.source_str[start_index..self.read_index];
 
-        Token::new(
-            TokenKind::NumberLiteral,
-            start_index,
-            self.read_index,
-            Some(number_literal_str.to_string()),
-        )
+        u64::from_str_radix(number_literal_str, 10).map_err(|_| ParserError::InvalidNumberLiteral)
     }
 
-    fn read_decimal_number_literal(&mut self) -> Token {
+    fn read_decimal_number_literal(&mut self) -> Result<u64, ParserError> {
         let start_index: usize = self.read_index;
 
         self.read_char(); // Eat '.' char.
@@ -67,57 +82,18 @@ impl<'a> Lexer<'a> {
 
         let number_literal_str = &self.source_str[start_index..self.read_index];
 
-        Token::new(
-            TokenKind::NumberLiteral,
-            start_index,
-            self.read_index,
-            Some(number_literal_str.to_string()),
-        )
+        Ok(number_literal_str.parse::<u64>().unwrap())
     }
 
-    fn read_non_decimal_integer_literal(&mut self) -> Token {
-        let start_index: usize = self.read_index;
-
-        self.read_char(); // Eat '0' char.
-
-        let current_char = self.current_char();
-
-        let radix_and_error = match current_char {
-            'b' | 'B' => Some((2, ParserError::InvalidNonDecimalBinaryNumberLiteral)),
-            'o' | 'O' => Some((8, ParserError::InvalidNonDecimalOctalNumberLiteral)),
-            'x' | 'X' => Some((16, ParserError::InvalidNonDecimalHexadecimalNumberLiteral)),
-            _ => None,
-        };
-
-        if let Some((radix, error)) = radix_and_error {
-            let number_literal_u64 = self.parse_non_decimal_integer_literal(radix, error);
-
-            if let Ok(number_literal_u64) = number_literal_u64 {
-                return Token::new(
-                    TokenKind::NumberLiteral,
-                    start_index,
-                    self.read_index,
-                    Some(number_literal_u64.to_string()),
-                );
-            }
-        }
-
-        Token::new(
-            TokenKind::Illegal,
-            start_index,
-            self.read_index,
-            Some(ParserError::InvalidNonDecimalNumberLiteral.to_string()),
-        )
-    }
-
-    fn parse_non_decimal_integer_literal(
+    fn read_non_decimal_integer_literal(
         &mut self,
         radix: u32,
         error: ParserError,
     ) -> Result<u64, ParserError> {
-        self.read_char(); // Eat 'b', 'o' or 'x' char.
+        let start_index: usize = self.read_index;
 
-        let start_index = self.read_index;
+        self.read_char(); // Eat '0' char.
+        self.read_char(); // Eat 'b', 'o' or 'x' char.
 
         let mut current_char = self.current_char();
 

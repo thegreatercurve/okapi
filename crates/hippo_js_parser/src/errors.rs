@@ -4,6 +4,8 @@ pub enum ParserError {
 
     InvalidIdentifierCharacter,
 
+    // String literals
+    UnterminatedStringLiteral,
     InvalidEscapeSequence,
     InvalidEscapeSequenceCannotBeFormatted,
     InvalidHexadecimalEscapeSequence,
@@ -12,12 +14,12 @@ pub enum ParserError {
     InvalidOctalEscapeSequence,
     InvalidOctalEscapeSequenceNotAllowedInStrictMode,
 
-    InvalidNonDecimalNumberLiteral,
+    // Number literals
+    InvalidNumberLiteral,
     InvalidNonDecimalBinaryNumberLiteral,
     InvalidNonDecimalOctalNumberLiteral,
     InvalidNonDecimalHexadecimalNumberLiteral,
 
-    UnterminatedStringLiteral,
     ScannerError,
 }
 
@@ -41,8 +43,8 @@ impl std::fmt::Display for ParserError {
             ParserError::InvalidOctalEscapeSequenceNotAllowedInStrictMode => {
                 write!(f, "InvalidOctalEscapeSequenceNotAllowedInStrictMode")
             }
-            ParserError::InvalidNonDecimalNumberLiteral => {
-                write!(f, "InvalidNonDecimalNumberLiteral")
+            ParserError::InvalidNumberLiteral => {
+                write!(f, "InvalidNonNumberLiteral")
             }
             ParserError::InvalidNonDecimalBinaryNumberLiteral => {
                 write!(f, "InvalidNonDecimalBinaryNumberLiteral")
