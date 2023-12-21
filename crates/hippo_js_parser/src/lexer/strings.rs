@@ -198,10 +198,10 @@ impl<'a> Lexer<'a> {
             self.read_char();
         }
 
-        let hex_escape = &self.source_str[start_index..self.read_index];
+        let hex_str = &self.source_str[start_index..self.read_index];
 
-        if let Ok(hex_value_u32) = u32::from_str_radix(hex_escape, 16) {
-            return Some(hex_value_u32);
+        if let Ok(hex_u32) = u32::from_str_radix(hex_str, 16) {
+            return Some(hex_u32);
         }
 
         self.errors
@@ -275,18 +275,18 @@ impl<'a> Lexer<'a> {
             self.read_char();
         }
 
-        let unicode_value = &self.source_str[start_index..self.read_index];
+        let unicode_str = &self.source_str[start_index..self.read_index];
 
-        if unicode_value.len() < 4 {
+        if unicode_str.len() < 4 {
             self.errors.push(ParserError::InvalidUnicodeEscapeSequence);
 
             return None;
         }
 
-        if let Ok(unicode_value_u32) = u32::from_str_radix(unicode_value, 16) {
+        if let Ok(unicode_u32) = u32::from_str_radix(unicode_str, 16) {
             // Check that it's inside of the range of the Basic Multilingual Plane.
-            if (0x0000..=0xFFFF).contains(&unicode_value_u32) {
-                return Some(unicode_value_u32);
+            if (0x0000..=0xFFFF).contains(&unicode_u32) {
+                return Some(unicode_u32);
             }
         }
 
@@ -323,15 +323,15 @@ impl<'a> Lexer<'a> {
             self.read_char();
         }
 
-        let code_point_value = &self.source_str[start_index..self.read_index];
+        let code_point_str = &self.source_str[start_index..self.read_index];
 
-        if code_point_value.len() < 4 {
+        if code_point_str.len() < 4 {
             self.errors.push(ParserError::InvalidUnicodeEscapeSequence);
 
             return None;
         }
 
-        if let Ok(code_point_value_u32) = u32::from_str_radix(code_point_value, 16) {
+        if let Ok(code_point_value_u32) = u32::from_str_radix(code_point_str, 16) {
             if code_point_value_u32 < 0x10FFFF && self.current_char() == '}' {
                 self.read_char(); // Eat } char.
 
@@ -383,10 +383,10 @@ impl<'a> Lexer<'a> {
 
         self.read_char();
 
-        let octal_value = &self.source_str[start_index..self.read_index];
+        let octal_str = &self.source_str[start_index..self.read_index];
 
-        if let Ok(octal_value_u32) = u32::from_str_radix(octal_value, 8) {
-            return Some(octal_value_u32);
+        if let Ok(octal_u32) = u32::from_str_radix(octal_str, 8) {
+            return Some(octal_u32);
         }
 
         self.errors.push(ParserError::InvalidOctalEscapeSequence);

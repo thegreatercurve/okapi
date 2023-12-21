@@ -12,6 +12,11 @@ pub enum ParserError {
     InvalidOctalEscapeSequence,
     InvalidOctalEscapeSequenceNotAllowedInStrictMode,
 
+    InvalidNonDecimalNumberLiteral,
+    InvalidNonDecimalBinaryNumberLiteral,
+    InvalidNonDecimalOctalNumberLiteral,
+    InvalidNonDecimalHexadecimalNumberLiteral,
+
     UnterminatedStringLiteral,
     ScannerError,
 }

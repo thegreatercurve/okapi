@@ -114,6 +114,24 @@ impl Token {
             value: Some(value),
         }
     }
+
+    pub fn default_number_literal(value: String) -> Self {
+        Self {
+            kind: TokenKind::NumberLiteral,
+            start: 0,
+            end: 0,
+            value: Some(value),
+        }
+    }
+
+    pub fn number_literal(value: String, start: usize, end: usize) -> Self {
+        Self {
+            kind: TokenKind::NumberLiteral,
+            start,
+            end,
+            value: Some(value),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
