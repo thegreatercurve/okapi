@@ -11,9 +11,9 @@ fn whitespace_minified() {
         "const foo=\"hello\";",
         vec![
             Token::new(TokenKind::Keyword(KeywordKind::Const), 0, 5, None),
-            identifier("foo".to_string(), 6, 9),
+            identifier("foo", 6, 9),
             Token::new(TokenKind::Assignment, 9, 10, None),
-            string_literal("hello".to_string(), 10, 17),
+            string_literal("hello", 10, 17),
             Token::new(TokenKind::Semicolon, 17, 18, None),
         ]
     );

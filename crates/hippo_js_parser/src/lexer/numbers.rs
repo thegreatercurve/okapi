@@ -59,6 +59,7 @@ impl<'a> Lexer<'a> {
             ('0', peek_char) if is_ascii_octaldigit(peek_char) => {
                 self.read_legacy_octal_integer_literal()
             }
+            ('0', _) => self.read_decimal_literal(),
             (_, _) => Err(ParserError::SyntaxError),
         };
 
