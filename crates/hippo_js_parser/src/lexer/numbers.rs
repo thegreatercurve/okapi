@@ -1,20 +1,35 @@
 use crate::{Lexer, ParserError, Token, TokenKind};
 
 const NUMERIC_LITERAL_SEPARATOR: char = '_';
+const DECIMAL: char = '.';
+const BIG_INT_SUFFIX: char = 'n';
 
-fn is_ascii_digit_or_separator(c: char) -> bool {
-    c.is_ascii_digit() || c == NUMERIC_LITERAL_SEPARATOR
+#[derive(PartialEq)]
+enum NumKind {
+    Int,
+    Decimal,
+    Binary,
+    Octal,
+    Hexadecimal,
+    LegacyOctal,
+    PositiveExponent,
+    NegativeExponent,
+    BigInt,
 }
 
-fn is_ascii_decimal_digit_or_separator_or_exponent(c: char) -> bool {
-    match c {
-        '0'..='9' | '.' | NUMERIC_LITERAL_SEPARATOR | 'e' | 'E' | '+' | '-' => true,
+fn is_decimal_literal_char(ch: char) -> bool {
+    match ch {
+        '0'..='9' | DECIMAL | NUMERIC_LITERAL_SEPARATOR => true,
         _ => false,
     }
 }
 
-fn is_radix_ascii_digit_or_separator(c: char, radix: u32) -> bool {
-    (c.is_ascii_alphanumeric() && c.is_digit(radix)) || c == NUMERIC_LITERAL_SEPARATOR
+fn is_non_decimal_literal_char(ch: char, radix: u32) -> bool {
+    match ch {
+        NUMERIC_LITERAL_SEPARATOR => true,
+        _ if ch.is_digit(radix) => true,
+        _ => false,
+    }
 }
 
 fn is_ascii_octaldigit(ch: char) -> bool {
@@ -24,55 +39,45 @@ fn is_ascii_octaldigit(ch: char) -> bool {
     }
 }
 
-fn is_big_int_start(current_char: char, peek_char: char) -> bool {
-    match (current_char, peek_char) {
-        ('0', 'n') | ('1'..='9', _) | ('0', 'b' | 'B') | ('0', 'o' | 'O') | ('0', 'x' | 'X') => {
-            true
+fn match_num_kind_to_radix(num_kind: &NumKind) -> u32 {
+    match num_kind {
+        NumKind::Binary => 2,
+        NumKind::Octal | NumKind::LegacyOctal => 8,
+        NumKind::Hexadecimal => 16,
+        _ => 10,
+    }
+}
+
+fn match_num_kind_to_parse_error(num_kind: &NumKind) -> ParserError {
+    match num_kind {
+        NumKind::Int | NumKind::Decimal => ParserError::InvalidDecimalLiteral,
+        NumKind::Binary => ParserError::InvalidNonDecimalBinaryNumberLiteral,
+        NumKind::Octal => ParserError::InvalidNonDecimalOctalNumberLiteral,
+        NumKind::Hexadecimal => ParserError::InvalidNonDecimalHexadecimalNumberLiteral,
+        NumKind::LegacyOctal => ParserError::InvalidLegacyOctalNumberLiteral,
+        NumKind::PositiveExponent | NumKind::NegativeExponent => {
+            ParserError::InvalidExponentPartNumberLiteral
         }
-        (_, _) => false,
+        NumKind::BigInt => ParserError::InvalidDecimalBigIntegerLiteral,
     }
 }
 
-fn has_exponent(number_literal_str: &str) -> bool {
-    number_literal_str.contains('e') || number_literal_str.contains('E')
-}
-
-fn validate_big_int(number_literal: &str) -> Result<(), ParserError> {
-    let sibling_separators = format!("{NUMERIC_LITERAL_SEPARATOR}{NUMERIC_LITERAL_SEPARATOR}",);
-
-    if number_literal.contains(sibling_separators.as_str()) {
-        return Err(ParserError::InvalidNumericSeparatorAtSibling);
-    } else if number_literal.ends_with(NUMERIC_LITERAL_SEPARATOR) {
-        return Err(ParserError::InvalidNumericSeparatorAtEnd);
-    }
-
-    Ok(())
-}
-
+// 12.9.3 Numeric Literals
+// https://tc39.es/ecma262/#sec-literals-numeric-literals
 impl<'a> Lexer<'a> {
-    // 12.9.3 Numeric Literals
-    // https://tc39.es/ecma262/#sec-literals-numeric-literals
+    // https://tc39.es/ecma262/#prod-NumericLiteral
     pub(crate) fn scan_number_literal(&mut self) -> Token {
         let start_index: usize = self.read_index;
 
         let current_char = self.current_char();
         let peek_char = self.peek_char();
 
-        let number_literal_u64 = match (current_char, peek_char) {
+        let num_kind = match (current_char, peek_char) {
             ('0', '.') | ('.', _) => self.read_decimal_literal(),
             ('1'..='9', _) => self.read_decimal_literal(),
-            ('0', 'b' | 'B') => self.read_non_decimal_integer_literal(
-                2,
-                ParserError::InvalidNonDecimalBinaryNumberLiteral,
-            ),
-            ('0', 'o' | 'O') => self.read_non_decimal_integer_literal(
-                8,
-                ParserError::InvalidNonDecimalOctalNumberLiteral,
-            ),
-            ('0', 'x' | 'X') => self.read_non_decimal_integer_literal(
-                16,
-                ParserError::InvalidNonDecimalHexadecimalNumberLiteral,
-            ),
+            ('0', 'b' | 'B') => self.read_non_decimal_integer_literal(NumKind::Binary),
+            ('0', 'o' | 'O') => self.read_non_decimal_integer_literal(NumKind::Octal),
+            ('0', 'x' | 'X') => self.read_non_decimal_integer_literal(NumKind::Hexadecimal),
             ('0', peek_char) if is_ascii_octaldigit(peek_char) => {
                 self.read_legacy_octal_integer_literal()
             }
@@ -80,24 +85,10 @@ impl<'a> Lexer<'a> {
             (_, _) => Err(ParserError::SyntaxError),
         };
 
-        let number_literal_str = &self.source_str[start_index..self.read_index];
-
-        if number_literal_u64.is_ok()
-            && is_big_int_start(current_char, peek_char)
-            && !has_exponent(number_literal_str)
-            && self.peek_char() == 'n'
-        {
-            self.read_char(); // Eat 'n' char.
-
-            let number_literal_str = &self.source_str[start_index..self.read_index];
-
-            Token::new(
-                TokenKind::BigIntLiteral,
-                start_index,
-                self.read_index,
-                Some(number_literal_str.to_string()),
-            );
-        }
+        let number_literal_u64 = match num_kind {
+            Ok(num_kind) => self.parse_num_str_to_f64(num_kind, start_index),
+            Err(error) => Err(error),
+        };
 
         match number_literal_u64 {
             Ok(number_literal) => Token::new(
@@ -115,78 +106,144 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn read_decimal_literal(&mut self) -> Result<f64, ParserError> {
-        let start_index: usize = self.read_index;
-
+    // https://tc39.es/ecma262/#prod-DecimalLiteral
+    fn read_decimal_literal(&mut self) -> Result<NumKind, ParserError> {
         let mut current_char = self.current_char();
 
-        while is_ascii_decimal_digit_or_separator_or_exponent(current_char) {
+        let mut num_kind = NumKind::Int;
+
+        while is_decimal_literal_char(current_char) {
+            match current_char {
+                'e' | 'E' => {
+                    self.read_char(); // Eat 'e' or 'E' char.
+
+                    num_kind = match self.current_char() {
+                        '+' => NumKind::PositiveExponent,
+                        '-' => NumKind::NegativeExponent,
+                        ch if ch.is_ascii_digit() => NumKind::PositiveExponent,
+                        _ => {
+                            return Err(ParserError::InvalidExponentPartNumberLiteral);
+                        }
+                    }
+                }
+                NUMERIC_LITERAL_SEPARATOR => {
+                    self.read_char(); // Eat '_' char.
+
+                    match self.current_char() {
+                        NUMERIC_LITERAL_SEPARATOR | DECIMAL => {
+                            return Err(ParserError::InvalidNumericSeparatorAtSibling);
+                        }
+
+                        ch if !ch.is_ascii_digit() => {
+                            return Err(ParserError::InvalidNumericSeparatorAtEnd);
+                        }
+                        _ => {}
+                    }
+                }
+                DECIMAL => {
+                    self.read_char(); // Eat '.' char.
+
+                    num_kind = match self.current_char() {
+                        ch if !ch.is_ascii_digit() => {
+                            return Err(ParserError::InvalidDecimalLiteral);
+                        }
+                        NUMERIC_LITERAL_SEPARATOR => {
+                            return Err(ParserError::InvalidNumericSeparatorAtSibling);
+                        }
+                        _ => NumKind::Decimal,
+                    }
+                }
+                _ => {}
+            };
+
             self.read_char();
 
             current_char = self.current_char();
         }
 
-        let decimal_str = &self.source_str[start_index..self.read_index];
+        if self.peek_char() == BIG_INT_SUFFIX && num_kind == NumKind::Int {
+            return Ok(NumKind::BigInt);
+        }
 
-        let decimal_without_separators_str: String =
-            decimal_str.replace(NUMERIC_LITERAL_SEPARATOR, "");
-
-        decimal_without_separators_str
-            .parse::<f64>()
-            .map_err(|_| ParserError::InvalidIntegerLiteral)
+        Ok(num_kind)
     }
 
+    // https://tc39.es/ecma262/#prod-NonDecimalIntegerLiteral
     fn read_non_decimal_integer_literal(
         &mut self,
-        radix: u32,
-        error: ParserError,
-    ) -> Result<f64, ParserError> {
+        num_kind: NumKind,
+    ) -> Result<NumKind, ParserError> {
         self.read_char(); // Eat '0' char.
         self.read_char(); // Eat 'b', 'o' or 'x' char.
 
-        let start_index: usize = self.read_index;
-
         let mut current_char = self.current_char();
 
-        while is_radix_ascii_digit_or_separator(current_char, radix) {
+        while is_non_decimal_literal_char(current_char, match_num_kind_to_radix(&num_kind)) {
+            if current_char == NUMERIC_LITERAL_SEPARATOR {
+                self.read_char(); // Eat '_' char.
+
+                match self.current_char() {
+                    NUMERIC_LITERAL_SEPARATOR => {
+                        return Err(ParserError::InvalidNumericSeparatorAtSibling);
+                    }
+
+                    ch if !ch.is_ascii_digit() => {
+                        return Err(ParserError::InvalidNumericSeparatorAtEnd);
+                    }
+                    _ => {}
+                }
+            }
+
             self.read_char();
 
             current_char = self.current_char();
         }
 
-        let non_decimal_str = &self.source_str[start_index..self.read_index];
-
-        let non_decimal_without_separators_str: String =
-            non_decimal_str.replace(NUMERIC_LITERAL_SEPARATOR, "");
-
-        match u64::from_str_radix(non_decimal_without_separators_str.as_str(), radix) {
-            Ok(non_decimal_u64) => Ok(non_decimal_u64 as f64),
-            Err(_) => Err(error),
+        if self.peek_char() == BIG_INT_SUFFIX && num_kind == NumKind::Int {
+            return Ok(NumKind::BigInt);
         }
+
+        Ok(num_kind)
     }
 
-    fn read_legacy_octal_integer_literal(&mut self) -> Result<f64, ParserError> {
+    // https://tc39.es/ecma262/#prod-LegacyOctalIntegerLiteral
+    fn read_legacy_octal_integer_literal(&mut self) -> Result<NumKind, ParserError> {
         if !self.config.strict_mode {
             return Err(ParserError::InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode);
         }
 
-        let start_index: usize = self.read_index;
-
         self.read_char(); // Eat '0' char.
 
-        let mut current_char = self.current_char();
-
-        while is_ascii_octaldigit(current_char) {
+        while is_ascii_octaldigit(self.current_char()) {
             self.read_char();
-
-            current_char = self.current_char();
         }
 
-        let octal_str = &self.source_str[start_index..self.read_index];
+        Ok(NumKind::LegacyOctal)
+    }
 
-        match u32::from_str_radix(octal_str, 8) {
-            Ok(octal_u32) => Ok(octal_u32 as f64),
-            Err(_) => Err(ParserError::InvalidLegacyOctalEscapeSequence),
+    fn parse_num_str_to_f64(
+        &mut self,
+        num_kind: NumKind,
+        start_index: usize,
+    ) -> Result<f64, ParserError> {
+        let number_literal_str =
+            &self.source_str[start_index..self.read_index].replace(NUMERIC_LITERAL_SEPARATOR, "");
+
+        let radix = match_num_kind_to_radix(&num_kind);
+
+        match num_kind {
+            NumKind::Int | NumKind::PositiveExponent | NumKind::NegativeExponent => {
+                match u32::from_str_radix(number_literal_str, radix) {
+                    Ok(number_literal) => return Ok(number_literal as f64),
+                    Err(_) => return Err(match_num_kind_to_parse_error(&num_kind)),
+                }
+            }
+            NumKind::Decimal => todo!(),
+            NumKind::Binary => todo!(),
+            NumKind::Octal => todo!(),
+            NumKind::Hexadecimal => todo!(),
+            NumKind::LegacyOctal => todo!(),
+            NumKind::BigInt => todo!(),
         }
     }
 }

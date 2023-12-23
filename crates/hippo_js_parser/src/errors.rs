@@ -15,17 +15,18 @@ pub enum ParserError {
     InvalidLegacyOctalEscapeSequenceNotAllowedInStrictMode,
 
     // Number literals
-    InvalidIntegerLiteral,
+    InvalidDecimalLiteral,
     InvalidNonDecimalBinaryNumberLiteral,
     InvalidNonDecimalOctalNumberLiteral,
     InvalidNonDecimalHexadecimalNumberLiteral,
     InvalidLegacyOctalNumberLiteral,
     InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode,
+    InvalidExponentPartNumberLiteral,
 
     InvalidNumericSeparatorAtSibling,
     InvalidNumericSeparatorAtEnd,
 
-    InvalidBigIntLiteralExponentNotAllowed,
+    InvalidDecimalBigIntegerLiteral,
 
     ScannerError,
 }
@@ -63,8 +64,8 @@ impl std::fmt::Display for ParserError {
             }
             ParserError::UnterminatedStringLiteral => write!(f, "UnterminatedStringLiteral"),
             ParserError::ScannerError => write!(f, "ScannerError"),
-            ParserError::InvalidIntegerLiteral => {
-                write!(f, "InvalidIntergetLiteral")
+            ParserError::InvalidDecimalLiteral => {
+                write!(f, "InvalidDecimalLiteral")
             }
 
             ParserError::InvalidNumericSeparatorAtSibling => {
@@ -79,9 +80,9 @@ impl std::fmt::Display for ParserError {
             ParserError::InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode => {
                 write!(f, "InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode")
             }
-            ParserError::InvalidBigIntLiteralExponentNotAllowed => {
-                write!(f, "InvalidBigIntLiteralExponentNotAllowed")
-            }
+
+            ParserError::InvalidExponentPartNumberLiteral => todo!(),
+            ParserError::InvalidDecimalBigIntegerLiteral => todo!(),
         }
     }
 }
