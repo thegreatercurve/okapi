@@ -19,7 +19,7 @@ enum NumKind {
 
 fn is_decimal_literal_char(ch: char) -> bool {
     match ch {
-        '0'..='9' | DECIMAL | NUMERIC_LITERAL_SEPARATOR => true,
+        '0'..='9' | DECIMAL | NUMERIC_LITERAL_SEPARATOR | 'e' | 'E' => true,
         _ => false,
     }
 }
@@ -36,6 +36,13 @@ fn is_ascii_octaldigit(ch: char) -> bool {
     match ch {
         '0'..='7' => true,
         _ => false,
+    }
+}
+
+fn match_num_kind_to_start_index_offset(num_kind: &NumKind) -> usize {
+    match num_kind {
+        NumKind::Binary | NumKind::Octal | NumKind::Hexadecimal => 2,
+        _ => 0,
     }
 }
 
@@ -85,18 +92,28 @@ impl<'a> Lexer<'a> {
             (_, _) => Err(ParserError::SyntaxError),
         };
 
-        let number_literal_u64 = match num_kind {
-            Ok(num_kind) => self.parse_num_str_to_f64(num_kind, start_index),
-            Err(error) => Err(error),
-        };
+        match num_kind {
+            Ok(num_kind) => match num_kind {
+                NumKind::BigInt => Token::new(
+                    TokenKind::BigIntLiteral,
+                    start_index,
+                    self.read_index,
+                    Some(self.source_str[start_index..self.read_index].to_string()),
+                ),
+                _ => {
+                    let number_literal_u64 = self.parse_num_str_to_f64(
+                        &num_kind,
+                        start_index + match_num_kind_to_start_index_offset(&num_kind),
+                    );
 
-        match number_literal_u64 {
-            Ok(number_literal) => Token::new(
-                TokenKind::NumberLiteral,
-                start_index,
-                self.read_index,
-                Some(number_literal.to_string()),
-            ),
+                    Token::new(
+                        TokenKind::NumberLiteral,
+                        start_index,
+                        self.read_index,
+                        Some(number_literal_u64.unwrap().to_string()),
+                    )
+                }
+            },
             Err(error) => Token::new(
                 TokenKind::Illegal,
                 start_index,
@@ -114,16 +131,17 @@ impl<'a> Lexer<'a> {
 
         while is_decimal_literal_char(current_char) {
             match current_char {
-                'e' | 'E' => {
-                    self.read_char(); // Eat 'e' or 'E' char.
+                DECIMAL => {
+                    self.read_char(); // Eat '.' char.
 
                     num_kind = match self.current_char() {
-                        '+' => NumKind::PositiveExponent,
-                        '-' => NumKind::NegativeExponent,
-                        ch if ch.is_ascii_digit() => NumKind::PositiveExponent,
-                        _ => {
-                            return Err(ParserError::InvalidExponentPartNumberLiteral);
+                        ch if !ch.is_ascii_digit() => {
+                            return Err(ParserError::InvalidDecimalLiteral);
                         }
+                        NUMERIC_LITERAL_SEPARATOR => {
+                            return Err(ParserError::InvalidNumericSeparatorAtSibling);
+                        }
+                        _ => NumKind::Decimal,
                     }
                 }
                 NUMERIC_LITERAL_SEPARATOR => {
@@ -140,17 +158,16 @@ impl<'a> Lexer<'a> {
                         _ => {}
                     }
                 }
-                DECIMAL => {
-                    self.read_char(); // Eat '.' char.
+                'e' | 'E' => {
+                    self.read_char(); // Eat 'e' or 'E' char.
 
                     num_kind = match self.current_char() {
-                        ch if !ch.is_ascii_digit() => {
-                            return Err(ParserError::InvalidDecimalLiteral);
+                        '+' => NumKind::PositiveExponent,
+                        '-' => NumKind::NegativeExponent,
+                        ch if ch.is_ascii_digit() => NumKind::PositiveExponent,
+                        _ => {
+                            return Err(ParserError::InvalidExponentPartNumberLiteral);
                         }
-                        NUMERIC_LITERAL_SEPARATOR => {
-                            return Err(ParserError::InvalidNumericSeparatorAtSibling);
-                        }
-                        _ => NumKind::Decimal,
                     }
                 }
                 _ => {}
@@ -161,7 +178,9 @@ impl<'a> Lexer<'a> {
             current_char = self.current_char();
         }
 
-        if self.peek_char() == BIG_INT_SUFFIX && num_kind == NumKind::Int {
+        if current_char == BIG_INT_SUFFIX && num_kind == NumKind::Int {
+            self.read_char(); // Eat 'n' char.
+
             return Ok(NumKind::BigInt);
         }
 
@@ -199,7 +218,9 @@ impl<'a> Lexer<'a> {
             current_char = self.current_char();
         }
 
-        if self.peek_char() == BIG_INT_SUFFIX && num_kind == NumKind::Int {
+        if current_char == BIG_INT_SUFFIX && num_kind == NumKind::Int {
+            self.read_char(); // Eat 'n' char.
+
             return Ok(NumKind::BigInt);
         }
 
@@ -223,7 +244,7 @@ impl<'a> Lexer<'a> {
 
     fn parse_num_str_to_f64(
         &mut self,
-        num_kind: NumKind,
+        num_kind: &NumKind,
         start_index: usize,
     ) -> Result<f64, ParserError> {
         let number_literal_str =
@@ -232,18 +253,20 @@ impl<'a> Lexer<'a> {
         let radix = match_num_kind_to_radix(&num_kind);
 
         match num_kind {
-            NumKind::Int | NumKind::PositiveExponent | NumKind::NegativeExponent => {
-                match u32::from_str_radix(number_literal_str, radix) {
-                    Ok(number_literal) => return Ok(number_literal as f64),
-                    Err(_) => return Err(match_num_kind_to_parse_error(&num_kind)),
-                }
+            NumKind::Int
+            | NumKind::Binary
+            | NumKind::Octal
+            | NumKind::Hexadecimal
+            | NumKind::LegacyOctal => match u64::from_str_radix(number_literal_str, radix) {
+                Ok(number_literal) => return Ok(number_literal as f64),
+                Err(_) => return Err(match_num_kind_to_parse_error(&num_kind)),
+            },
+            NumKind::Decimal | NumKind::PositiveExponent | NumKind::NegativeExponent => {
+                number_literal_str
+                    .parse()
+                    .map_err(|_| match_num_kind_to_parse_error(&num_kind))
             }
-            NumKind::Decimal => todo!(),
-            NumKind::Binary => todo!(),
-            NumKind::Octal => todo!(),
-            NumKind::Hexadecimal => todo!(),
-            NumKind::LegacyOctal => todo!(),
-            NumKind::BigInt => todo!(),
+            NumKind::BigInt => Err(match_num_kind_to_parse_error(&num_kind)),
         }
     }
 }
