@@ -34,29 +34,10 @@ fn format_invalid_code_point_string(code_point_u32: u32) -> String {
     format!(r"\u{{{}}}", code_point_u32.to_string())
 }
 
+// 12.9.4 String Literals
+// https://tc39.es/ecma262/#sec-literals-string-literals
 impl<'a> Lexer<'a> {
-    // https://tc39.es/ecma262/#sec-literals-string-literals
-    // ```text
-    // StringLiteral ::
-    //   " DoubleStringCharactersopt "
-    //   ' SingleStringCharactersopt '
-    // DoubleStringCharacters ::
-    //   DoubleStringCharacter DoubleStringCharactersopt
-    // SingleStringCharacters ::
-    //   SingleStringCharacter SingleStringCharactersopt
-    // DoubleStringCharacter ::
-    //   SourceCharacter but not one of " or \ or LineTerminator
-    //   <LS>
-    //   <PS>
-    //   \ EscapeSequence
-    //   LineContinuation
-    // SingleStringCharacter ::
-    //   SourceCharacter but not one of ' or \ or LineTerminator
-    //   <LS>
-    //   <PS>
-    //   \ EscapeSequence
-    //   LineContinuation
-    // ```
+    // https://tc39.es/ecma262/#prod-StringLiteral
     pub(crate) fn scan_string_literal(&mut self) -> Token {
         let start_index = self.read_index;
 
@@ -204,10 +185,6 @@ impl<'a> Lexer<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-HexEscapeSequence
-    // ```text
-    // HexEscapeSequence ::
-    //   x HexDigit HexDigit
-    // ```
     fn read_hexadecimal_escape_sequence_u32(&mut self) -> Result<u32, ParserError> {
         let start_index = self.read_index;
 
@@ -227,11 +204,11 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    // https://tc39.es/ecma262
+    // https://tc39.es/ecma262/#sec-ecmascript-language-types-string-type
     // Check for surrogate pairs before parsing unicode or code_point escape sequences.
-    // > A sequence of two code units, where the first code unit c1 is a leading surrogate
-    // > and the second code unit c2 a trailing surrogate, is a surrogate pair and is interpreted
-    // > as a code point with the value (c1 - 0xD800) × 0x400 + (c2 - 0xDC00) + 0x10000.
+    // "A sequence of two code units, where the first code unit c1 is a leading surrogate
+    // and the second code unit c2 a trailing surrogate, is a surrogate pair and is interpreted
+    // as a code point with the value (c1 - 0xD800) × 0x400 + (c2 - 0xDC00) + 0x10000."
     fn read_potential_unicode_or_code_point_surrogate_pairs(&mut self) -> SurrogatePair {
         let leading_surrogate = if self.current_char() == '{' {
             self.read_code_point_escape_sequence()
@@ -272,13 +249,6 @@ impl<'a> Lexer<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
-    // ```text
-    // UnicodeEscapeSequence ::
-    //   `u` Hex4Digits
-    //
-    // Hex4Digits ::
-    //   HexDigit HexDigit HexDigit HexDigit
-    // ```
     pub fn read_unicode_escape_sequence(&mut self) -> Result<u32, ParserError> {
         let start_index = self.read_index;
 
@@ -307,13 +277,6 @@ impl<'a> Lexer<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
-    // ```text
-    // UnicodeEscapeSequence ::
-    //   `u{` CodePoint `}`
-    //
-    // CodePoint ::
-    //   HexDigits[~Sep] but only if MV of HexDigits ≤ 0x10FFFF
-    // ```
     fn read_code_point_escape_sequence(&mut self) -> Result<u32, ParserError> {
         self.read_char(); // Eat { char.
 
@@ -349,14 +312,6 @@ impl<'a> Lexer<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-LegacyOctalEscapeSequence
-    // ```text
-    // LegacyOctalEscapeSequence ::
-    //   0 [lookahead ∈ { 8, 9 }]
-    //   NonZeroOctalDigit [lookahead ∉ OctalDigit]
-    //   ZeroToThree OctalDigit [lookahead ∉ OctalDigit]
-    //   FourToSeven OctalDigit
-    //   ZeroToThree OctalDigit OctalDigit
-    // ```
     fn read_octal_escape_sequence(&mut self) -> Result<u32, ParserError> {
         if !self.config.strict_mode {
             return Err(ParserError::InvalidLegacyOctalEscapeSequenceNotAllowedInStrictMode);
