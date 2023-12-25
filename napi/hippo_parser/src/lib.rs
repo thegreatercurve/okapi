@@ -17,14 +17,14 @@ pub struct Token {
 pub fn tokenize_sync(source_text: String) -> Vec<Token> {
   let mut tokens = vec![];
 
-  let mut scanner = Lexer::new(&source_text, Config::default());
+  let mut lexer = Lexer::new(&source_text, Config::default());
 
   let mut loop_count = 0;
 
   while loop_count < 10 {
     print!("loop_count: {}", loop_count);
 
-    let token = scanner.next_token();
+    let token = lexer.next_token();
 
     let token_value = Token {
       token_type: token.kind.to_string(),

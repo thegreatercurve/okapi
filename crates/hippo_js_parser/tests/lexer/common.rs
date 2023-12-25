@@ -5,10 +5,10 @@ macro_rules! assert_lexer_eq {
 
         let mut tests = VecDeque::from($tokens);
 
-        let mut scanner = Lexer::new($input_str, Config::default());
+        let mut lexer = Lexer::new($input_str, Config::default());
 
-        while !scanner.is_end_of_file() {
-            let token = scanner.next_token();
+        while !lexer.is_end_of_file() {
+            let token = lexer.next_token();
 
             let expected_token = tests
                 .pop_front()

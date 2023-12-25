@@ -41,9 +41,16 @@ impl<'a> Lexer<'a> {
         let mut in_class = false;
         let mut in_backslash_sequence = false;
 
+        match self.current_char() {
+            '*' | '\\' | '/' | '[' => return Err(ParserError::InvalidRegexLiteralFirstChar),
+            ch if is_line_terminator(ch) => return Err(ParserError::InvalidRegexLiteralFirstChar),
+            _ => {}
+        }
+
+        self.read_char(); // Eat first char.
+
         while self.current_char() != '/' {
             let ch = self.current_char();
-
             match ch {
                 _ if is_line_terminator(ch) => return Err(ParserError::UnterminatedRegExLiteral),
                 '\\' => in_backslash_sequence = if in_backslash_sequence { false } else { true },

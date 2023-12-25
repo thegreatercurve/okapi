@@ -6,4 +6,5 @@ mod regex;
 mod strings;
 mod utils;
 
+pub use lexer::GoalSymbol;
 pub use lexer::Lexer;

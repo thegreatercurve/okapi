@@ -32,8 +32,9 @@ pub enum ParserError {
 
     // Regex literals
     UnterminatedRegExLiteral,
+    InvalidRegexLiteralFirstChar,
 
-    ScannerError,
+    LexerError,
 }
 
 impl std::fmt::Display for ParserError {
@@ -68,7 +69,7 @@ impl std::fmt::Display for ParserError {
                 write!(f, "InvalidNonDecimalHexadecimalNumberLiteral")
             }
             ParserError::UnterminatedStringLiteral => write!(f, "UnterminatedStringLiteral"),
-            ParserError::ScannerError => write!(f, "ScannerError"),
+            ParserError::LexerError => write!(f, "LexerError"),
             ParserError::InvalidDecimalLiteral => {
                 write!(f, "InvalidDecimalLiteral")
             }
@@ -89,6 +90,7 @@ impl std::fmt::Display for ParserError {
             ParserError::InvalidExponentPartNumberLiteral => todo!(),
             ParserError::InvalidDecimalBigIntegerLiteral => todo!(),
             ParserError::UnterminatedRegExLiteral => todo!(),
+            ParserError::InvalidRegexLiteralFirstChar => todo!(),
         }
     }
 }

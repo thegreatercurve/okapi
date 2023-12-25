@@ -1,9 +1,7 @@
-// 12.1 Unicode Format-Control Characters
-// https://tc39.es/ecma262/#sec-unicode-format-control-characters
-//
-
 use hippo_unicode::{is_unicode_id_continue, is_unicode_id_start};
 
+// 12.1 Unicode Format-Control Characters
+// https://tc39.es/ecma262/#sec-unicode-format-control-characters
 const ZWNJ: char = '\u{200C}'; // Used in IdentifierPart
 const ZWJ: char = '\u{200D}'; // Used in IdentifierPart
 const ZWNBSP: char = '\u{FEFF}'; // Used in WhiteSpace
@@ -25,7 +23,6 @@ pub fn is_whitespace(ch: char) -> bool {
 
 // 12.3 Line Terminators
 // https://tc39.es/ecma262/#sec-line-terminators
-
 pub const LF: char = '\u{000A}';
 pub const CR: char = '\u{000D}';
 const LS: char = '\u{2028}';
@@ -66,18 +63,5 @@ pub fn is_ascii_octaldigit(ch: char) -> bool {
     match ch {
         '0'..='7' => true,
         _ => false,
-    }
-}
-
-pub fn is_regular_expression_first_char(ch: char) -> bool {
-    println!(
-        "is_regular_expression_first_char: {}",
-        is_line_terminator(ch)
-    );
-
-    match ch {
-        '*' | '\\' | '/' | '[' => false,
-        _ if is_line_terminator(ch) => false,
-        _ => true,
     }
 }

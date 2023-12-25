@@ -1,15 +1,23 @@
 use crate::{parser::Config, tokens::Token, TokenKind};
 
-use super::utils::{
-    is_identifier_start, is_line_terminator, is_punctuator_start, is_regular_expression_first_char,
-    is_whitespace,
-};
+use super::utils::{is_identifier_start, is_line_terminator, is_punctuator_start, is_whitespace};
+
+// https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
+#[derive(Debug, PartialEq)]
+pub enum GoalSymbol {
+    Div,
+    RegExp,
+    RegExpOrTemplateTail,
+    TemplateTail,
+    HashbangOrRegExp,
+}
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
     pub config: Config,
     pub read_index: usize,
     pub source_str: &'a str,
+    pub goal_symbol: GoalSymbol,
 }
 
 impl<'a> Lexer<'a> {
@@ -18,6 +26,7 @@ impl<'a> Lexer<'a> {
             config: config,
             read_index: 0,
             source_str: input,
+            goal_symbol: GoalSymbol::HashbangOrRegExp,
         }
     }
 
@@ -83,9 +92,7 @@ impl<'a> Lexer<'a> {
             '0'..='9' => self.scan_number_literal(),
             '.' if self.peek_char().is_ascii_digit() => self.scan_number_literal(),
             '\'' | '"' => self.scan_string_literal(),
-            '/' if is_regular_expression_first_char(self.peek_char()) => {
-                self.scan_regular_expression_literal()
-            }
+            '/' if self.goal_symbol == GoalSymbol::RegExp => self.scan_regular_expression_literal(),
             _ if is_punctuator_start(current_char) => self.scan_punctuator(),
             _ if is_identifier_start(current_char) => self.scan_identifier_name_or_keyword(),
             _ => Token::new(TokenKind::Illegal, start_index, self.read_index, None),
