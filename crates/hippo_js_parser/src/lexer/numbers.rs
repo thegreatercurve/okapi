@@ -1,5 +1,7 @@
 use crate::{Lexer, ParserError, Token, TokenKind};
 
+use super::utils::is_ascii_octaldigit;
+
 const NUMERIC_LITERAL_SEPARATOR: char = '_';
 const DECIMAL: char = '.';
 const BIG_INT_SUFFIX: char = 'n';
@@ -28,13 +30,6 @@ fn is_non_decimal_literal_char(ch: char, radix: u32) -> bool {
     match ch {
         NUMERIC_LITERAL_SEPARATOR => true,
         _ if ch.is_digit(radix) => true,
-        _ => false,
-    }
-}
-
-fn is_ascii_octaldigit(ch: char) -> bool {
-    match ch {
-        '0'..='7' => true,
         _ => false,
     }
 }

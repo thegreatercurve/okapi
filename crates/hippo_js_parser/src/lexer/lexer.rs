@@ -1,6 +1,9 @@
 use crate::{parser::Config, tokens::Token, TokenKind};
 
-use super::utils::{is_identifier_start, is_line_terminator, is_punctuator_start, is_whitespace};
+use super::utils::{
+    is_identifier_start, is_line_terminator, is_punctuator_start, is_regular_expression_first_char,
+    is_whitespace,
+};
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -80,6 +83,9 @@ impl<'a> Lexer<'a> {
             '0'..='9' => self.scan_number_literal(),
             '.' if self.peek_char().is_ascii_digit() => self.scan_number_literal(),
             '\'' | '"' => self.scan_string_literal(),
+            '/' if is_regular_expression_first_char(self.peek_char()) => {
+                self.scan_regular_expression_literal()
+            }
             _ if is_punctuator_start(current_char) => self.scan_punctuator(),
             _ if is_identifier_start(current_char) => self.scan_identifier_name_or_keyword(),
             _ => Token::new(TokenKind::Illegal, start_index, self.read_index, None),

@@ -3,9 +3,20 @@ use hippo_js_parser::{Token, TokenKind};
 use crate::lexer::common::assert_lexer_eq;
 
 #[test]
+fn punctuators_123() {
+    assert_lexer_eq!(
+        r"/ /=",
+        vec![
+            Token::new(TokenKind::Division, 0, 1, None),
+            Token::new(TokenKind::DivisionAssignment, 2, 4, None),
+        ]
+    );
+}
+
+#[test]
 fn punctuators() {
     assert_lexer_eq!(
-        r#"?. { ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ** ++ -- << >> >>> & | ^ ! ~ && || ?? ? : = += -= *= %= **= <<= >>= >>>= &= |= ^= &&= ||= ??= => / /= }"#,
+        r"?. { ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ** ++ -- << >> >>> & | ^ ! ~ && || ?? ? : = += -= *= %= **= <<= >>= >>>= &= |= ^= &&= ||= ??= => / /= }",
         vec![
             Token::new(TokenKind::OptionalChaining, 0, 2, None),
             Token::new(TokenKind::LeftCurlyBrace, 3, 4, None),

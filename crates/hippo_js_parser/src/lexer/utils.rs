@@ -61,3 +61,23 @@ pub fn is_punctuator_start(ch: char) -> bool {
         _ => false,
     }
 }
+
+pub fn is_ascii_octaldigit(ch: char) -> bool {
+    match ch {
+        '0'..='7' => true,
+        _ => false,
+    }
+}
+
+pub fn is_regular_expression_first_char(ch: char) -> bool {
+    println!(
+        "is_regular_expression_first_char: {}",
+        is_line_terminator(ch)
+    );
+
+    match ch {
+        '*' | '\\' | '/' | '[' => false,
+        _ if is_line_terminator(ch) => false,
+        _ => true,
+    }
+}

@@ -27,6 +27,15 @@ pub fn number_literal(value: &str, start: usize, end: usize) -> Token {
     }
 }
 
+pub fn regular_expression_literal(value: &str, start: usize, end: usize) -> Token {
+    Token {
+        kind: TokenKind::RegularExpressionLiteral,
+        start,
+        end,
+        value: Some(value.to_string()),
+    }
+}
+
 pub fn illegal(value: ParserError, start: usize, end: usize) -> Token {
     Token {
         kind: TokenKind::Illegal,

@@ -1,19 +1,12 @@
 use crate::{Lexer, ParserError, Token, TokenKind};
 
-use super::utils::{CR, LF};
+use super::utils::{is_ascii_octaldigit, CR, LF};
 
 enum SurrogatePair {
     LeadingInvalid(u32),
     LeadingValidMissingTrailing(u32),
     LeadingValidTrailingInvalid(u32, u32),
     AstralCodePoint(u32),
-}
-
-fn is_ascii_octaldigit(ch: char) -> bool {
-    match ch {
-        '0'..='7' => true,
-        _ => false,
-    }
 }
 
 fn is_leading_surrogate(c: u32) -> bool {

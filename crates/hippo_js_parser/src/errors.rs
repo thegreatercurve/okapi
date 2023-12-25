@@ -2,6 +2,7 @@
 pub enum ParserError {
     SyntaxError,
 
+    // Identifiers
     InvalidIdentifierCharacter,
 
     // String literals
@@ -26,7 +27,11 @@ pub enum ParserError {
     InvalidNumericSeparatorAtSibling,
     InvalidNumericSeparatorAtEnd,
 
+    // BigInt literals
     InvalidDecimalBigIntegerLiteral,
+
+    // Regex literals
+    UnterminatedRegExLiteral,
 
     ScannerError,
 }
@@ -83,6 +88,7 @@ impl std::fmt::Display for ParserError {
 
             ParserError::InvalidExponentPartNumberLiteral => todo!(),
             ParserError::InvalidDecimalBigIntegerLiteral => todo!(),
+            ParserError::UnterminatedRegExLiteral => todo!(),
         }
     }
 }
