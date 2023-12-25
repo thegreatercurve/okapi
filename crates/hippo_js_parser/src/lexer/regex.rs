@@ -1,4 +1,4 @@
-use crate::{Lexer, ParserError, Token, TokenKind};
+use crate::{GoalSymbol, Lexer, ParserError, Token, TokenKind};
 
 use super::utils::{is_identifier_part, is_line_terminator};
 

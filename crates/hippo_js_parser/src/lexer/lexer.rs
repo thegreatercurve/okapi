@@ -95,12 +95,16 @@ impl<'a> Lexer<'a> {
             '/' if self.goal_symbol == GoalSymbol::RegExp => self.scan_regular_expression_literal(),
             _ if is_punctuator_start(current_char) => self.scan_punctuator(),
             _ if is_identifier_start(current_char) => self.scan_identifier_name_or_keyword(),
-            _ => Token::new(
-                TokenKind::Illegal,
-                start_index,
-                self.read_index,
-                Some(ParserError::SyntaxError.to_string()),
-            ),
+            _ => {
+                self.read_char(); // Eat illegal char.
+
+                Token::new(
+                    TokenKind::Illegal,
+                    start_index,
+                    self.read_index,
+                    Some(ParserError::SyntaxError.to_string()),
+                )
+            }
         };
 
         let end_index = self.read_index;

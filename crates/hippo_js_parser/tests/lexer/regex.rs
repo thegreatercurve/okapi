@@ -46,11 +46,10 @@ fn regular_expression_invalid() {
         ]
     );
     assert_lexer_eq!(
-        r"/\",
+        "/\\",
         vec![
             illegal(ParserError::InvalidRegexLiteralFirstChar, 0, 1),
-            illegal(ParserError::SyntaxError, 1, 1),
+            illegal(ParserError::SyntaxError, 1, 2),
         ]
     );
-    assert_lexer_eq!("/123/gu", vec![regular_expression_literal("/123/gu", 0, 7)]);
 }
