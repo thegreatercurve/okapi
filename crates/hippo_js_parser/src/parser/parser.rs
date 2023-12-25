@@ -91,13 +91,9 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#sec-let-and-const-declarations
     fn parse_lexical_declaration(&mut self) -> Statement {
-        println!("current token type: {:?}", self.current_token_type());
-
         let start_node = self.start_node();
 
         self.bump();
-
-        println!("current token type: {:?}", self.current_token_type());
 
         Statement::Declaration(Declaration::Variable(VariableDeclaration {
             node: self.finish_node(&start_node),

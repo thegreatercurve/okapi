@@ -18,6 +18,15 @@ pub fn identifier(value: &str, start: usize, end: usize) -> Token {
     }
 }
 
+pub fn punctuator(kind: TokenKind, start: usize, end: usize) -> Token {
+    Token {
+        kind,
+        start,
+        end,
+        value: None,
+    }
+}
+
 pub fn number_literal(value: &str, start: usize, end: usize) -> Token {
     Token {
         kind: TokenKind::NumberLiteral,
