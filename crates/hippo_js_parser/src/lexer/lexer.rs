@@ -93,6 +93,7 @@ impl<'a> Lexer<'a> {
             '.' if self.peek_char().is_ascii_digit() => self.scan_number_literal(),
             '\'' | '"' => self.scan_string_literal(),
             '/' if self.goal_symbol == GoalSymbol::RegExp => self.scan_regular_expression_literal(),
+            '`' => self.scan_template_literal(),
             _ if is_punctuator_start(current_char) => self.scan_punctuator(),
             _ if is_identifier_start(current_char) => self.scan_identifier_name_or_keyword(),
             _ => {
