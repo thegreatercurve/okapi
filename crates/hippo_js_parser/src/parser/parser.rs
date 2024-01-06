@@ -59,12 +59,11 @@ impl<'a> Parser<'a> {
     }
 
     fn current_token_type(&self) -> TokenKind {
-        self.current_token.kind.clone()
+        self.current_token.kind
     }
 
-    fn bump(&mut self) {
+    fn advance(&mut self) {
         self.current_token = self.lexer.next_token();
-
         self.next_token = self.lexer.next_token();
     }
 
@@ -76,6 +75,12 @@ impl<'a> Parser<'a> {
 
     fn finish_node(&mut self, node: &Node) -> Node {
         Node::new(node.loc.start, self.current_token.end)
+    }
+
+    fn expect(&mut self, token: TokenKind) {
+        if self.current_token_type() == token {
+            self.advance();
+        }
     }
 
     fn parse_statement(&mut self) -> Option<Statement> {
@@ -93,7 +98,7 @@ impl<'a> Parser<'a> {
     fn parse_lexical_declaration(&mut self) -> Statement {
         let start_node = self.start_node();
 
-        self.bump();
+        self.advance();
 
         Statement::Declaration(Declaration::Variable(VariableDeclaration {
             node: self.finish_node(&start_node),
@@ -110,7 +115,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Identifier => {
                     let start_node = self.start_node();
 
-                    self.bump();
+                    self.advance();
 
                     let declaration = self.finish_node(&start_node);
 
@@ -132,10 +137,12 @@ impl<'a> Parser<'a> {
         declarations
     }
 
+    // 14.16 The `debugger` Statement
+    // https://tc39.github.io/ecma262/#sec-debugger-statement
     fn parse_debugger_statement(&mut self) -> Statement {
         let node = self.start_node();
 
-        self.bump();
+        self.advance();
 
         Statement::Debugger(DebuggerStatement {
             node: self.finish_node(&node),

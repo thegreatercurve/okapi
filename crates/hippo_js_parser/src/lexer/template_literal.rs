@@ -1,4 +1,4 @@
-use crate::{Lexer, ParserError, Token, TokenKind};
+use crate::{Lexer, Token, TokenKind};
 
 // 12.9.6 Template Literal Lexical Components
 // https://tc39.es/ecma262/#sec-template-literal-lexical-components
@@ -20,8 +20,6 @@ impl<'a> Lexer<'a> {
                 '\\' => {
                     self.read_char(); // Eat '\' char.
                     self.read_char(); // Eat next char.
-
-                    self.read_unicode_escape_sequence()
                 }
                 _ => {
                     self.read_char();
@@ -32,7 +30,7 @@ impl<'a> Lexer<'a> {
         }
 
         Token::new(
-            TokenKind::TemplateLiteral,
+            TokenKind::Template,
             start_index,
             self.read_index,
             Some("".to_string()),

@@ -3,17 +3,6 @@ use hippo_js_parser::TokenKind;
 use crate::lexer::{common::assert_lexer_eq, utils::punctuator};
 
 #[test]
-fn punctuators_123() {
-    assert_lexer_eq!(
-        r"/ /=",
-        vec![
-            punctuator(TokenKind::Division, 0, 1),
-            punctuator(TokenKind::DivisionAssignment, 2, 4),
-        ]
-    );
-}
-
-#[test]
 fn punctuators() {
     assert_lexer_eq!(
         r"?. { ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ** ++ -- << >> >>> & | ^ ! ~ && || ?? ? : = += -= *= %= **= <<= >>= >>>= &= |= ^= &&= ||= ??= => / /= }",

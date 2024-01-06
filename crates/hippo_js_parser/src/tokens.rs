@@ -52,12 +52,12 @@ pub enum KeywordKind {
     Public,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Token {
     pub kind: TokenKind,
     pub start: usize,
     pub end: usize,
-    pub value: Option<String>,
+    pub value: usize,
 }
 
 impl Token {
@@ -71,7 +71,7 @@ impl Token {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenKind {
     // Keywords or Identifiers
     Keyword(KeywordKind),
@@ -82,7 +82,6 @@ pub enum TokenKind {
     NumberLiteral,
     BigIntLiteral,
     RegularExpressionLiteral,
-    TemplateLiteral,
 
     // Punctuators
     OptionalChaining,
@@ -143,6 +142,9 @@ pub enum TokenKind {
     DivisionAssignment,
     RightCurlyBrace,
 
+    // Template Literals
+    Template,
+
     // Utility
     Illegal,
     EOF,
@@ -158,7 +160,6 @@ impl std::fmt::Display for TokenKind {
             TokenKind::NumberLiteral => write!(f, "NumberLiteral"),
             TokenKind::BigIntLiteral => write!(f, "BigIntLiteral"),
             TokenKind::RegularExpressionLiteral => write!(f, "RegularExpressionLiteral"),
-            TokenKind::TemplateLiteral => write!(f, "TemplateLiteral"),
             TokenKind::OptionalChaining => write!(f, "OptionalChaining"),
             TokenKind::LeftCurlyBrace => write!(f, "LeftCurlyBrace"),
             TokenKind::LeftParenthesis => write!(f, "LeftParenthesis"),
@@ -215,6 +216,7 @@ impl std::fmt::Display for TokenKind {
             TokenKind::Division => write!(f, "Division"),
             TokenKind::DivisionAssignment => write!(f, "DivisionAssignment"),
             TokenKind::RightCurlyBrace => write!(f, "RightCurlyBrace"),
+            TokenKind::Template => write!(f, "Template"),
             TokenKind::Illegal => write!(f, "Illegal"),
             TokenKind::EOF => write!(f, "EOF"),
         }
