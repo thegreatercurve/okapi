@@ -52,12 +52,12 @@ pub enum KeywordKind {
     Public,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Token {
     pub kind: TokenKind,
     pub start: usize,
     pub end: usize,
-    pub value: usize,
+    pub value: Option<String>,
 }
 
 impl Token {
@@ -71,7 +71,7 @@ impl Token {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TokenKind {
     // Keywords or Identifiers
     Keyword(KeywordKind),

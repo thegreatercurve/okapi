@@ -1,3 +1,5 @@
+use crate::TokenKind;
+
 #[derive(Debug)]
 pub enum ParserError {
     SyntaxError,
@@ -33,6 +35,8 @@ pub enum ParserError {
     // Regex literals
     UnterminatedRegExLiteral,
     InvalidRegexLiteralFirstChar,
+
+    UnexpectedToken(TokenKind),
 }
 
 impl std::fmt::Display for ParserError {
@@ -92,6 +96,9 @@ impl std::fmt::Display for ParserError {
             }
             ParserError::UnterminatedRegExLiteral => write!(f, "UnterminatedRegExLiteral"),
             ParserError::InvalidRegexLiteralFirstChar => write!(f, "InvalidRegexLiteralFirstChar"),
+            ParserError::UnexpectedToken(token_kind) => {
+                write!(f, "UnexpectedToken({:?})", token_kind)
+            }
         }
     }
 }

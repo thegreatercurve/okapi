@@ -2,6 +2,7 @@ macro_rules! assert_parser_eq {
     ($input_str: expr, $expected_ast: expr) => {{
         use hippo_estree::*;
         use hippo_js_parser::Parser;
+        use pretty_assertions::assert_eq;
 
         let mut parser = Parser::new($input_str);
 

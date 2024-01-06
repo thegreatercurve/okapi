@@ -7,3 +7,6 @@ license.workspace = true
 [dependencies]
 hippo_estree = { workspace = true }
 hippo_unicode = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"

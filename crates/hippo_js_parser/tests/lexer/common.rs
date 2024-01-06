@@ -1,6 +1,7 @@
 macro_rules! assert_lexer_eq {
     ($input_str: expr, $tokens: expr) => {{
         use hippo_js_parser::{Config, Lexer};
+        use pretty_assertions::assert_eq;
         use std::collections::VecDeque;
 
         let mut tests = VecDeque::from($tokens);
