@@ -91,7 +91,9 @@ impl<'a> Parser<'a> {
         match self.current_token_kind() {
             TokenKind::Keyword(keyword) => match keyword {
                 KeywordKind::Debugger => self.parse_debugger_statement(),
-                KeywordKind::Let | KeywordKind::Const => self.parse_lexical_declaration(),
+                KeywordKind::Let | KeywordKind::Const | KeywordKind::Var => {
+                    self.parse_lexical_declaration()
+                }
                 _ => return Err(ParserError::UnexpectedToken(self.current_token_kind())),
             },
             _ => return Err(ParserError::UnexpectedToken(self.current_token_kind())),
@@ -105,15 +107,22 @@ impl<'a> Parser<'a> {
         let kind = match self.current_token_kind() {
             TokenKind::Keyword(KeywordKind::Let) => VariableKind::Let,
             TokenKind::Keyword(KeywordKind::Const) => VariableKind::Const,
+            TokenKind::Keyword(KeywordKind::Var) => VariableKind::Var,
             _ => return Err(ParserError::UnexpectedToken(self.current_token_kind())),
         };
 
-        self.advance(); // Eat `let` or `const`
+        self.advance(); // Eat `let` or `const` token.
+
+        let declarations = self.parse_binding_list()?;
+
+        if kind == VariableKind::Const {
+            todo!("Check const declarations have a valid identifier");
+        }
 
         Ok(Statement::Declaration(Declaration::Variable(
             VariableDeclaration {
                 node: self.finish_node(&start_node),
-                declarations: self.parse_binding_list()?,
+                declarations,
                 kind,
             },
         )))
@@ -121,18 +130,16 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-BindingList
     fn parse_binding_list(&mut self) -> Result<Vec<VariableDeclarator>, ParserError> {
-        let mut declarations = Vec::new();
+        let mut declarations = vec![self.parse_lexical_binding()?];
 
-        while self.next_token.kind == TokenKind::Comma {
-            let identifier = self.parse_lexical_binding()?;
+        self.advance(); // Eat first identifier token.
 
-            self.advance();
+        while self.current_token_kind() == TokenKind::Comma {
+            self.advance(); // Eat `,` token.
 
-            declarations.push(VariableDeclarator {
-                node: self.finish_node(&identifier.node),
-                id: identifier,
-                init: None,
-            });
+            declarations.push(self.parse_lexical_binding()?);
+
+            self.advance(); // Eat identifier token.
         }
 
         self.eat_semicolon();
@@ -141,13 +148,19 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-LexicalBinding
-    fn parse_lexical_binding(&mut self) -> Result<Identifier, ParserError> {
+    fn parse_lexical_binding(&mut self) -> Result<VariableDeclarator, ParserError> {
         let current_token_kind = self.current_token_kind();
 
-        match current_token_kind {
+        let identifier = match current_token_kind {
             TokenKind::Identifier => self.parse_binding_identifier(),
             _ => Err(self.unexpected_current_token_kind()),
-        }
+        }?;
+
+        Ok(VariableDeclarator {
+            node: self.finish_node(&identifier.node),
+            id: identifier,
+            init: None,
+        })
     }
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier

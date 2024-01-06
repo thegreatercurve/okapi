@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parser_eq;
 
 #[test]
-fn binding_identifier() {
+fn let_or_const_binding_identifier() {
     assert_parser_eq!(
         "let hello;",
         Program {
@@ -16,7 +16,29 @@ fn binding_identifier() {
                         init: None,
                         node: Node::new(4, 9)
                     }],
-                    node: Node::new(0, 9)
+                    node: Node::new(0, 10)
+                })
+            ))],
+            node: Node::new(0, 10),
+            source_type: ProgramSourceTypes::Module
+        }
+    );
+
+    assert_parser_eq!(
+        "var hello;",
+        Program {
+            body: vec![ProgramBody::Statement(Statement::Declaration(
+                Declaration::Variable(VariableDeclaration {
+                    kind: VariableKind::Var,
+                    declarations: vec![VariableDeclarator {
+                        id: Identifier {
+                            name: "hello".to_string(),
+                            node: Node::new(4, 9)
+                        },
+                        init: None,
+                        node: Node::new(4, 9)
+                    }],
+                    node: Node::new(0, 10)
                 })
             ))],
             node: Node::new(0, 10),
@@ -26,7 +48,7 @@ fn binding_identifier() {
 }
 
 #[test]
-fn binding_list() {
+fn let_or_const_binding_list() {
     assert_parser_eq!(
         "let hello, world;",
         Program {
@@ -51,7 +73,39 @@ fn binding_list() {
                             node: Node::new(11, 16)
                         }
                     ],
-                    node: Node::new(0, 16)
+                    node: Node::new(0, 17)
+                })
+            ))],
+            node: Node::new(0, 17),
+            source_type: ProgramSourceTypes::Module
+        }
+    );
+
+    assert_parser_eq!(
+        "var hello, world;",
+        Program {
+            body: vec![ProgramBody::Statement(Statement::Declaration(
+                Declaration::Variable(VariableDeclaration {
+                    kind: VariableKind::Var,
+                    declarations: vec![
+                        VariableDeclarator {
+                            id: Identifier {
+                                name: "hello".to_string(),
+                                node: Node::new(4, 9)
+                            },
+                            init: None,
+                            node: Node::new(4, 9)
+                        },
+                        VariableDeclarator {
+                            id: Identifier {
+                                name: "world".to_string(),
+                                node: Node::new(11, 16)
+                            },
+                            init: None,
+                            node: Node::new(11, 16)
+                        }
+                    ],
+                    node: Node::new(0, 17)
                 })
             ))],
             node: Node::new(0, 17),

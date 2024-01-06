@@ -18,7 +18,7 @@ mod pattern;
 mod statement;
 mod template_literals;
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct Identifier {
     #[serde(flatten)]
