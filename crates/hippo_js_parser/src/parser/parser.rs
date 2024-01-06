@@ -1,8 +1,15 @@
 use crate::{tokens::Token, KeywordKind, Lexer, ParserError, TokenKind};
 use hippo_estree::{
-    DebuggerStatement, Declaration, Identifier, Node, Program, ProgramBody, ProgramSourceTypes,
-    Statement, VariableDeclaration, VariableDeclarator, VariableKind,
+    ArrayPattern, DebuggerStatement, Declaration, Identifier, Node, ObjectPattern, Program,
+    ProgramBody, ProgramSourceTypes, Statement, VariableDeclaration, VariableDeclarator,
+    VariableKind,
 };
+
+enum BindingKind {
+    Identifier(Identifier),
+    ObjectPattern(ObjectPattern),
+    ArrayPattern(ArrayPattern),
+}
 
 fn is_lexical_declaration(token: &TokenKind) -> bool {
     match token {
@@ -75,6 +82,16 @@ impl<'a> Parser<'a> {
         self.next_token = self.lexer.next_token();
     }
 
+    fn expect_and_advance(&mut self, token_kind: TokenKind) -> bool {
+        if self.current_token_kind() == token_kind {
+            self.advance();
+
+            return true;
+        }
+
+        false
+    }
+
     fn start_node(&mut self) -> Node {
         let token = &self.current_token;
 
@@ -130,31 +147,41 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-BindingList
     fn parse_binding_list(&mut self) -> Result<Vec<VariableDeclarator>, ParserError> {
-        let mut declarations = vec![self.parse_lexical_binding()?];
+        let mut declarations = vec![self.parse_binding_identifier_or_destructuring_pattern()?];
 
         self.advance(); // Eat first identifier token.
 
         while self.current_token_kind() == TokenKind::Comma {
             self.advance(); // Eat `,` token.
 
-            declarations.push(self.parse_lexical_binding()?);
+            declarations.push(self.parse_binding_identifier_or_destructuring_pattern()?);
 
             self.advance(); // Eat identifier token.
         }
 
-        self.eat_semicolon();
+        self.expect_and_advance(TokenKind::Semicolon);
 
         Ok(declarations)
     }
 
     // https://tc39.es/ecma262/#prod-LexicalBinding
-    fn parse_lexical_binding(&mut self) -> Result<VariableDeclarator, ParserError> {
+    fn parse_binding_identifier_or_destructuring_pattern(
+        &mut self,
+    ) -> Result<VariableDeclarator, ParserError> {
         let current_token_kind = self.current_token_kind();
 
-        let identifier = match current_token_kind {
+        let binding = match current_token_kind {
             TokenKind::Identifier => self.parse_binding_identifier(),
+            TokenKind::LeftCurlyBrace => self.parse_object_binding_pattern(),
+            TokenKind::LeftSquareBracket => self.parse_array_binding_pattern(),
             _ => Err(self.unexpected_current_token_kind()),
         }?;
+
+        let identifier = match binding {
+            BindingKind::Identifier(identifier) => identifier,
+            BindingKind::ObjectPattern(object_pattern) => object_pattern,
+            BindingKind::ArrayPattern(array_pattern) => array_pattern,
+        };
 
         Ok(VariableDeclarator {
             node: self.finish_node(&identifier.node),
@@ -164,7 +191,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
-    fn parse_binding_identifier(&mut self) -> Result<Identifier, ParserError> {
+    fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
         let node = self.start_node();
 
         let name = match self.current_token_kind() {
@@ -174,10 +201,38 @@ impl<'a> Parser<'a> {
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
-        Ok(Identifier {
+        Ok(BindingKind::Identifier(Identifier {
             node: self.finish_node(&node),
             name: name,
-        })
+        }))
+    }
+
+    // https://tc39.es/ecma262/#prod-ObjectBindingPattern
+    fn parse_object_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
+        let node = self.start_node();
+
+        self.advance(); // Eat `{` token.
+
+        let mut properties = vec![];
+
+        Ok(BindingKind::ObjectPattern(ObjectPattern {
+            node: self.finish_node(&node),
+            properties,
+        }))
+    }
+
+    // https://tc39.es/ecma262/#prod-ArrayBindingPattern
+    fn parse_array_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
+        let node = self.start_node();
+
+        self.advance(); // Eat `[` token.
+
+        let mut elements = vec![];
+
+        Ok(BindingKind::ArrayPattern(ArrayPattern {
+            node: self.finish_node(&node),
+            elements,
+        }))
     }
 
     // 14.16 The `debugger` Statement
@@ -190,15 +245,5 @@ impl<'a> Parser<'a> {
         Ok(Statement::Debugger(DebuggerStatement {
             node: self.finish_node(&node),
         }))
-    }
-
-    fn eat_semicolon(&mut self) -> bool {
-        if self.current_token_kind() == TokenKind::Semicolon {
-            self.advance();
-
-            return true;
-        }
-
-        false
     }
 }
