@@ -177,6 +177,7 @@ impl<'a> Parser<'a> {
             _ => Err(self.unexpected_current_token_kind()),
         }?;
 
+        // TODO Fix the types in the `VariableDeclarator` struct.
         let identifier = match binding {
             BindingKind::Identifier(identifier) => identifier,
             BindingKind::ObjectPattern(object_pattern) => object_pattern,
