@@ -1,0 +1,131 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 124,
+  "body": [
+    {
+      "type": "FunctionDeclaration",
+      "start": 0,
+      "end": 18,
+      "id": {
+        "type": "Identifier",
+        "start": 9,
+        "end": 13,
+        "name": "foo1"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 16,
+        "end": 18,
+        "body": []
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 19,
+      "end": 38,
+      "id": {
+        "type": "Identifier",
+        "start": 29,
+        "end": 33,
+        "name": "foo2"
+      },
+      "expression": false,
+      "generator": true,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 36,
+        "end": 38,
+        "body": []
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 39,
+      "end": 64,
+      "id": {
+        "type": "Identifier",
+        "start": 55,
+        "end": 59,
+        "name": "foo3"
+      },
+      "expression": false,
+      "generator": true,
+      "async": true,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 62,
+        "end": 64,
+        "body": []
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 65,
+      "end": 89,
+      "id": {
+        "type": "Identifier",
+        "start": 80,
+        "end": 84,
+        "name": "foo4"
+      },
+      "expression": false,
+      "generator": false,
+      "async": true,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 87,
+        "end": 89,
+        "body": []
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 90,
+      "end": 123,
+      "id": {
+        "type": "Identifier",
+        "start": 100,
+        "end": 104,
+        "name": "foo5"
+      },
+      "expression": false,
+      "generator": true,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 107,
+        "end": 123,
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "start": 111,
+            "end": 121,
+            "expression": {
+              "type": "YieldExpression",
+              "start": 111,
+              "end": 120,
+              "delegate": false,
+              "argument": {
+                "type": "Identifier",
+                "start": 117,
+                "end": 120,
+                "name": "foo"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sourceType": "script"
+}

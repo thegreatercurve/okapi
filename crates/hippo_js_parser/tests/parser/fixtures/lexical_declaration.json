@@ -1,0 +1,384 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 183,
+  "body": [
+    {
+      "type": "VariableDeclaration",
+      "start": 0,
+      "end": 10,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 4,
+          "end": 9,
+          "id": {
+            "type": "Identifier",
+            "start": 4,
+            "end": 5,
+            "name": "a"
+          },
+          "init": {
+            "type": "Literal",
+            "start": 8,
+            "end": 9,
+            "value": 5,
+            "raw": "5"
+          }
+        }
+      ],
+      "kind": "var"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 11,
+      "end": 32,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 15,
+          "end": 31,
+          "id": {
+            "type": "ObjectPattern",
+            "start": 15,
+            "end": 27,
+            "properties": [
+              {
+                "type": "Property",
+                "start": 17,
+                "end": 20,
+                "method": false,
+                "shorthand": true,
+                "computed": false,
+                "key": {
+                  "type": "Identifier",
+                  "start": 17,
+                  "end": 20,
+                  "name": "foo"
+                },
+                "kind": "init",
+                "value": {
+                  "type": "Identifier",
+                  "start": 17,
+                  "end": 20,
+                  "name": "foo"
+                }
+              },
+              {
+                "type": "Property",
+                "start": 22,
+                "end": 25,
+                "method": false,
+                "shorthand": true,
+                "computed": false,
+                "key": {
+                  "type": "Identifier",
+                  "start": 22,
+                  "end": 25,
+                  "name": "bar"
+                },
+                "kind": "init",
+                "value": {
+                  "type": "Identifier",
+                  "start": 22,
+                  "end": 25,
+                  "name": "bar"
+                }
+              }
+            ]
+          },
+          "init": {
+            "type": "Literal",
+            "start": 30,
+            "end": 31,
+            "value": 5,
+            "raw": "5"
+          }
+        }
+      ],
+      "kind": "let"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 33,
+      "end": 48,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 37,
+          "end": 41,
+          "id": {
+            "type": "Identifier",
+            "start": 37,
+            "end": 41,
+            "name": "bar2"
+          },
+          "init": null
+        },
+        {
+          "type": "VariableDeclarator",
+          "start": 43,
+          "end": 47,
+          "id": {
+            "type": "Identifier",
+            "start": 43,
+            "end": 47,
+            "name": "foo2"
+          },
+          "init": null
+        }
+      ],
+      "kind": "let"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 49,
+      "end": 61,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 55,
+          "end": 60,
+          "id": {
+            "type": "Identifier",
+            "start": 55,
+            "end": 56,
+            "name": "b"
+          },
+          "init": {
+            "type": "Literal",
+            "start": 59,
+            "end": 60,
+            "value": 5,
+            "raw": "5"
+          }
+        }
+      ],
+      "kind": "const"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 62,
+      "end": 97,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 68,
+          "end": 96,
+          "id": {
+            "type": "ObjectPattern",
+            "start": 68,
+            "end": 91,
+            "properties": [
+              {
+                "type": "Property",
+                "start": 70,
+                "end": 83,
+                "method": false,
+                "shorthand": false,
+                "computed": false,
+                "key": {
+                  "type": "Identifier",
+                  "start": 70,
+                  "end": 74,
+                  "name": "foo5"
+                },
+                "value": {
+                  "type": "ArrayPattern",
+                  "start": 76,
+                  "end": 83,
+                  "elements": [
+                    {
+                      "type": "Identifier",
+                      "start": 77,
+                      "end": 82,
+                      "name": "bar11"
+                    }
+                  ]
+                },
+                "kind": "init"
+              },
+              {
+                "type": "Property",
+                "start": 85,
+                "end": 89,
+                "method": false,
+                "shorthand": true,
+                "computed": false,
+                "key": {
+                  "type": "Identifier",
+                  "start": 85,
+                  "end": 89,
+                  "name": "baz6"
+                },
+                "kind": "init",
+                "value": {
+                  "type": "Identifier",
+                  "start": 85,
+                  "end": 89,
+                  "name": "baz6"
+                }
+              }
+            ]
+          },
+          "init": {
+            "type": "ObjectExpression",
+            "start": 94,
+            "end": 96,
+            "properties": []
+          }
+        }
+      ],
+      "kind": "const"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 98,
+      "end": 163,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 102,
+          "end": 116,
+          "id": {
+            "type": "Identifier",
+            "start": 102,
+            "end": 106,
+            "name": "foo6"
+          },
+          "init": {
+            "type": "Literal",
+            "start": 109,
+            "end": 116,
+            "value": "lorem",
+            "raw": "\"lorem\""
+          }
+        },
+        {
+          "type": "VariableDeclarator",
+          "start": 118,
+          "end": 132,
+          "id": {
+            "type": "Identifier",
+            "start": 118,
+            "end": 122,
+            "name": "bar7"
+          },
+          "init": {
+            "type": "Literal",
+            "start": 125,
+            "end": 132,
+            "value": "ipsum",
+            "raw": "\"ipsum\""
+          }
+        },
+        {
+          "type": "VariableDeclarator",
+          "start": 134,
+          "end": 150,
+          "id": {
+            "type": "Identifier",
+            "start": 134,
+            "end": 140,
+            "name": "third8"
+          },
+          "init": {
+            "type": "Literal",
+            "start": 143,
+            "end": 150,
+            "value": "value",
+            "raw": "\"value\""
+          }
+        },
+        {
+          "type": "VariableDeclarator",
+          "start": 152,
+          "end": 162,
+          "id": {
+            "type": "Identifier",
+            "start": 152,
+            "end": 158,
+            "name": "fourth"
+          },
+          "init": {
+            "type": "Literal",
+            "start": 161,
+            "end": 162,
+            "value": 6,
+            "raw": "6"
+          }
+        }
+      ],
+      "kind": "let"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 164,
+      "end": 182,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 168,
+          "end": 169,
+          "id": {
+            "type": "Identifier",
+            "start": 168,
+            "end": 169,
+            "name": "q"
+          },
+          "init": null
+        },
+        {
+          "type": "VariableDeclarator",
+          "start": 171,
+          "end": 172,
+          "id": {
+            "type": "Identifier",
+            "start": 171,
+            "end": 172,
+            "name": "w"
+          },
+          "init": null
+        },
+        {
+          "type": "VariableDeclarator",
+          "start": 174,
+          "end": 175,
+          "id": {
+            "type": "Identifier",
+            "start": 174,
+            "end": 175,
+            "name": "e"
+          },
+          "init": null
+        },
+        {
+          "type": "VariableDeclarator",
+          "start": 177,
+          "end": 178,
+          "id": {
+            "type": "Identifier",
+            "start": 177,
+            "end": 178,
+            "name": "r"
+          },
+          "init": null
+        },
+        {
+          "type": "VariableDeclarator",
+          "start": 180,
+          "end": 181,
+          "id": {
+            "type": "Identifier",
+            "start": 180,
+            "end": 181,
+            "name": "t"
+          },
+          "init": null
+        }
+      ],
+      "kind": "var"
+    }
+  ],
+  "sourceType": "script"
+}

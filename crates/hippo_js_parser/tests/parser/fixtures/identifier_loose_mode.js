@@ -1,0 +1,4 @@
+// SCRIPT
+foo;
+yield;
+await;

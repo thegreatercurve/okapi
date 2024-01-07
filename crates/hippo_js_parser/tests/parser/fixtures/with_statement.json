@@ -1,0 +1,99 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 68,
+  "body": [
+    {
+      "type": "FunctionDeclaration",
+      "start": 10,
+      "end": 67,
+      "id": {
+        "type": "Identifier",
+        "start": 19,
+        "end": 20,
+        "name": "f"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [
+        {
+          "type": "Identifier",
+          "start": 21,
+          "end": 22,
+          "name": "x"
+        },
+        {
+          "type": "Identifier",
+          "start": 24,
+          "end": 25,
+          "name": "o"
+        }
+      ],
+      "body": {
+        "type": "BlockStatement",
+        "start": 27,
+        "end": 67,
+        "body": [
+          {
+            "type": "WithStatement",
+            "start": 31,
+            "end": 65,
+            "object": {
+              "type": "Identifier",
+              "start": 37,
+              "end": 38,
+              "name": "o"
+            },
+            "body": {
+              "type": "BlockStatement",
+              "start": 40,
+              "end": 65,
+              "body": [
+                {
+                  "type": "ExpressionStatement",
+                  "start": 46,
+                  "end": 61,
+                  "expression": {
+                    "type": "CallExpression",
+                    "start": 46,
+                    "end": 60,
+                    "callee": {
+                      "type": "MemberExpression",
+                      "start": 46,
+                      "end": 57,
+                      "object": {
+                        "type": "Identifier",
+                        "start": 46,
+                        "end": 53,
+                        "name": "console"
+                      },
+                      "property": {
+                        "type": "Identifier",
+                        "start": 54,
+                        "end": 57,
+                        "name": "log"
+                      },
+                      "computed": false,
+                      "optional": false
+                    },
+                    "arguments": [
+                      {
+                        "type": "Identifier",
+                        "start": 58,
+                        "end": 59,
+                        "name": "x"
+                      }
+                    ],
+                    "optional": false
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sourceType": "script"
+}

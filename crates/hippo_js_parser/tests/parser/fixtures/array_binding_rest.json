@@ -1,0 +1,144 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 69,
+  "body": [
+    {
+      "type": "VariableDeclaration",
+      "start": 0,
+      "end": 20,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 4,
+          "end": 19,
+          "id": {
+            "type": "ArrayPattern",
+            "start": 4,
+            "end": 15,
+            "elements": [
+              {
+                "type": "RestElement",
+                "start": 6,
+                "end": 13,
+                "argument": {
+                  "type": "Identifier",
+                  "start": 9,
+                  "end": 13,
+                  "name": "abcd"
+                }
+              }
+            ]
+          },
+          "init": {
+            "type": "Identifier",
+            "start": 18,
+            "end": 19,
+            "name": "a"
+          }
+        }
+      ],
+      "kind": "let"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 21,
+      "end": 43,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 25,
+          "end": 42,
+          "id": {
+            "type": "ArrayPattern",
+            "start": 25,
+            "end": 38,
+            "elements": [
+              {
+                "type": "RestElement",
+                "start": 27,
+                "end": 36,
+                "argument": {
+                  "type": "ArrayPattern",
+                  "start": 30,
+                  "end": 36,
+                  "elements": [
+                    {
+                      "type": "Identifier",
+                      "start": 31,
+                      "end": 32,
+                      "name": "x"
+                    },
+                    {
+                      "type": "Identifier",
+                      "start": 34,
+                      "end": 35,
+                      "name": "y"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "init": {
+            "type": "Identifier",
+            "start": 41,
+            "end": 42,
+            "name": "b"
+          }
+        }
+      ],
+      "kind": "let"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 44,
+      "end": 68,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 48,
+          "end": 67,
+          "id": {
+            "type": "ArrayPattern",
+            "start": 48,
+            "end": 63,
+            "elements": [
+              {
+                "type": "RestElement",
+                "start": 50,
+                "end": 61,
+                "argument": {
+                  "type": "ArrayPattern",
+                  "start": 53,
+                  "end": 61,
+                  "elements": [
+                    {
+                      "type": "RestElement",
+                      "start": 55,
+                      "end": 59,
+                      "argument": {
+                        "type": "Identifier",
+                        "start": 58,
+                        "end": 59,
+                        "name": "a"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "init": {
+            "type": "Identifier",
+            "start": 66,
+            "end": 67,
+            "name": "c"
+          }
+        }
+      ],
+      "kind": "let"
+    }
+  ],
+  "sourceType": "script"
+}

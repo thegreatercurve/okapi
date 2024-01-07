@@ -1,0 +1,100 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 67,
+  "body": [
+    {
+      "type": "FunctionDeclaration",
+      "start": 0,
+      "end": 66,
+      "id": {
+        "type": "Identifier",
+        "start": 10,
+        "end": 13,
+        "name": "foo"
+      },
+      "expression": false,
+      "generator": true,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 16,
+        "end": 66,
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "start": 19,
+            "end": 29,
+            "expression": {
+              "type": "YieldExpression",
+              "start": 19,
+              "end": 28,
+              "delegate": false,
+              "argument": {
+                "type": "Identifier",
+                "start": 25,
+                "end": 28,
+                "name": "foo"
+              }
+            }
+          },
+          {
+            "type": "ExpressionStatement",
+            "start": 31,
+            "end": 42,
+            "expression": {
+              "type": "YieldExpression",
+              "start": 31,
+              "end": 41,
+              "delegate": true,
+              "argument": {
+                "type": "Identifier",
+                "start": 38,
+                "end": 41,
+                "name": "foo"
+              }
+            }
+          },
+          {
+            "type": "ExpressionStatement",
+            "start": 44,
+            "end": 50,
+            "expression": {
+              "type": "YieldExpression",
+              "start": 44,
+              "end": 49,
+              "delegate": false,
+              "argument": null
+            }
+          },
+          {
+            "type": "ExpressionStatement",
+            "start": 52,
+            "end": 57,
+            "expression": {
+              "type": "YieldExpression",
+              "start": 52,
+              "end": 57,
+              "delegate": false,
+              "argument": null
+            }
+          },
+          {
+            "type": "ExpressionStatement",
+            "start": 59,
+            "end": 64,
+            "expression": {
+              "type": "YieldExpression",
+              "start": 59,
+              "end": 64,
+              "delegate": false,
+              "argument": null
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sourceType": "script"
+}

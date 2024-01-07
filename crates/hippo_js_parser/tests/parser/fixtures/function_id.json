@@ -1,0 +1,141 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 132,
+  "body": [
+    {
+      "type": "FunctionDeclaration",
+      "start": 10,
+      "end": 28,
+      "id": {
+        "type": "Identifier",
+        "start": 19,
+        "end": 23,
+        "name": "test"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 26,
+        "end": 28,
+        "body": []
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 29,
+      "end": 52,
+      "id": {
+        "type": "Identifier",
+        "start": 38,
+        "end": 43,
+        "name": "await"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [
+        {
+          "type": "Identifier",
+          "start": 44,
+          "end": 48,
+          "name": "test"
+        }
+      ],
+      "body": {
+        "type": "BlockStatement",
+        "start": 50,
+        "end": 52,
+        "body": []
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 53,
+      "end": 82,
+      "id": {
+        "type": "Identifier",
+        "start": 68,
+        "end": 73,
+        "name": "await"
+      },
+      "expression": false,
+      "generator": false,
+      "async": true,
+      "params": [
+        {
+          "type": "Identifier",
+          "start": 74,
+          "end": 78,
+          "name": "test"
+        }
+      ],
+      "body": {
+        "type": "BlockStatement",
+        "start": 80,
+        "end": 82,
+        "body": []
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 83,
+      "end": 106,
+      "id": {
+        "type": "Identifier",
+        "start": 92,
+        "end": 97,
+        "name": "yield"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [
+        {
+          "type": "Identifier",
+          "start": 98,
+          "end": 102,
+          "name": "test"
+        }
+      ],
+      "body": {
+        "type": "BlockStatement",
+        "start": 104,
+        "end": 106,
+        "body": []
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 107,
+      "end": 131,
+      "id": {
+        "type": "Identifier",
+        "start": 117,
+        "end": 122,
+        "name": "yield"
+      },
+      "expression": false,
+      "generator": true,
+      "async": false,
+      "params": [
+        {
+          "type": "Identifier",
+          "start": 123,
+          "end": 127,
+          "name": "test"
+        }
+      ],
+      "body": {
+        "type": "BlockStatement",
+        "start": 129,
+        "end": 131,
+        "body": []
+      }
+    }
+  ],
+  "sourceType": "script"
+}

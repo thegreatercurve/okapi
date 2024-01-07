@@ -1,0 +1,81 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 44,
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "start": 0,
+      "end": 15,
+      "expression": {
+        "type": "ConditionalExpression",
+        "start": 0,
+        "end": 15,
+        "test": {
+          "type": "Identifier",
+          "start": 0,
+          "end": 3,
+          "name": "foo"
+        },
+        "consequent": {
+          "type": "Identifier",
+          "start": 6,
+          "end": 9,
+          "name": "bar"
+        },
+        "alternate": {
+          "type": "Identifier",
+          "start": 12,
+          "end": 15,
+          "name": "baz"
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "start": 16,
+      "end": 43,
+      "expression": {
+        "type": "ConditionalExpression",
+        "start": 16,
+        "end": 43,
+        "test": {
+          "type": "Identifier",
+          "start": 16,
+          "end": 19,
+          "name": "foo"
+        },
+        "consequent": {
+          "type": "Identifier",
+          "start": 22,
+          "end": 25,
+          "name": "bar"
+        },
+        "alternate": {
+          "type": "ConditionalExpression",
+          "start": 28,
+          "end": 43,
+          "test": {
+            "type": "Identifier",
+            "start": 28,
+            "end": 31,
+            "name": "baz"
+          },
+          "consequent": {
+            "type": "Identifier",
+            "start": 34,
+            "end": 37,
+            "name": "bar"
+          },
+          "alternate": {
+            "type": "Identifier",
+            "start": 40,
+            "end": 43,
+            "name": "baz"
+          }
+        }
+      }
+    }
+  ],
+  "sourceType": "script"
+}

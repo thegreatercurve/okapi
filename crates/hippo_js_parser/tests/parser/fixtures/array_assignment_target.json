@@ -1,0 +1,201 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 86,
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "start": 0,
+      "end": 17,
+      "expression": {
+        "type": "AssignmentExpression",
+        "start": 0,
+        "end": 16,
+        "operator": "=",
+        "left": {
+          "type": "ArrayPattern",
+          "start": 0,
+          "end": 10,
+          "elements": [
+            {
+              "type": "Identifier",
+              "start": 1,
+              "end": 4,
+              "name": "foo"
+            },
+            {
+              "type": "Identifier",
+              "start": 6,
+              "end": 9,
+              "name": "bar"
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 13,
+          "end": 16,
+          "name": "baz"
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "start": 18,
+      "end": 35,
+      "expression": {
+        "type": "AssignmentExpression",
+        "start": 18,
+        "end": 34,
+        "operator": "=",
+        "left": {
+          "type": "ArrayPattern",
+          "start": 18,
+          "end": 28,
+          "elements": [
+            null,
+            null,
+            null,
+            {
+              "type": "Identifier",
+              "start": 22,
+              "end": 23,
+              "name": "b"
+            },
+            null,
+            {
+              "type": "Identifier",
+              "start": 25,
+              "end": 26,
+              "name": "c"
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 31,
+          "end": 34,
+          "name": "baz"
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "start": 36,
+      "end": 70,
+      "expression": {
+        "type": "AssignmentExpression",
+        "start": 36,
+        "end": 69,
+        "operator": "=",
+        "left": {
+          "type": "ArrayPattern",
+          "start": 36,
+          "end": 63,
+          "elements": [
+            {
+              "type": "AssignmentPattern",
+              "start": 37,
+              "end": 47,
+              "left": {
+                "type": "Identifier",
+                "start": 37,
+                "end": 38,
+                "name": "a"
+              },
+              "right": {
+                "type": "Literal",
+                "start": 41,
+                "end": 47,
+                "value": "test",
+                "raw": "\"test\""
+              }
+            },
+            {
+              "type": "MemberExpression",
+              "start": 49,
+              "end": 52,
+              "object": {
+                "type": "Identifier",
+                "start": 49,
+                "end": 50,
+                "name": "a"
+              },
+              "property": {
+                "type": "Identifier",
+                "start": 51,
+                "end": 52,
+                "name": "b"
+              },
+              "computed": false,
+              "optional": false
+            },
+            {
+              "type": "MemberExpression",
+              "start": 54,
+              "end": 62,
+              "object": {
+                "type": "CallExpression",
+                "start": 54,
+                "end": 60,
+                "callee": {
+                  "type": "Identifier",
+                  "start": 54,
+                  "end": 58,
+                  "name": "call"
+                },
+                "arguments": [],
+                "optional": false
+              },
+              "property": {
+                "type": "Identifier",
+                "start": 61,
+                "end": 62,
+                "name": "b"
+              },
+              "computed": false,
+              "optional": false
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 66,
+          "end": 69,
+          "name": "baz"
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "start": 71,
+      "end": 85,
+      "expression": {
+        "type": "AssignmentExpression",
+        "start": 71,
+        "end": 84,
+        "operator": "=",
+        "left": {
+          "type": "ArrayPattern",
+          "start": 71,
+          "end": 78,
+          "elements": [
+            {
+              "type": "Identifier",
+              "start": 74,
+              "end": 75,
+              "name": "a"
+            }
+          ]
+        },
+        "right": {
+          "type": "Identifier",
+          "start": 81,
+          "end": 84,
+          "name": "baz"
+        }
+      }
+    }
+  ],
+  "sourceType": "script"
+}

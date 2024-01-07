@@ -1,0 +1,404 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 302,
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "start": 0,
+      "end": 144,
+      "expression": {
+        "type": "AssignmentExpression",
+        "start": 0,
+        "end": 143,
+        "operator": "=",
+        "left": {
+          "type": "ArrayPattern",
+          "start": 0,
+          "end": 136,
+          "elements": [
+            {
+              "type": "AssignmentPattern",
+              "start": 1,
+              "end": 135,
+              "left": {
+                "type": "MemberExpression",
+                "start": 1,
+                "end": 130,
+                "object": {
+                  "type": "ObjectExpression",
+                  "start": 1,
+                  "end": 128,
+                  "properties": [
+                    {
+                      "type": "Property",
+                      "start": 5,
+                      "end": 86,
+                      "method": false,
+                      "shorthand": false,
+                      "computed": false,
+                      "key": {
+                        "type": "Identifier",
+                        "start": 9,
+                        "end": 10,
+                        "name": "y"
+                      },
+                      "kind": "get",
+                      "value": {
+                        "type": "FunctionExpression",
+                        "start": 10,
+                        "end": 86,
+                        "id": null,
+                        "expression": false,
+                        "generator": false,
+                        "async": false,
+                        "params": [],
+                        "body": {
+                          "type": "BlockStatement",
+                          "start": 13,
+                          "end": 86,
+                          "body": [
+                            {
+                              "type": "ThrowStatement",
+                              "start": 19,
+                              "end": 82,
+                              "argument": {
+                                "type": "NewExpression",
+                                "start": 25,
+                                "end": 81,
+                                "callee": {
+                                  "type": "Identifier",
+                                  "start": 29,
+                                  "end": 41,
+                                  "name": "Test262Error"
+                                },
+                                "arguments": [
+                                  {
+                                    "type": "Literal",
+                                    "start": 42,
+                                    "end": 80,
+                                    "value": "The property should not be accessed.",
+                                    "raw": "'The property should not be accessed.'"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "Property",
+                      "start": 90,
+                      "end": 126,
+                      "method": false,
+                      "shorthand": false,
+                      "computed": false,
+                      "key": {
+                        "type": "Identifier",
+                        "start": 94,
+                        "end": 95,
+                        "name": "y"
+                      },
+                      "kind": "set",
+                      "value": {
+                        "type": "FunctionExpression",
+                        "start": 95,
+                        "end": 126,
+                        "id": null,
+                        "expression": false,
+                        "generator": false,
+                        "async": false,
+                        "params": [
+                          {
+                            "type": "Identifier",
+                            "start": 96,
+                            "end": 99,
+                            "name": "val"
+                          }
+                        ],
+                        "body": {
+                          "type": "BlockStatement",
+                          "start": 101,
+                          "end": 126,
+                          "body": [
+                            {
+                              "type": "ExpressionStatement",
+                              "start": 107,
+                              "end": 122,
+                              "expression": {
+                                "type": "AssignmentExpression",
+                                "start": 107,
+                                "end": 121,
+                                "operator": "=",
+                                "left": {
+                                  "type": "Identifier",
+                                  "start": 107,
+                                  "end": 115,
+                                  "name": "setValue"
+                                },
+                                "right": {
+                                  "type": "Identifier",
+                                  "start": 118,
+                                  "end": 121,
+                                  "name": "val"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "property": {
+                  "type": "Identifier",
+                  "start": 129,
+                  "end": 130,
+                  "name": "y"
+                },
+                "computed": false,
+                "optional": false
+              },
+              "right": {
+                "type": "Literal",
+                "start": 133,
+                "end": 135,
+                "value": 42,
+                "raw": "42"
+              }
+            }
+          ]
+        },
+        "right": {
+          "type": "ArrayExpression",
+          "start": 139,
+          "end": 143,
+          "elements": [
+            {
+              "type": "Literal",
+              "start": 140,
+              "end": 142,
+              "value": 23,
+              "raw": "23"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "start": 145,
+      "end": 301,
+      "expression": {
+        "type": "AssignmentExpression",
+        "start": 146,
+        "end": 299,
+        "operator": "=",
+        "left": {
+          "type": "ObjectPattern",
+          "start": 146,
+          "end": 287,
+          "properties": [
+            {
+              "type": "Property",
+              "start": 148,
+              "end": 285,
+              "method": false,
+              "shorthand": false,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 148,
+                "end": 149,
+                "name": "x"
+              },
+              "value": {
+                "type": "AssignmentPattern",
+                "start": 151,
+                "end": 285,
+                "left": {
+                  "type": "MemberExpression",
+                  "start": 151,
+                  "end": 280,
+                  "object": {
+                    "type": "ObjectExpression",
+                    "start": 151,
+                    "end": 278,
+                    "properties": [
+                      {
+                        "type": "Property",
+                        "start": 155,
+                        "end": 236,
+                        "method": false,
+                        "shorthand": false,
+                        "computed": false,
+                        "key": {
+                          "type": "Identifier",
+                          "start": 159,
+                          "end": 160,
+                          "name": "y"
+                        },
+                        "kind": "get",
+                        "value": {
+                          "type": "FunctionExpression",
+                          "start": 160,
+                          "end": 236,
+                          "id": null,
+                          "expression": false,
+                          "generator": false,
+                          "async": false,
+                          "params": [],
+                          "body": {
+                            "type": "BlockStatement",
+                            "start": 163,
+                            "end": 236,
+                            "body": [
+                              {
+                                "type": "ThrowStatement",
+                                "start": 169,
+                                "end": 232,
+                                "argument": {
+                                  "type": "NewExpression",
+                                  "start": 175,
+                                  "end": 231,
+                                  "callee": {
+                                    "type": "Identifier",
+                                    "start": 179,
+                                    "end": 191,
+                                    "name": "Test262Error"
+                                  },
+                                  "arguments": [
+                                    {
+                                      "type": "Literal",
+                                      "start": 192,
+                                      "end": 230,
+                                      "value": "The property should not be accessed.",
+                                      "raw": "'The property should not be accessed.'"
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "type": "Property",
+                        "start": 240,
+                        "end": 276,
+                        "method": false,
+                        "shorthand": false,
+                        "computed": false,
+                        "key": {
+                          "type": "Identifier",
+                          "start": 244,
+                          "end": 245,
+                          "name": "y"
+                        },
+                        "kind": "set",
+                        "value": {
+                          "type": "FunctionExpression",
+                          "start": 245,
+                          "end": 276,
+                          "id": null,
+                          "expression": false,
+                          "generator": false,
+                          "async": false,
+                          "params": [
+                            {
+                              "type": "Identifier",
+                              "start": 246,
+                              "end": 249,
+                              "name": "val"
+                            }
+                          ],
+                          "body": {
+                            "type": "BlockStatement",
+                            "start": 251,
+                            "end": 276,
+                            "body": [
+                              {
+                                "type": "ExpressionStatement",
+                                "start": 257,
+                                "end": 272,
+                                "expression": {
+                                  "type": "AssignmentExpression",
+                                  "start": 257,
+                                  "end": 271,
+                                  "operator": "=",
+                                  "left": {
+                                    "type": "Identifier",
+                                    "start": 257,
+                                    "end": 265,
+                                    "name": "setValue"
+                                  },
+                                  "right": {
+                                    "type": "Identifier",
+                                    "start": 268,
+                                    "end": 271,
+                                    "name": "val"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "property": {
+                    "type": "Identifier",
+                    "start": 279,
+                    "end": 280,
+                    "name": "y"
+                  },
+                  "computed": false,
+                  "optional": false
+                },
+                "right": {
+                  "type": "Literal",
+                  "start": 283,
+                  "end": 285,
+                  "value": 42,
+                  "raw": "42"
+                }
+              },
+              "kind": "init"
+            }
+          ]
+        },
+        "right": {
+          "type": "ObjectExpression",
+          "start": 290,
+          "end": 299,
+          "properties": [
+            {
+              "type": "Property",
+              "start": 292,
+              "end": 297,
+              "method": false,
+              "shorthand": false,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 292,
+                "end": 293,
+                "name": "x"
+              },
+              "value": {
+                "type": "Literal",
+                "start": 295,
+                "end": 297,
+                "value": 23,
+                "raw": "23"
+              },
+              "kind": "init"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "sourceType": "script"
+}

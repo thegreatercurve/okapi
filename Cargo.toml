@@ -11,4 +11,3 @@ edition = "2021"
 hippo_estree = { path = "crates/hippo_estree" }
 hippo_js_parser = { path = "crates/hippo_js_parser" }
 hippo_unicode = { path = "crates/hippo_unicode" }
-hippo_wasm = { path = "crates/hippo_wasm" }

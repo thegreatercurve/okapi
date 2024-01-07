@@ -1,0 +1,83 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 62,
+  "body": [
+    {
+      "type": "VariableDeclaration",
+      "start": 0,
+      "end": 28,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 4,
+          "end": 27,
+          "id": {
+            "type": "Identifier",
+            "start": 4,
+            "end": 5,
+            "name": "a"
+          },
+          "init": {
+            "type": "FunctionExpression",
+            "start": 8,
+            "end": 27,
+            "id": null,
+            "expression": false,
+            "generator": false,
+            "async": true,
+            "params": [],
+            "body": {
+              "type": "BlockStatement",
+              "start": 25,
+              "end": 27,
+              "body": []
+            }
+          }
+        }
+      ],
+      "kind": "let"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 29,
+      "end": 61,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 33,
+          "end": 60,
+          "id": {
+            "type": "Identifier",
+            "start": 33,
+            "end": 34,
+            "name": "b"
+          },
+          "init": {
+            "type": "FunctionExpression",
+            "start": 37,
+            "end": 60,
+            "id": {
+              "type": "Identifier",
+              "start": 52,
+              "end": 55,
+              "name": "foo"
+            },
+            "expression": false,
+            "generator": false,
+            "async": true,
+            "params": [],
+            "body": {
+              "type": "BlockStatement",
+              "start": 58,
+              "end": 60,
+              "body": []
+            }
+          }
+        }
+      ],
+      "kind": "let"
+    }
+  ],
+  "sourceType": "script"
+}

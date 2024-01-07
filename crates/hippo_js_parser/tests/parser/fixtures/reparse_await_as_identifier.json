@@ -1,0 +1,86 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 76,
+  "body": [
+    {
+      "type": "FunctionDeclaration",
+      "start": 10,
+      "end": 40,
+      "id": {
+        "type": "Identifier",
+        "start": 19,
+        "end": 23,
+        "name": "test"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 26,
+        "end": 40,
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "start": 28,
+            "end": 38,
+            "expression": {
+              "type": "AssignmentExpression",
+              "start": 28,
+              "end": 37,
+              "operator": "=",
+              "left": {
+                "type": "Identifier",
+                "start": 28,
+                "end": 29,
+                "name": "a"
+              },
+              "right": {
+                "type": "Identifier",
+                "start": 32,
+                "end": 37,
+                "name": "await"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 41,
+      "end": 75,
+      "id": {
+        "type": "Identifier",
+        "start": 50,
+        "end": 55,
+        "name": "test2"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 58,
+        "end": 75,
+        "body": [
+          {
+            "type": "ReturnStatement",
+            "start": 60,
+            "end": 73,
+            "argument": {
+              "type": "Identifier",
+              "start": 67,
+              "end": 72,
+              "name": "await"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sourceType": "script"
+}

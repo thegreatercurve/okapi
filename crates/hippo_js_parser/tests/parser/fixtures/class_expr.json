@@ -1,0 +1,139 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 72,
+  "body": [
+    {
+      "type": "VariableDeclaration",
+      "start": 0,
+      "end": 17,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 4,
+          "end": 16,
+          "id": {
+            "type": "Identifier",
+            "start": 4,
+            "end": 5,
+            "name": "a"
+          },
+          "init": {
+            "type": "ClassExpression",
+            "start": 8,
+            "end": 16,
+            "id": null,
+            "superClass": null,
+            "body": {
+              "type": "ClassBody",
+              "start": 14,
+              "end": 16,
+              "body": []
+            }
+          }
+        }
+      ],
+      "kind": "let"
+    },
+    {
+      "type": "VariableDeclaration",
+      "start": 18,
+      "end": 57,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 22,
+          "end": 57,
+          "id": {
+            "type": "Identifier",
+            "start": 22,
+            "end": 23,
+            "name": "b"
+          },
+          "init": {
+            "type": "ClassExpression",
+            "start": 26,
+            "end": 57,
+            "id": {
+              "type": "Identifier",
+              "start": 32,
+              "end": 35,
+              "name": "foo"
+            },
+            "superClass": null,
+            "body": {
+              "type": "ClassBody",
+              "start": 36,
+              "end": 57,
+              "body": [
+                {
+                  "type": "MethodDefinition",
+                  "start": 39,
+                  "end": 55,
+                  "static": false,
+                  "computed": false,
+                  "key": {
+                    "type": "Identifier",
+                    "start": 39,
+                    "end": 50,
+                    "name": "constructor"
+                  },
+                  "kind": "constructor",
+                  "value": {
+                    "type": "FunctionExpression",
+                    "start": 50,
+                    "end": 55,
+                    "id": null,
+                    "expression": false,
+                    "generator": false,
+                    "async": false,
+                    "params": [],
+                    "body": {
+                      "type": "BlockStatement",
+                      "start": 53,
+                      "end": 55,
+                      "body": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "kind": "let"
+    },
+    {
+      "type": "ExpressionStatement",
+      "start": 58,
+      "end": 71,
+      "expression": {
+        "type": "MemberExpression",
+        "start": 58,
+        "end": 71,
+        "object": {
+          "type": "Identifier",
+          "start": 58,
+          "end": 61,
+          "name": "foo"
+        },
+        "property": {
+          "type": "ClassExpression",
+          "start": 62,
+          "end": 70,
+          "id": null,
+          "superClass": null,
+          "body": {
+            "type": "ClassBody",
+            "start": 68,
+            "end": 70,
+            "body": []
+          }
+        },
+        "computed": true,
+        "optional": false
+      }
+    }
+  ],
+  "sourceType": "script"
+}

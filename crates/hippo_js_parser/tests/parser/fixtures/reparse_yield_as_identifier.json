@@ -1,0 +1,119 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 92,
+  "body": [
+    {
+      "type": "FunctionDeclaration",
+      "start": 10,
+      "end": 40,
+      "id": {
+        "type": "Identifier",
+        "start": 19,
+        "end": 22,
+        "name": "foo"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 25,
+        "end": 40,
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "start": 27,
+            "end": 38,
+            "expression": {
+              "type": "BinaryExpression",
+              "start": 27,
+              "end": 37,
+              "left": {
+                "type": "Identifier",
+                "start": 27,
+                "end": 32,
+                "name": "yield"
+              },
+              "operator": "*",
+              "right": {
+                "type": "Identifier",
+                "start": 34,
+                "end": 37,
+                "name": "bar"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 41,
+      "end": 66,
+      "id": {
+        "type": "Identifier",
+        "start": 50,
+        "end": 53,
+        "name": "bar"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 56,
+        "end": 66,
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "start": 58,
+            "end": 64,
+            "expression": {
+              "type": "Identifier",
+              "start": 58,
+              "end": 63,
+              "name": "yield"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "FunctionDeclaration",
+      "start": 67,
+      "end": 91,
+      "id": {
+        "type": "Identifier",
+        "start": 76,
+        "end": 79,
+        "name": "baz"
+      },
+      "expression": false,
+      "generator": false,
+      "async": false,
+      "params": [],
+      "body": {
+        "type": "BlockStatement",
+        "start": 82,
+        "end": 91,
+        "body": [
+          {
+            "type": "ExpressionStatement",
+            "start": 84,
+            "end": 89,
+            "expression": {
+              "type": "Identifier",
+              "start": 84,
+              "end": 89,
+              "name": "yield"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "sourceType": "script"
+}

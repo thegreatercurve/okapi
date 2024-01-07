@@ -1,0 +1,282 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 226,
+  "body": [
+    {
+      "type": "VariableDeclaration",
+      "start": 0,
+      "end": 225,
+      "declarations": [
+        {
+          "type": "VariableDeclarator",
+          "start": 4,
+          "end": 225,
+          "id": {
+            "type": "Identifier",
+            "start": 4,
+            "end": 5,
+            "name": "a"
+          },
+          "init": {
+            "type": "ObjectExpression",
+            "start": 8,
+            "end": 225,
+            "properties": [
+              {
+                "type": "Property",
+                "start": 12,
+                "end": 43,
+                "method": false,
+                "shorthand": false,
+                "computed": false,
+                "key": {
+                  "type": "Identifier",
+                  "start": 16,
+                  "end": 19,
+                  "name": "foo"
+                },
+                "kind": "get",
+                "value": {
+                  "type": "FunctionExpression",
+                  "start": 19,
+                  "end": 43,
+                  "id": null,
+                  "expression": false,
+                  "generator": false,
+                  "async": false,
+                  "params": [],
+                  "body": {
+                    "type": "BlockStatement",
+                    "start": 22,
+                    "end": 43,
+                    "body": [
+                      {
+                        "type": "ReturnStatement",
+                        "start": 28,
+                        "end": 39,
+                        "argument": {
+                          "type": "Identifier",
+                          "start": 35,
+                          "end": 38,
+                          "name": "foo"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "Property",
+                "start": 47,
+                "end": 82,
+                "method": false,
+                "shorthand": false,
+                "computed": false,
+                "key": {
+                  "type": "Literal",
+                  "start": 51,
+                  "end": 56,
+                  "value": "bar",
+                  "raw": "\"bar\""
+                },
+                "kind": "get",
+                "value": {
+                  "type": "FunctionExpression",
+                  "start": 56,
+                  "end": 82,
+                  "id": null,
+                  "expression": false,
+                  "generator": false,
+                  "async": false,
+                  "params": [],
+                  "body": {
+                    "type": "BlockStatement",
+                    "start": 59,
+                    "end": 82,
+                    "body": [
+                      {
+                        "type": "ReturnStatement",
+                        "start": 65,
+                        "end": 78,
+                        "argument": {
+                          "type": "Literal",
+                          "start": 72,
+                          "end": 77,
+                          "value": "bar",
+                          "raw": "\"bar\""
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "Property",
+                "start": 86,
+                "end": 130,
+                "method": false,
+                "shorthand": false,
+                "computed": true,
+                "key": {
+                  "type": "BinaryExpression",
+                  "start": 91,
+                  "end": 100,
+                  "left": {
+                    "type": "Literal",
+                    "start": 91,
+                    "end": 94,
+                    "value": "a",
+                    "raw": "\"a\""
+                  },
+                  "operator": "+",
+                  "right": {
+                    "type": "Literal",
+                    "start": 97,
+                    "end": 100,
+                    "value": "b",
+                    "raw": "\"b\""
+                  }
+                },
+                "kind": "get",
+                "value": {
+                  "type": "FunctionExpression",
+                  "start": 101,
+                  "end": 130,
+                  "id": null,
+                  "expression": false,
+                  "generator": false,
+                  "async": false,
+                  "params": [],
+                  "body": {
+                    "type": "BlockStatement",
+                    "start": 104,
+                    "end": 130,
+                    "body": [
+                      {
+                        "type": "ReturnStatement",
+                        "start": 110,
+                        "end": 126,
+                        "argument": {
+                          "type": "BinaryExpression",
+                          "start": 117,
+                          "end": 126,
+                          "left": {
+                            "type": "Literal",
+                            "start": 117,
+                            "end": 120,
+                            "value": "a",
+                            "raw": "\"a\""
+                          },
+                          "operator": "+",
+                          "right": {
+                            "type": "Literal",
+                            "start": 123,
+                            "end": 126,
+                            "value": "b",
+                            "raw": "\"b\""
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "Property",
+                "start": 134,
+                "end": 161,
+                "method": false,
+                "shorthand": false,
+                "computed": false,
+                "key": {
+                  "type": "Literal",
+                  "start": 138,
+                  "end": 139,
+                  "value": 5,
+                  "raw": "5"
+                },
+                "kind": "get",
+                "value": {
+                  "type": "FunctionExpression",
+                  "start": 139,
+                  "end": 161,
+                  "id": null,
+                  "expression": false,
+                  "generator": false,
+                  "async": false,
+                  "params": [],
+                  "body": {
+                    "type": "BlockStatement",
+                    "start": 142,
+                    "end": 161,
+                    "body": [
+                      {
+                        "type": "ReturnStatement",
+                        "start": 148,
+                        "end": 157,
+                        "argument": {
+                          "type": "Literal",
+                          "start": 155,
+                          "end": 156,
+                          "value": 5,
+                          "raw": "5"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "Property",
+                "start": 165,
+                "end": 223,
+                "method": true,
+                "shorthand": false,
+                "computed": false,
+                "key": {
+                  "type": "Identifier",
+                  "start": 165,
+                  "end": 168,
+                  "name": "get"
+                },
+                "kind": "init",
+                "value": {
+                  "type": "FunctionExpression",
+                  "start": 168,
+                  "end": 223,
+                  "id": null,
+                  "expression": false,
+                  "generator": false,
+                  "async": false,
+                  "params": [],
+                  "body": {
+                    "type": "BlockStatement",
+                    "start": 171,
+                    "end": 223,
+                    "body": [
+                      {
+                        "type": "ReturnStatement",
+                        "start": 176,
+                        "end": 219,
+                        "argument": {
+                          "type": "Literal",
+                          "start": 183,
+                          "end": 218,
+                          "value": "This is a method and not a getter",
+                          "raw": "\"This is a method and not a getter\""
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "kind": "let"
+    }
+  ],
+  "sourceType": "script"
+}

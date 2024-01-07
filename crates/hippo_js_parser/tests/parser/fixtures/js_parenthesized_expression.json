@@ -1,0 +1,33 @@
+{
+  "type": "Program",
+  "start": 0,
+  "end": 14,
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "start": 0,
+      "end": 13,
+      "expression": {
+        "type": "CallExpression",
+        "start": 0,
+        "end": 13,
+        "callee": {
+          "type": "Identifier",
+          "start": 2,
+          "end": 5,
+          "name": "foo"
+        },
+        "arguments": [
+          {
+            "type": "Identifier",
+            "start": 9,
+            "end": 12,
+            "name": "foo"
+          }
+        ],
+        "optional": false
+      }
+    }
+  ],
+  "sourceType": "script"
+}
