@@ -60,21 +60,23 @@ pub struct Regex {
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
+#[serde(rename_all = "camelCase")]
 pub struct Program {
     #[serde(flatten)]
     pub node: Node,
-    #[serde(rename = "camelCase")]
-    pub source_type: ProgramSourceTypes,
     pub body: Vec<ProgramBody>,
+    pub source_type: ProgramSourceTypes,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum ProgramSourceTypes {
     Script,
     Module,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum ProgramBody {
     Directive(Directive),
     Statement(Statement),

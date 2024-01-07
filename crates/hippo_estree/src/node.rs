@@ -1,8 +1,8 @@
 use serde::Serialize;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize)]
-#[serde(tag = "type", rename = "Node")]
 pub struct Node {
+    #[serde(flatten)]
     pub loc: SourceLocation,
 }
 

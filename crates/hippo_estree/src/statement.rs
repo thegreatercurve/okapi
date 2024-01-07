@@ -3,6 +3,7 @@ use serde::Serialize;
 use crate::{Declaration, Expression, Identifier, Literal, Node, Pattern};
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum Statement {
     Expression(ExpressionStatement),
     Directive(Directive),

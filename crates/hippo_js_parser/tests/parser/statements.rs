@@ -4,15 +4,7 @@ use crate::parser::common::assert_parser_eq;
 fn debugger() {
     assert_parser_eq!(
         "debugger;",
-        Program {
-            body: vec![ProgramBody::Statement(Statement::Debugger(
-                DebuggerStatement {
-                    node: Node::new(0, 9)
-                }
-            ))],
-            node: Node::new(0, 9),
-            source_type: ProgramSourceTypes::Module
-        }
+        r#"{"type":"Program","start":0,"end":9,"body":[{"type":"DebuggerStatement","start":0,"end":9}],"sourceType":"module"}"#
     );
 }
 

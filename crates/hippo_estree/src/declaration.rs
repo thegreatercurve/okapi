@@ -2,6 +2,7 @@ use crate::{ArrayPattern, Expression, Identifier, Node, ObjectPattern};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum Declaration {
     Function(FunctionDeclaration),
     Variable(VariableDeclaration),
@@ -16,6 +17,7 @@ pub struct FunctionDeclaration {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum VariableKind {
     Var,
     Let,
@@ -32,7 +34,7 @@ pub struct VariableDeclaration {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
+#[serde(untagged)]
 pub enum BindingKind {
     Identifier(Identifier),
     ObjectPattern(ObjectPattern),

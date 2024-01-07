@@ -59,6 +59,12 @@ impl<'a> Parser<'a> {
         }
     }
 
+    pub fn parse_json(&mut self) -> Result<String, serde_json::Error> {
+        let program = self.parse();
+
+        serde_json::to_string(&program)
+    }
+
     fn current_token_kind(&self) -> TokenKind {
         self.current_token.kind.clone()
     }
@@ -127,7 +133,7 @@ impl<'a> Parser<'a> {
         let declarations = self.parse_binding_list()?;
 
         if kind == VariableKind::Const {
-            todo!("Check const declarations have a valid identifier");
+            // TODO Check const declarations have a valid identifier.
         }
 
         Ok(Statement::Declaration(Declaration::Variable(
@@ -171,8 +177,14 @@ impl<'a> Parser<'a> {
             _ => Err(self.unexpected_current_token_kind()),
         }?;
 
+        let node = match &binding_identifier {
+            BindingKind::Identifier(identifier) => identifier.node,
+            BindingKind::ObjectPattern(object_pattern) => object_pattern.node,
+            BindingKind::ArrayPattern(array_pattern) => array_pattern.node,
+        };
+
         Ok(VariableDeclarator {
-            node: self.finish_node(&binding_identifier.node),
+            node: self.finish_node(&node),
             id: binding_identifier,
             init: None,
         })
@@ -201,7 +213,7 @@ impl<'a> Parser<'a> {
 
         self.advance(); // Eat `{` token.
 
-        let mut properties = vec![];
+        let properties = vec![];
 
         Ok(BindingKind::ObjectPattern(ObjectPattern {
             node: self.finish_node(&node),
@@ -215,7 +227,7 @@ impl<'a> Parser<'a> {
 
         self.advance(); // Eat `[` token.
 
-        let mut elements = vec![];
+        let elements = vec![];
 
         Ok(BindingKind::ArrayPattern(ArrayPattern {
             node: self.finish_node(&node),
