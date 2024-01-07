@@ -1,15 +1,9 @@
 use crate::{tokens::Token, KeywordKind, Lexer, ParserError, TokenKind};
 use hippo_estree::{
-    ArrayPattern, DebuggerStatement, Declaration, Identifier, Node, ObjectPattern, Program,
-    ProgramBody, ProgramSourceTypes, Statement, VariableDeclaration, VariableDeclarator,
+    ArrayPattern, BindingKind, DebuggerStatement, Declaration, Identifier, Node, ObjectPattern,
+    Program, ProgramBody, ProgramSourceTypes, Statement, VariableDeclaration, VariableDeclarator,
     VariableKind,
 };
-
-enum BindingKind {
-    Identifier(Identifier),
-    ObjectPattern(ObjectPattern),
-    ArrayPattern(ArrayPattern),
-}
 
 fn is_lexical_declaration(token: &TokenKind) -> bool {
     match token {
@@ -170,23 +164,16 @@ impl<'a> Parser<'a> {
     ) -> Result<VariableDeclarator, ParserError> {
         let current_token_kind = self.current_token_kind();
 
-        let binding = match current_token_kind {
+        let binding_identifier = match current_token_kind {
             TokenKind::Identifier => self.parse_binding_identifier(),
             TokenKind::LeftCurlyBrace => self.parse_object_binding_pattern(),
             TokenKind::LeftSquareBracket => self.parse_array_binding_pattern(),
             _ => Err(self.unexpected_current_token_kind()),
         }?;
 
-        // TODO Fix the types in the `VariableDeclarator` struct.
-        let identifier = match binding {
-            BindingKind::Identifier(identifier) => identifier,
-            BindingKind::ObjectPattern(object_pattern) => object_pattern,
-            BindingKind::ArrayPattern(array_pattern) => array_pattern,
-        };
-
         Ok(VariableDeclarator {
-            node: self.finish_node(&identifier.node),
-            id: identifier,
+            node: self.finish_node(&binding_identifier.node),
+            id: binding_identifier,
             init: None,
         })
     }

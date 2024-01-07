@@ -1,4 +1,4 @@
-use crate::{Expression, Identifier, Node};
+use crate::{ArrayPattern, Expression, Identifier, Node, ObjectPattern};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -16,6 +16,13 @@ pub struct FunctionDeclaration {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+pub enum VariableKind {
+    Var,
+    Let,
+    Const,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct VariableDeclaration {
     #[serde(flatten)]
@@ -26,16 +33,17 @@ pub struct VariableDeclaration {
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
-pub struct VariableDeclarator {
-    #[serde(flatten)]
-    pub node: Node,
-    pub id: Identifier,
-    pub init: Option<Expression>,
+pub enum BindingKind {
+    Identifier(Identifier),
+    ObjectPattern(ObjectPattern),
+    ArrayPattern(ArrayPattern),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub enum VariableKind {
-    Var,
-    Let,
-    Const,
+#[serde(tag = "type")]
+pub struct VariableDeclarator {
+    #[serde(flatten)]
+    pub node: Node,
+    pub id: BindingKind,
+    pub init: Option<Expression>,
 }
