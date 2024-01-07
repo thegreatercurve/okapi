@@ -11,6 +11,4 @@ serde_json = "1.0.111"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
-serde_yaml = "0.9.30"
 serde = { version = "1.0.193", features = ["derive"] }
-test-case-macros = "3.3.1"

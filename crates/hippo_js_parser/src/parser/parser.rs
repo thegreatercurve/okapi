@@ -54,7 +54,7 @@ impl<'a> Parser<'a> {
 
         Program {
             body: vec![ProgramBody::Statement(program_body)],
-            source_type: ProgramSourceTypes::Module,
+            source_type: ProgramSourceTypes::Script,
             node: Node::new(0, self.lexer.len()),
         }
     }

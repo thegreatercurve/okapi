@@ -1,3 +1,2 @@
 mod lexer;
-// mod parser;
-// mod test262;
+mod parser;
