@@ -1,4 +1,4 @@
-use crate::{Expression, Node};
+use crate::{BindingKind, Expression, Node};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -42,7 +42,7 @@ pub struct ArrayPattern {
 pub struct RestElement {
     #[serde(flatten)]
     pub node: Node,
-    pub argument: Pattern,
+    pub argument: BindingKind,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
