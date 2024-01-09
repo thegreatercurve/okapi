@@ -23,7 +23,6 @@ impl<'a> Parser<'a> {
                 KeywordKind::Try => self.parse_try_statement(),
                 KeywordKind::Switch => self.parse_switch_statement(),
                 KeywordKind::Debugger => self.parse_debugger_statement(),
-
                 _ => self.parse_expression_statement_or_labelled_statement(),
             },
             TokenKind::LeftCurlyBrace => self.parse_block_statement(),
