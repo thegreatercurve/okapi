@@ -66,15 +66,15 @@ impl<'a> Parser<'a> {
         self.current_token.kind.clone()
     }
 
-    pub(crate) fn current_token_value(&self) -> String {
+    fn current_token_value(&self) -> String {
         self.current_token.value.clone().unwrap_or_default()
     }
 
-    pub(crate) fn unexpected_current_token_kind(&self) -> ParserError {
+    fn unexpected_current_token_kind(&self) -> ParserError {
         ParserError::UnexpectedToken(self.current_token_kind())
     }
 
-    pub(crate) fn advance(&mut self) {
+    fn advance(&mut self) {
         self.current_token = self.next_token.clone();
         self.next_token = self.lexer.next_token();
     }
@@ -89,7 +89,7 @@ impl<'a> Parser<'a> {
         Err(self.unexpected_current_token_kind())
     }
 
-    pub(crate) fn expect_one_of_and_advance(
+    fn expect_one_of_and_advance(
         &mut self,
         token_kinds: Vec<TokenKind>,
     ) -> Result<(), ParserError> {
@@ -149,7 +149,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingList
-    pub(crate) fn parse_binding_list(&mut self) -> Result<Vec<VariableDeclarator>, ParserError> {
+    fn parse_binding_list(&mut self) -> Result<Vec<VariableDeclarator>, ParserError> {
         let mut declarations = vec![self.parse_binding_identifier_or_binding_pattern()?];
 
         self.expect_and_advance(TokenKind::Identifier)?; // Eat first identifier token.
@@ -168,7 +168,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-LexicalBinding
-    pub(crate) fn parse_binding_identifier_or_binding_pattern(
+    fn parse_binding_identifier_or_binding_pattern(
         &mut self,
     ) -> Result<VariableDeclarator, ParserError> {
         let current_token_kind = self.current_token_kind();
@@ -194,7 +194,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
-    pub(crate) fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
+    fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
         let node = self.start_node();
 
         let name = match self.current_token_kind() {
@@ -211,7 +211,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-ObjectBindingPattern
-    pub(crate) fn parse_object_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
+    fn parse_object_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
         let node = self.start_node();
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?; // Eat `{` token.
@@ -239,7 +239,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-ArrayBindingPattern
-    pub(crate) fn parse_array_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
+    fn parse_array_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
         let node = self.start_node();
 
         self.expect_and_advance(TokenKind::LeftSquareBracket)?; // Eat `[` token.
@@ -253,7 +253,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingRestProperty
-    pub(crate) fn parse_binding_rest_property(&mut self) -> Result<RestElement, ParserError> {
+    fn parse_binding_rest_property(&mut self) -> Result<RestElement, ParserError> {
         let node = self.start_node();
 
         self.expect_and_advance(TokenKind::Ellipsis)?; // Eat `...` token.
@@ -267,24 +267,24 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingPropertyList
-    pub(crate) fn parse_binding_property_list(&mut self) -> Result<BindingKind, ParserError> {
+    fn parse_binding_property_list(&mut self) -> Result<BindingKind, ParserError> {
         self.parse_binding_property()?;
 
         todo!()
     }
 
     // https://tc39.es/ecma262/#prod-BindingProperty
-    pub(crate) fn parse_binding_property(&mut self) -> Result<BindingKind, ParserError> {
+    fn parse_binding_property(&mut self) -> Result<BindingKind, ParserError> {
         todo!()
     }
 
     // https://tc39.es/ecma262/#prod-PropertyName
-    pub(crate) fn parse_property_name(&mut self) -> Result<(), ParserError> {
+    fn parse_property_name(&mut self) -> Result<(), ParserError> {
         todo!()
     }
 
     // https://tc39.es/ecma262/#prod-Initializer
-    pub(crate) fn parse_initializer(&mut self) -> Result<(), ParserError> {
+    fn parse_initializer(&mut self) -> Result<(), ParserError> {
         todo!()
     }
 }
