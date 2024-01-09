@@ -1,9 +1,5 @@
 use crate::{tokens::Token, KeywordKind, Lexer, ParserError, TokenKind};
-use hippo_estree::{
-    ArrayPattern, BindingKind, DebuggerStatement, Declaration, Identifier, Node, ObjectPattern,
-    Program, ProgramBody, ProgramSourceTypes, RestElement, Statement, VariableDeclaration,
-    VariableDeclarator, VariableKind,
-};
+use hippo_estree::*;
 
 fn is_lexical_declaration(token: &TokenKind) -> bool {
     match token {
@@ -50,11 +46,12 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&mut self) -> Program {
+        // TODO Parse parser statement of declaration.
         let program_body = self.parse_statement().unwrap();
 
         Program {
             body: vec![ProgramBody::Statement(program_body)],
-            source_type: ProgramSourceTypes::Script,
+            source_type: ProgramSourceTypes::Module,
             node: Node::new(0, self.lexer.len()),
         }
     }
@@ -65,24 +62,24 @@ impl<'a> Parser<'a> {
         serde_json::to_string(&program)
     }
 
-    fn current_token_kind(&self) -> TokenKind {
+    pub(crate) fn current_token_kind(&self) -> TokenKind {
         self.current_token.kind.clone()
     }
 
-    fn current_token_value(&self) -> String {
+    pub(crate) fn current_token_value(&self) -> String {
         self.current_token.value.clone().unwrap_or_default()
     }
 
-    fn unexpected_current_token_kind(&self) -> ParserError {
+    pub(crate) fn unexpected_current_token_kind(&self) -> ParserError {
         ParserError::UnexpectedToken(self.current_token_kind())
     }
 
-    fn advance(&mut self) {
+    pub(crate) fn advance(&mut self) {
         self.current_token = self.next_token.clone();
         self.next_token = self.lexer.next_token();
     }
 
-    fn expect_and_advance(&mut self, token_kind: TokenKind) -> Result<(), ParserError> {
+    pub(crate) fn expect_and_advance(&mut self, token_kind: TokenKind) -> Result<(), ParserError> {
         if self.current_token_kind() == token_kind {
             self.advance();
 
@@ -92,7 +89,7 @@ impl<'a> Parser<'a> {
         Err(self.unexpected_current_token_kind())
     }
 
-    fn expect_one_of_and_advance(
+    pub(crate) fn expect_one_of_and_advance(
         &mut self,
         token_kinds: Vec<TokenKind>,
     ) -> Result<(), ParserError> {
@@ -107,33 +104,18 @@ impl<'a> Parser<'a> {
         Err(self.unexpected_current_token_kind())
     }
 
-    fn start_node(&mut self) -> Node {
+    pub(crate) fn start_node(&mut self) -> Node {
         let token = &self.current_token;
 
         Node::new(token.start, 0)
     }
 
-    fn finish_node(&mut self, node: &Node) -> Node {
+    pub(crate) fn finish_node(&mut self, node: &Node) -> Node {
         Node::new(node.loc.start, self.current_token.end)
     }
 
-    // Statements
-
-    fn parse_statement(&mut self) -> Result<Statement, ParserError> {
-        match self.current_token_kind() {
-            TokenKind::Keyword(keyword) => match keyword {
-                KeywordKind::Debugger => self.parse_debugger_statement(),
-                KeywordKind::Let | KeywordKind::Const | KeywordKind::Var => {
-                    self.parse_lexical_declaration()
-                }
-                _ => return Err(ParserError::UnexpectedToken(self.current_token_kind())),
-            },
-            _ => return Err(ParserError::UnexpectedToken(self.current_token_kind())),
-        }
-    }
-
     // https://tc39.es/ecma262/#sec-let-and-const-declarations
-    fn parse_lexical_declaration(&mut self) -> Result<Statement, ParserError> {
+    pub(crate) fn parse_lexical_declaration(&mut self) -> Result<Statement, ParserError> {
         let start_node = self.start_node();
 
         let kind = match self.current_token_kind() {
@@ -167,14 +149,10 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingList
-    fn parse_binding_list(&mut self) -> Result<Vec<VariableDeclarator>, ParserError> {
+    pub(crate) fn parse_binding_list(&mut self) -> Result<Vec<VariableDeclarator>, ParserError> {
         let mut declarations = vec![self.parse_binding_identifier_or_binding_pattern()?];
 
-        self.expect_one_of_and_advance(vec![
-            TokenKind::Identifier,
-            TokenKind::LeftCurlyBrace,
-            TokenKind::LeftSquareBracket,
-        ])?; // Eat first identifier token.
+        self.expect_and_advance(TokenKind::Identifier)?; // Eat first identifier token.
 
         while self.current_token_kind() == TokenKind::Comma {
             self.expect_and_advance(TokenKind::Comma)?; // Eat `,` token.
@@ -190,7 +168,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-LexicalBinding
-    fn parse_binding_identifier_or_binding_pattern(
+    pub(crate) fn parse_binding_identifier_or_binding_pattern(
         &mut self,
     ) -> Result<VariableDeclarator, ParserError> {
         let current_token_kind = self.current_token_kind();
@@ -216,7 +194,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
-    fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
+    pub(crate) fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
         let node = self.start_node();
 
         let name = match self.current_token_kind() {
@@ -233,7 +211,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-ObjectBindingPattern
-    fn parse_object_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
+    pub(crate) fn parse_object_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
         let node = self.start_node();
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?; // Eat `{` token.
@@ -243,13 +221,11 @@ impl<'a> Parser<'a> {
         let mut current_token_kind = self.current_token_kind();
 
         while current_token_kind != TokenKind::RightCurlyBrace {
-            match current_token_kind {
-                TokenKind::Ellipsis => self.parse_binding_rest_property()?,
-                TokenKind::RightCurlyBrace => self.parse_binding_rest_property()?,
-                _ => return Err(self.unexpected_current_token_kind()),
-            };
-
-            self.advance(); // East nested identifier token.
+            if current_token_kind == TokenKind::Ellipsis {
+                self.parse_binding_rest_property()?;
+            } else {
+                self.parse_binding_property_list()?;
+            }
 
             current_token_kind = self.current_token_kind();
         }
@@ -263,7 +239,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-ArrayBindingPattern
-    fn parse_array_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
+    pub(crate) fn parse_array_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
         let node = self.start_node();
 
         self.expect_and_advance(TokenKind::LeftSquareBracket)?; // Eat `[` token.
@@ -277,7 +253,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingRestProperty
-    fn parse_binding_rest_property(&mut self) -> Result<RestElement, ParserError> {
+    pub(crate) fn parse_binding_rest_property(&mut self) -> Result<RestElement, ParserError> {
         let node = self.start_node();
 
         self.expect_and_advance(TokenKind::Ellipsis)?; // Eat `...` token.
@@ -290,15 +266,25 @@ impl<'a> Parser<'a> {
         })
     }
 
-    // 14.16 The `debugger` Statement
-    // https://tc39.github.io/ecma262/#sec-debugger-statement
-    fn parse_debugger_statement(&mut self) -> Result<Statement, ParserError> {
-        let node = self.start_node();
+    // https://tc39.es/ecma262/#prod-BindingPropertyList
+    pub(crate) fn parse_binding_property_list(&mut self) -> Result<BindingKind, ParserError> {
+        self.parse_binding_property()?;
 
-        self.expect_and_advance(TokenKind::Keyword(KeywordKind::Debugger))?; // Eat `...` token.
+        todo!()
+    }
 
-        Ok(Statement::Debugger(DebuggerStatement {
-            node: self.finish_node(&node),
-        }))
+    // https://tc39.es/ecma262/#prod-BindingProperty
+    pub(crate) fn parse_binding_property(&mut self) -> Result<BindingKind, ParserError> {
+        todo!()
+    }
+
+    // https://tc39.es/ecma262/#prod-PropertyName
+    pub(crate) fn parse_property_name(&mut self) -> Result<(), ParserError> {
+        todo!()
+    }
+
+    // https://tc39.es/ecma262/#prod-Initializer
+    pub(crate) fn parse_initializer(&mut self) -> Result<(), ParserError> {
+        todo!()
     }
 }
