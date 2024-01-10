@@ -1,22 +1,9 @@
 use crate::{Lexer, Token, TokenKind};
 
+// 12.8 Punctuators
+// https://tc39.es/ecma262/#sec-punctuators
 impl<'a> Lexer<'a> {
-    // https://tc39.es/ecma262/#sec-punctuators
-    // 12.8 Punctuators
-    // ```text
-    // Punctuator ::
-    //   OptionalChainingPunctuator
-    //   OtherPunctuator
-    // OptionalChainingPunctuator ::
-    //   ?. [lookahead ∉ DecimalDigit]
-    // OtherPunctuator :: one of
-    //   { ( ) [ ] . ... ; , < > <= >= == != === !== + - * % ** ++ -- << >> >>> & | ^ ! ~ && || ?? ? : = += -= *= %= **= <<= >>= >>>= &= |= ^= &&= ||= ??= =>
-    // DivPunctuator ::
-    //   /
-    //   /=
-    // RightBracePunctuator ::
-    //   }
-    // ```
+    // https://tc39.es/ecma262/#prod-Punctuator
     pub(crate) fn scan_punctuator(&mut self) -> Token {
         let start_index = self.read_index;
 

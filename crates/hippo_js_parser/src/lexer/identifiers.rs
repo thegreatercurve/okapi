@@ -4,36 +4,10 @@ use crate::{KeywordKind, Lexer, ParserError, Token, TokenKind};
 
 use super::utils::is_identifier_part;
 
+// 12.7 Names and Keywords
+// https://tc39.es/ecma262/#sec-names-and-keywords
 impl<'a> Lexer<'a> {
     // https://tc39.es/ecma262/#sec-names-and-keywords
-    // 12.7 Names and Keywords
-    // ```text
-    // PrivateIdentifier ::
-    //   # IdentifierName
-    //
-    // IdentifierName ::
-    //   IdentifierStart
-    //   IdentifierName IdentifierPart
-    //
-    // IdentifierStart ::
-    //   IdentifierStartChar
-    //   \ UnicodeEscapeSequence
-    //
-    // IdentifierPart ::
-    //   IdentifierPartChar
-    //   \ UnicodeEscapeSequence
-    //
-    // IdentifierStartChar ::
-    //   UnicodeIDStart
-    //   $
-    //   _
-    //
-    // IdentifierPartChar ::
-    //   UnicodeIDContinue
-    //   $
-    //   <ZWNJ>
-    //   <ZWJ>
-    // ```
     pub(crate) fn scan_identifier_name_or_keyword(&mut self) -> Token {
         let start_index = self.read_index;
 
@@ -107,12 +81,8 @@ impl<'a> Lexer<'a> {
         Ok(())
     }
 
-    // https://tc39.es/ecma262/#sec-keywords-and-reserved-words
+    // https://tc39.es/ecma262/#prod-ReservedWord
     // > Those that are contextually disallowed as identifiers, in strict mode code: let, static, implements, interface, package, private, protected, and public;
-    // ```text
-    // ReservedWord :: one of
-    //   await break case catch class const continue debugger default delete do else enum export extends false finally for function if import in instanceof new null return super switch this throw true try typeof var void while with yield
-    // ```
     fn match_reserved_keyword(&self, keyword_or_identifer: &str) -> Option<TokenKind> {
         match keyword_or_identifer {
             "await" => Some(TokenKind::Keyword(KeywordKind::Await)),
@@ -168,10 +138,6 @@ impl<'a> Lexer<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-PrivateIdentifier
-    // ```text
-    // PrivateIdentifier ::
-    //   # IdentifierName
-    // ```
     pub(crate) fn scan_private_identifier(&mut self) -> Token {
         let start_index = self.read_index;
 
