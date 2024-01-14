@@ -70,11 +70,11 @@ impl<'a> Parser<'a> {
         self.current_token.value.clone().unwrap_or_default()
     }
 
-    fn unexpected_current_token_kind(&self) -> ParserError {
+    pub(crate) fn unexpected_current_token_kind(&self) -> ParserError {
         ParserError::UnexpectedToken(self.current_token_kind())
     }
 
-    fn advance(&mut self) {
+    pub(crate) fn advance(&mut self) {
         self.current_token = self.next_token.clone();
         self.next_token = self.lexer.next_token();
     }
@@ -89,7 +89,7 @@ impl<'a> Parser<'a> {
         Err(self.unexpected_current_token_kind())
     }
 
-    fn expect_one_of_and_advance(
+    pub(crate) fn expect_one_of_and_advance(
         &mut self,
         token_kinds: Vec<TokenKind>,
     ) -> Result<(), ParserError> {
