@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parser_eq;
 
 #[test]
-fn assign_eval_member_or_computed_expr() {
+fn assign_eval_member_or_computed_expression() {
     assert_parser_eq!(
         r#"eval.foo = 10"#,
         r#"{"type":"Program","start":0,"end":13,"body":[{"type":"ExpressionStatement","start":0,"end":13,"expression":{"type":"AssignmentExpression","start":0,"end":13,"operator":"=","left":{"type":"MemberExpression","start":0,"end":8,"object":{"type":"Identifier","start":0,"end":4,"name":"eval"},"property":{"type":"Identifier","start":5,"end":8,"name":"foo"},"computed":false,"optional":false},"right":{"type":"Literal","start":11,"end":13,"value":10,"raw":"10"}}}],"sourceType":"script"}"#

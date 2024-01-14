@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parser_eq;
 
 #[test]
-fn async_arrow_expr() {
+fn async_arrow_expression() {
     assert_parser_eq!(
         r#"let a = async foo => {}"#,
         r#"{"type":"Program","start":0,"end":23,"body":[{"type":"VariableDeclaration","start":0,"end":23,"declarations":[{"type":"VariableDeclarator","start":4,"end":23,"id":{"type":"Identifier","start":4,"end":5,"name":"a"},"init":{"type":"ArrowFunctionExpression","start":8,"end":23,"id":null,"expression":false,"generator":false,"async":true,"params":[{"type":"Identifier","start":14,"end":17,"name":"foo"}],"body":{"type":"BlockStatement","start":21,"end":23,"body":[]}}}],"kind":"let"}],"sourceType":"script"}"#

@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parser_eq;
 
 #[test]
-fn object_expr() {
+fn object_expression() {
     assert_parser_eq!(
         r#"let a = {};"#,
         r#"{"type":"Program","start":0,"end":11,"body":[{"type":"VariableDeclaration","start":0,"end":11,"declarations":[{"type":"VariableDeclarator","start":4,"end":10,"id":{"type":"Identifier","start":4,"end":5,"name":"a"},"init":{"type":"ObjectExpression","start":8,"end":10,"properties":[]}}],"kind":"let"}],"sourceType":"script"}"#

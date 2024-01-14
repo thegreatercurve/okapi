@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parser_eq;
 
 #[test]
-fn this_expr() {
+fn this_expression() {
     assert_parser_eq!(
         r#"this"#,
         r#"{"type":"Program","start":0,"end":4,"body":[{"type":"ExpressionStatement","start":0,"end":4,"expression":{"type":"ThisExpression","start":0,"end":4}}],"sourceType":"script"}"#

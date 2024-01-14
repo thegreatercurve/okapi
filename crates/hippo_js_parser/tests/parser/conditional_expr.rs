@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parser_eq;
 
 #[test]
-fn conditional_expr() {
+fn conditional_expression() {
     assert_parser_eq!(
         r#"foo ? bar : baz"#,
         r#"{"type":"Program","start":0,"end":15,"body":[{"type":"ExpressionStatement","start":0,"end":15,"expression":{"type":"ConditionalExpression","start":0,"end":15,"test":{"type":"Identifier","start":0,"end":3,"name":"foo"},"consequent":{"type":"Identifier","start":6,"end":9,"name":"bar"},"alternate":{"type":"Identifier","start":12,"end":15,"name":"baz"}}}],"sourceType":"script"}"#

@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parser_eq;
 
 #[test]
-fn array_expr() {
+fn array_expression() {
     assert_parser_eq!(
         r#"[foo, bar];"#,
         r#"{"type":"Program","start":0,"end":11,"body":[{"type":"ExpressionStatement","start":0,"end":11,"expression":{"type":"ArrayExpression","start":0,"end":10,"elements":[{"type":"Identifier","start":1,"end":4,"name":"foo"},{"type":"Identifier","start":6,"end":9,"name":"bar"}]}}],"sourceType":"script"}"#

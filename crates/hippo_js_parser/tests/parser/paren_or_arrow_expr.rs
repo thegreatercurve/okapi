@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parser_eq;
 
 #[test]
-fn paren_or_arrow_expr() {
+fn paren_or_arrow_expression() {
     assert_parser_eq!(
         r#"(foo);"#,
         r#"{"type":"Program","start":0,"end":6,"body":[{"type":"ExpressionStatement","start":0,"end":6,"expression":{"type":"Identifier","start":1,"end":4,"name":"foo"}}],"sourceType":"script"}"#
