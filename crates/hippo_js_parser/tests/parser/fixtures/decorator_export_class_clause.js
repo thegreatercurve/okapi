@@ -1,4 +1,9 @@
-export @decorator class Bar {};
-export @first @second class Foo {
-    constructor() {}
+export
+@decorator
+class Bar {}
+export
+@firt
+@second
+class Foo {
+  contructor() {}
 }

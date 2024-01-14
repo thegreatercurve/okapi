@@ -1,4 +1,4 @@
 class foo {
- async foo() {}
- async *foo() {}
+  async foo() {}
+  async *foo() {}
 }

@@ -1,11 +1,11 @@
-foo.bar
-foo.await
-foo.yield
-foo.for
-foo?.for
-foo?.bar
+foo.bar;
+foo.await;
+foo.yield;
+foo.for;
+foo?.for;
+foo?.bar;
 class Test {
-  #bar
+  #bar;
   test(other) {
     this.#bar;
     this?.#bar;

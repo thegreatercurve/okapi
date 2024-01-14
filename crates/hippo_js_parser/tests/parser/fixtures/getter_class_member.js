@@ -1,13 +1,13 @@
-class Getters {
+class Getter {
   get foo() {}
   get static() {}
   static get bar() {}
-  get "baz"() {}
+  get baz() {}
   get ["a" + "b"]() {}
   get 5() {}
   get #private() {}
 }
-class NotGetters {
+class NotGetter {
   get() {}
   async get() {}
   static get() {}

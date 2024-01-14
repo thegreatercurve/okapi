@@ -1,6 +1,8 @@
 function foo() {
-     @decorator
-     class Foo { }
-     @first.field @second @(() => decorator)()
-     class Bar {}
+  @decorator
+  class Foo {}
+  @firt.field
+  @second
+  @((() => decorator)())
+  class Bar {}
 }

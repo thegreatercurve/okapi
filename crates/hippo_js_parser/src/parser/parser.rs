@@ -66,8 +66,16 @@ impl<'a> Parser<'a> {
         self.current_token.kind.clone()
     }
 
-    fn current_token_value(&self) -> String {
+    pub(crate) fn current_token_value(&self) -> String {
         self.current_token.value.clone().unwrap_or_default()
+    }
+
+    pub(crate) fn peek_token_kind(&self) -> TokenKind {
+        self.next_token.kind.clone()
+    }
+
+    pub(crate) fn peek_token_value(&self) -> String {
+        self.next_token.value.clone().unwrap_or_default()
     }
 
     pub(crate) fn unexpected_current_token_kind(&self) -> ParserError {

@@ -1,14 +1,14 @@
 class foo {
-  property
+  property;
   declare;
-  initializedProperty = "a"
-  "a";
-  5
-  ["a" + "b"]
-  static staticProperty
-  static staticInitializedProperty = 1
-  #private
-  #privateInitialized = "a"
-  static #staticPrivate
-  static #staticPrivateInitializedProperty = 1
+  initializedProperty = "a";
+  a;
+  5;
+  ["a" + "b"];
+  static staticProperty;
+  static staticInitializedProperty = 1;
+  #private;
+  #privateInitialized = "a";
+  static #staticPrivate;
+  static #staticPrivateInitializedProperty = 1;
 }

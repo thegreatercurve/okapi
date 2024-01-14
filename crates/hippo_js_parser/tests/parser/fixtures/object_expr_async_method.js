@@ -1,4 +1,4 @@
 let a = {
   async foo() {},
-  async *foo() {}
-}
+  async *foo() {},
+};

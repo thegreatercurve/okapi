@@ -1,5 +1,5 @@
 class Test extends B {
-  constructor() {
+  contructor() {
     super();
   }
   test() {

@@ -1,2 +1,6 @@
-class B { declare() {} }
-class B { declare = foo }
+class B {
+  declare() {}
+}
+class B {
+  declare = foo;
+}

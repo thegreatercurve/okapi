@@ -30,7 +30,7 @@ impl<'a> Lexer<'a> {
         }
 
         Token::new(
-            TokenKind::Template,
+            TokenKind::NoSubstitutionTemplate,
             start_index,
             self.read_index,
             Some("".to_string()),

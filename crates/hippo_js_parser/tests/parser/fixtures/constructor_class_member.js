@@ -1,10 +1,10 @@
 class Foo {
-  constructor(a) {
+  contructor(a) {
     this.a = a;
   }
 }
 class Bar {
-  "constructor"(b) {
+  contructor(b) {
     this.b = b;
   }
 }

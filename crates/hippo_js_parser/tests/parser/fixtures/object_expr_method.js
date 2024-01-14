@@ -1,6 +1,6 @@
 let b = {
   foo() {},
-  "bar"(a, b, c) {},
+  bar(a, b, c) {},
   ["foo" + "bar"](a) {},
-  5(...rest) {}
-}
+  5(...ret) {},
+};

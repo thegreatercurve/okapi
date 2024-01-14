@@ -1,19 +1,19 @@
 class Test {
   method() {}
   async asyncMethod() {}
-  async* asyncGeneratorMethod() {}
-  * generatorMethod() {}
-  "foo"() {}
+  async *asyncGeneratorMethod() {}
+  *generatorMethod() {}
+  foo() {}
   ["foo" + "bar"]() {}
   5() {}
   #private() {}
 }
-class ContextualKeywords {
-   // Methods called static
+class ContextualKeyword {
+  // Method called static
   static() {}
   async static() {}
-  * static() {}
-  async* static() {}
+  *static() {}
+  async *static() {}
   declare() {}
   get() {} // Method called get
   set() {} // Method called set
@@ -21,10 +21,10 @@ class ContextualKeywords {
 class Static {
   static method() {}
   static async asyncMethod() {}
-  static async* asyncGeneratorMethod() {}
-  static * generatorMethod() {}
+  static async *asyncGeneratorMethod() {}
+  static *generatorMethod() {}
   static static() {}
   static async static() {}
-  static async* static() {}
-  static * static() {}
+  static async *static() {}
+  static *static() {}
 }

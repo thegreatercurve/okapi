@@ -1,6 +1,6 @@
 while (true) {
   break;
   foo: {
-   break foo;
+    break foo;
   }
 }

@@ -1,4 +1,10 @@
 // SCRIPT
-function foo() { yield *bar; }
-function bar() { yield; }
-function baz() { yield }
+function foo() {
+  yield * bar;
+}
+function bar() {
+  yield;
+}
+function baz() {
+  yield;
+}

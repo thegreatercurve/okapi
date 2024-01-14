@@ -143,7 +143,10 @@ pub enum TokenKind {
     RightCurlyBrace,
 
     // Template Literals
-    Template,
+    NoSubstitutionTemplate,
+    TemplateHead,
+    TemplateMiddle,
+    TemplateTail,
 
     // Utility
     Illegal,
@@ -216,7 +219,10 @@ impl std::fmt::Display for TokenKind {
             TokenKind::Division => write!(f, "Division"),
             TokenKind::DivisionAssignment => write!(f, "DivisionAssignment"),
             TokenKind::RightCurlyBrace => write!(f, "RightCurlyBrace"),
-            TokenKind::Template => write!(f, "Template"),
+            TokenKind::NoSubstitutionTemplate => write!(f, "NoSubstitutionTemplate"),
+            TokenKind::TemplateHead => write!(f, "TemplateHead"),
+            TokenKind::TemplateMiddle => write!(f, "TemplateMiddle"),
+            TokenKind::TemplateTail => write!(f, "TemplateTail"),
             TokenKind::Illegal => write!(f, "Illegal"),
             TokenKind::EOF => write!(f, "EOF"),
         }

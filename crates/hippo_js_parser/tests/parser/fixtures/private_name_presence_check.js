@@ -1,6 +1,6 @@
 class A {
-	#prop;
-	test() {
-   #prop in this
- }
+  #prop;
+  test() {
+    #prop in this;
+  }
 }

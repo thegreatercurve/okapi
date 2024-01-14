@@ -2,16 +2,16 @@ let a = {
   get foo() {
     return foo;
   },
-  get "bar"() {
+  get bar() {
     return "bar";
   },
   get ["a" + "b"]() {
-    return "a" + "b"
+    return "a" + "b";
   },
   get 5() {
     return 5;
   },
   get() {
-   return "This is a method and not a getter";
-  }
-}
+    return "Thi i a method and not a getter";
+  },
+};

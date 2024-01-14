@@ -1,3 +1,7 @@
 ({} = {});
 ({ bar, baz } = {});
-({ bar: [baz = "baz"], foo = "foo", ...rest } = {});
+({
+  bar: [baz = "baz"],
+  foo = "foo",
+  ...ret
+} = {});
