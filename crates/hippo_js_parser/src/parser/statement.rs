@@ -67,9 +67,20 @@ impl<'a> Parser<'a> {
     fn parse_expression_statement_or_labelled_statement(
         &mut self,
     ) -> Result<Statement, ParserError> {
-        let _node = self.start_node();
+        let node = self.start_node();
 
-        todo!()
+        let expression = self.parse_expression()?;
+
+        if self.current_token_kind() == TokenKind::Colon {
+            todo!("parse_labelled_statement")
+        } else {
+            self.expect_and_advance(TokenKind::Semicolon)?;
+
+            Ok(Statement::Expression(ExpressionStatement {
+                node: self.finish_node(&node),
+                expression: expression,
+            }))
+        }
     }
 
     // https://tc39.es/ecma262/#prod-IfStatement
