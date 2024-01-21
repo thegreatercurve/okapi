@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parse_module_eq;
 
 #[test]
-fn do_while_stmt() {
+fn do_while_statement() {
     assert_parse_module_eq!(
         r#"do { } while (true)"#,
         r#"{"type":"Program","start":0,"end":19,"body":[{"type":"DoWhileStatement","start":0,"end":19,"body":{"type":"BlockStatement","start":3,"end":6,"body":[]},"test":{"type":"Literal","start":14,"end":18,"value":true,"raw":"true"}}],"sourceType":"script"}"#

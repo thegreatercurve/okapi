@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parse_module_eq;
 
 #[test]
-fn for_stmt() {
+fn for_statement() {
     assert_parse_module_eq!(
         r#"for (let i = 5; i < 10; i++) {}"#,
         r#"{"type":"Program","start":0,"end":31,"body":[{"type":"ForStatement","start":0,"end":31,"init":{"type":"VariableDeclaration","start":5,"end":14,"declarations":[{"type":"VariableDeclarator","start":9,"end":14,"id":{"type":"Identifier","start":9,"end":10,"name":"i"},"init":{"type":"Literal","start":13,"end":14,"value":5,"raw":"5"}}],"kind":"let"},"test":{"type":"BinaryExpression","start":16,"end":22,"left":{"type":"Identifier","start":16,"end":17,"name":"i"},"operator":"<","right":{"type":"Literal","start":20,"end":22,"value":10,"raw":"10"}},"update":{"type":"UpdateExpression","start":24,"end":27,"operator":"++","prefix":false,"argument":{"type":"Identifier","start":24,"end":25,"name":"i"}},"body":{"type":"BlockStatement","start":29,"end":31,"body":[]}}],"sourceType":"script"}"#

@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parse_module_eq;
 
 #[test]
-fn if_stmt() {
+fn if_statement() {
     assert_parse_module_eq!(
         r#"if (true) {} else {}"#,
         r#"{"type":"Program","start":0,"end":20,"body":[{"type":"IfStatement","start":0,"end":20,"test":{"type":"Literal","start":4,"end":8,"value":true,"raw":"true"},"consequent":{"type":"BlockStatement","start":10,"end":12,"body":[]},"alternate":{"type":"BlockStatement","start":18,"end":20,"body":[]}}],"sourceType":"script"}"#

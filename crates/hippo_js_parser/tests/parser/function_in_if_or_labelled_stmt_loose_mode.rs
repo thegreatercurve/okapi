@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parse_module_eq;
 
 #[test]
-fn function_in_if_or_labelled_stmt_loose_mode() {
+fn function_in_if_or_labelled_statement_loose_mode() {
     assert_parse_module_eq!(
         r#"// SCRIPT"#,
         r#"{"type":"Program","start":0,"end":9,"body":[],"sourceType":"script"}"#
