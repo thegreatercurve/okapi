@@ -282,15 +282,9 @@ impl<'a> Parser<'a> {
         while token_kind != TokenKind::RightSquareBracket {
             match token_kind {
                 TokenKind::Comma => {
-                    self.expect_and_advance(TokenKind::Comma)?;
-
                     elements.push(None);
-
-                    continue;
                 }
                 TokenKind::Ellipsis => {
-                    self.expect_and_advance(TokenKind::Ellipsis)?;
-
                     let node = self.start_node();
 
                     let assigment_expression = self.parse_assignment_expression()?;
@@ -301,8 +295,6 @@ impl<'a> Parser<'a> {
                             argument: assigment_expression,
                         },
                     ))));
-
-                    continue;
                 }
                 _ => {
                     let assigment_expression: Expression = self.parse_assignment_expression()?;

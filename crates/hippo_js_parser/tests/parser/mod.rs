@@ -1,3 +1,4 @@
+mod array_expression;
 mod common;
 mod debugger_statement;
 mod empty_statement;
