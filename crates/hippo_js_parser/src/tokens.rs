@@ -80,8 +80,6 @@ pub enum TokenKind {
     // Literals
     StringLiteral,
     NumberLiteral,
-    BooleanLiteral,
-    NullLiteral,
     BigIntLiteral,
     RegularExpressionLiteral,
 
@@ -163,8 +161,6 @@ impl std::fmt::Display for TokenKind {
             TokenKind::Identifier => write!(f, "Identifier"),
             TokenKind::StringLiteral => write!(f, "StringLiteral"),
             TokenKind::NumberLiteral => write!(f, "NumberLiteral"),
-            TokenKind::BooleanLiteral => write!(f, "StringLiteral"),
-            TokenKind::NullLiteral => write!(f, "StringLiteral"),
             TokenKind::BigIntLiteral => write!(f, "BigIntLiteral"),
             TokenKind::RegularExpressionLiteral => write!(f, "RegularExpressionLiteral"),
             TokenKind::OptionalChaining => write!(f, "OptionalChaining"),

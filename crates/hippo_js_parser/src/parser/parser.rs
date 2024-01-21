@@ -132,6 +132,17 @@ impl<'a> Parser<'a> {
         Err(self.unexpected_current_token_kind())
     }
 
+    pub(crate) fn possible_and_advance(
+        &mut self,
+        token_kind: TokenKind,
+    ) -> Result<(), ParserError> {
+        if self.current_token_kind() == token_kind {
+            self.advance();
+        }
+
+        return Ok(());
+    }
+
     pub(crate) fn start_token(&mut self) -> Token {
         self.current_token.clone()
     }
@@ -148,7 +159,7 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Let) => VariableKind::Let,
             TokenKind::Keyword(KeywordKind::Const) => VariableKind::Const,
             TokenKind::Keyword(KeywordKind::Var) => VariableKind::Var,
-            _ => return Err(ParserError::UnexpectedToken(self.current_token_kind())),
+            _ => return Err(self.unexpected_current_token_kind()),
         };
 
         if kind == VariableKind::Const {
@@ -165,6 +176,8 @@ impl<'a> Parser<'a> {
             // TODO Check const declarations have a valid identifier.
         }
 
+        self.possible_and_advance(TokenKind::Semicolon)?; // Eat `;` token.
+
         Ok(Statement::Declaration(Declaration::Variable(
             VariableDeclaration {
                 node: self.create_node(&start_token, &self.current_token),
@@ -178,17 +191,11 @@ impl<'a> Parser<'a> {
     fn parse_binding_list(&mut self) -> Result<Vec<VariableDeclarator>, ParserError> {
         let mut declarations = vec![self.parse_binding_identifier_or_binding_pattern()?];
 
-        self.expect_and_advance(TokenKind::Identifier)?; // Eat first identifier token.
-
         while self.current_token_kind() == TokenKind::Comma {
             self.expect_and_advance(TokenKind::Comma)?; // Eat `,` token.
 
             declarations.push(self.parse_binding_identifier_or_binding_pattern()?);
-
-            self.expect_and_advance(TokenKind::Identifier)?; // Eat identifier token.
         }
-
-        self.expect_and_advance(TokenKind::Semicolon)?;
 
         Ok(declarations)
     }
@@ -197,31 +204,35 @@ impl<'a> Parser<'a> {
     fn parse_binding_identifier_or_binding_pattern(
         &mut self,
     ) -> Result<VariableDeclarator, ParserError> {
+        let start_token: Token = self.start_token();
+
         let current_token_kind = self.current_token_kind();
 
         let binding_identifier = match current_token_kind {
             TokenKind::Identifier => self.parse_binding_identifier(),
             TokenKind::LeftCurlyBrace => self.parse_object_binding_pattern(),
             TokenKind::LeftSquareBracket => self.parse_array_binding_pattern(),
-            _ => Err(self.unexpected_current_token_kind()),
+            _ => return Err(self.unexpected_current_token_kind()),
         }?;
 
-        let node = match &binding_identifier {
-            BindingKind::Identifier(identifier) => identifier.node,
-            BindingKind::ObjectPattern(object_pattern) => object_pattern.node,
-            BindingKind::ArrayPattern(array_pattern) => array_pattern.node,
+        let initializer = if self.current_token_kind() == TokenKind::Assignment {
+            self.expect_and_advance(TokenKind::Assignment)?; // Eat `=` token.
+
+            Some(self.parse_expression()?)
+        } else {
+            None
         };
 
         Ok(VariableDeclarator {
-            node,
+            node: self.create_node(&start_token, &self.previous_token),
             id: binding_identifier,
-            init: None,
+            init: initializer,
         })
     }
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
     fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
-        let start_token = self.start_token();
+        let start_token: Token = self.start_token();
 
         let name = match self.current_token_kind() {
             TokenKind::Identifier => self.current_token_value(),
@@ -230,8 +241,14 @@ impl<'a> Parser<'a> {
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
+        self.expect_one_of_and_advance(vec![
+            TokenKind::Identifier,
+            TokenKind::Keyword(KeywordKind::Await),
+            TokenKind::Keyword(KeywordKind::Yield),
+        ])?; // Eat identifier token.
+
         Ok(BindingKind::Identifier(Identifier {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.previous_token),
             name: name,
         }))
     }

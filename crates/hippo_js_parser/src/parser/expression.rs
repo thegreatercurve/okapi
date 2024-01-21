@@ -208,10 +208,11 @@ impl<'a> Parser<'a> {
 
         match token_kind {
             TokenKind::Identifier => self.parse_identifier_reference(),
-            TokenKind::NullLiteral
-            | TokenKind::StringLiteral
+            TokenKind::StringLiteral
             | TokenKind::NumberLiteral
-            | TokenKind::BooleanLiteral => self.parse_literal(),
+            | TokenKind::Keyword(KeywordKind::Null)
+            | TokenKind::Keyword(KeywordKind::True)
+            | TokenKind::Keyword(KeywordKind::False) => self.parse_literal(),
             TokenKind::LeftSquareBracket => self.parse_array_literal(),
             TokenKind::LeftCurlyBrace => self.parse_object_literal(),
             _ => Err(self.unexpected_current_token_kind()),
@@ -224,20 +225,9 @@ impl<'a> Parser<'a> {
 
         let value = self.current_token_value();
 
-        self.expect_one_of_and_advance(vec![
-            TokenKind::NullLiteral,
-            TokenKind::StringLiteral,
-            TokenKind::NumberLiteral,
-            TokenKind::BooleanLiteral,
-        ])?;
-
         let node = self.create_node(&start_token, &self.current_token);
 
-        match self.current_token_kind() {
-            TokenKind::NullLiteral => Ok(Expression::Literal(Literal {
-                node,
-                value: LiteralValue::Null,
-            })),
+        let literal = match self.current_token_kind() {
             TokenKind::StringLiteral => Ok(Expression::Literal(Literal {
                 node,
                 value: LiteralValue::String(value),
@@ -246,12 +236,30 @@ impl<'a> Parser<'a> {
                 node,
                 value: LiteralValue::Number(value.parse::<f64>().unwrap()),
             })),
-            TokenKind::BooleanLiteral => Ok(Expression::Literal(Literal {
+            TokenKind::Keyword(KeywordKind::Null) => Ok(Expression::Literal(Literal {
                 node,
-                value: LiteralValue::Boolean(value.parse::<bool>().unwrap()),
+                value: LiteralValue::Null,
+            })),
+            TokenKind::Keyword(KeywordKind::True) => Ok(Expression::Literal(Literal {
+                node,
+                value: LiteralValue::Boolean(true),
+            })),
+            TokenKind::Keyword(KeywordKind::False) => Ok(Expression::Literal(Literal {
+                node,
+                value: LiteralValue::Boolean(false),
             })),
             _ => Err(self.unexpected_current_token_kind()),
-        }
+        };
+
+        self.expect_one_of_and_advance(vec![
+            TokenKind::StringLiteral,
+            TokenKind::NumberLiteral,
+            TokenKind::Keyword(KeywordKind::Null),
+            TokenKind::Keyword(KeywordKind::True),
+            TokenKind::Keyword(KeywordKind::False),
+        ])?;
+
+        literal
     }
 
     // https://tc39.es/ecma262/#prod-ArrayLiteral
@@ -324,13 +332,13 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
 
-        let mut properties = self.parse_property_definition_list()?;
+        let properties = self.parse_property_definition_list()?;
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Expression::Object(ObjectExpression {
             node: self.create_node(&start_token, &self.previous_token),
-            properties: vec![],
+            properties,
         }))
     }
 
@@ -359,12 +367,20 @@ impl<'a> Parser<'a> {
     fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperties, ParserError> {
         let start_token = self.start_token();
 
-        let current_token_kind = self.current_token_kind();
-
         match self.current_token_kind() {
-            // TokenKind::Identifier => Ok(ObjectExpressionProperties::Property(
-            //     self.parse_identifier_reference(),
-            // )),
+            // TokenKind::Identifier => {
+            //     let identifier_reference = self.parse_identifier_reference()?;
+
+            //     Ok(ObjectExpressionProperties::Property(Property {
+            //         node: self.create_node(&start_token, &self.previous_token),
+            //         key: PropertyKey::Identifier,
+            //         value: Box::new(identifier_reference),
+            //         kind: PropertyKind::Init,
+            //         method: todo!(),
+            //         shorthand: todo!(),
+            //         computed: todo!(),
+            //     }))
+            // }
             _ => Err(self.unexpected_current_token_kind()),
         }
     }

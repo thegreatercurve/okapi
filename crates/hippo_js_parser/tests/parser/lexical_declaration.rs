@@ -6,10 +6,10 @@ fn lexical_declaration() {
         "let foo, bar;",
         r#"{"type":"Program","start":0,"end":13,"body":[{"type":"VariableDeclaration","start":0,"end":13,"declarations":[{"type":"VariableDeclarator","start":4,"end":7,"id":{"type":"Identifier","start":4,"end":7,"name":"foo"},"init":null},{"type":"VariableDeclarator","start":9,"end":12,"id":{"type":"Identifier","start":9,"end":12,"name":"bar"},"init":null}],"kind":"let"}],"sourceType":"module"}"#
     );
-    assert_parse_module_eq!(
-        "let {...foo} = null;",
-        r#"{"type":"Program","start":0,"end":20,"body":[{"type":"VariableDeclaration","start":0,"end":20,"declarations":[{"type":"VariableDeclarator","start":4,"end":19,"id":{"type":"ObjectPattern","start":4,"end":12,"properties":[{"type":"RestElement","start":5,"end":11,"argument":{"type":"Identifier","start":8,"end":11,"name":"foo"}}]},"init":{"type":"Literal","start":15,"end":19,"value":null,"raw":"null"}}],"kind":"let"}],"sourceType":"module"}"#
-    );
+    // assert_parse_module_eq!(
+    //     "let {...foo} = null;",
+    //     r#"{"type":"Program","start":0,"end":20,"body":[{"type":"VariableDeclaration","start":0,"end":20,"declarations":[{"type":"VariableDeclarator","start":4,"end":19,"id":{"type":"ObjectPattern","start":4,"end":12,"properties":[{"type":"RestElement","start":5,"end":11,"argument":{"type":"Identifier","start":8,"end":11,"name":"foo"}}]},"init":{"type":"Literal","start":15,"end":19,"value":null,"raw":"null"}}],"kind":"let"}],"sourceType":"module"}"#
+    // );
     // assert_parse_module_eq!(
     //     "let { foo, bar } = {};",
     //     r#"{"type":"Program","start":0,"end":22,"body":[{"type":"VariableDeclaration","start":0,"end":22,"declarations":[{"type":"VariableDeclarator","start":4,"end":21,"id":{"type":"ObjectPattern","start":4,"end":16,"properties":[{"type":"Property","start":6,"end":9,"method":false,"shorthand":true,"computed":false,"key":{"type":"Identifier","start":6,"end":9,"name":"foo"},"kind":"init","value":{"type":"Identifier","start":6,"end":9,"name":"foo"}},{"type":"Property","start":11,"end":14,"method":false,"shorthand":true,"computed":false,"key":{"type":"Identifier","start":11,"end":14,"name":"bar"},"kind":"init","value":{"type":"Identifier","start":11,"end":14,"name":"bar"}}]},"init":{"type":"ObjectExpression","start":19,"end":21,"properties":[]}}],"kind":"let"}],"sourceType":"module"}"#

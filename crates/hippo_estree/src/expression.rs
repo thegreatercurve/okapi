@@ -84,17 +84,22 @@ pub struct Property {
     pub node: Node,
     pub key: PropertyKey,
     pub value: Box<Expression>,
-    pub kind: ProprtyKind,
+    pub kind: PropertyKind,
+    pub method: bool,
+    pub shorthand: bool,
+    pub computed: bool,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum PropertyKey {
-    Literal,
-    Identifier,
+    Literal(Literal),
+    Identifier(Identifier),
+    Expression(Expression),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub enum ProprtyKind {
+pub enum PropertyKind {
     Init,
     Get,
     Set,
