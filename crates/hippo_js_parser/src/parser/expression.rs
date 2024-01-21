@@ -275,11 +275,11 @@ impl<'a> Parser<'a> {
     ) -> Result<Vec<Option<Box<MemberExpressionElements>>>, ParserError> {
         let mut elements = vec![];
 
-        let token_kind = self.current_token_kind();
-
-        while token_kind != TokenKind::RightSquareBracket {
-            match token_kind {
+        while self.current_token_kind() != TokenKind::RightSquareBracket {
+            match self.current_token_kind() {
                 TokenKind::Comma => {
+                    self.advance(); // Eat the , token.
+
                     elements.push(None);
 
                     continue;
@@ -287,23 +287,22 @@ impl<'a> Parser<'a> {
                 TokenKind::Ellipsis => {
                     let start_token = self.start_token();
 
-                    let assigment_expression = self.parse_assignment_expression()?;
+                    self.advance(); // Eat the ... token.
+
+                    let assigment_expression: Expression = self.parse_assignment_expression()?;
 
                     elements.push(Some(Box::new(MemberExpressionElements::SpreadElement(
                         SpreadElement {
-                            node: self.create_node(&start_token, &self.current_token),
+                            node: self.create_node(&start_token, &self.previous_token),
                             argument: assigment_expression,
                         },
                     ))));
                 }
                 _ => {
-                    // TODO hook up assignment expression.
-
-                    // let assigment_expression: Expression = self.parse_assignment_expression()?;
-                    let temp_identifier = self.parse_identifier_reference()?;
+                    let assigment_expression: Expression = self.parse_assignment_expression()?;
 
                     elements.push(Some(Box::new(MemberExpressionElements::Expression(
-                        temp_identifier,
+                        assigment_expression,
                     ))));
                 }
             };
