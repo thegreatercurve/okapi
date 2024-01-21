@@ -80,6 +80,8 @@ pub enum TokenKind {
     // Literals
     StringLiteral,
     NumberLiteral,
+    BooleanLiteral,
+    NullLiteral,
     BigIntLiteral,
     RegularExpressionLiteral,
 
@@ -161,6 +163,8 @@ impl std::fmt::Display for TokenKind {
             TokenKind::Identifier => write!(f, "Identifier"),
             TokenKind::StringLiteral => write!(f, "StringLiteral"),
             TokenKind::NumberLiteral => write!(f, "NumberLiteral"),
+            TokenKind::BooleanLiteral => write!(f, "StringLiteral"),
+            TokenKind::NullLiteral => write!(f, "StringLiteral"),
             TokenKind::BigIntLiteral => write!(f, "BigIntLiteral"),
             TokenKind::RegularExpressionLiteral => write!(f, "RegularExpressionLiteral"),
             TokenKind::OptionalChaining => write!(f, "OptionalChaining"),
@@ -228,70 +232,3 @@ impl std::fmt::Display for TokenKind {
         }
     }
 }
-
-impl TokenKind {}
-
-// impl TokenType {
-//     pub fn to_str(&self) -> &str {
-//         match self {
-//             TokenType::OptionalChaining => "?.",
-//             TokenType::LeftCurlyBrace => "{",
-//             TokenType::LeftParenthesis => "(",
-//             TokenType::RightParenthesis => ")",
-//             TokenType::LeftSquareBracket => "[",
-//             TokenType::RightSquareBracket => "]",
-//             TokenType::Dot => ".",
-//             TokenType::Ellipsis => "...",
-//             TokenType::Semicolon => ";",
-//             TokenType::Comma => ",",
-//             TokenType::LessThan => "<",
-//             TokenType::GreaterThan => ">",
-//             TokenType::LessThanOrEqual => "<=",
-//             TokenType::GreaterThanOrEqual => ">=",
-//             TokenType::Equal => "==",
-//             TokenType::NotEqual => "!=",
-//             TokenType::StrictEqual => "===",
-//             TokenType::StrictNotEqual => "!==",
-//             TokenType::Addition => "+",
-//             TokenType::Subtraction => "-",
-//             TokenType::Multiplication => "*",
-//             TokenType::Modulus => "%",
-//             TokenType::Exponentiation => "**",
-//             TokenType::Increment => "++",
-//             TokenType::Decrement => "--",
-//             TokenType::LeftShift => "<<",
-//             TokenType::RightShift => ">>",
-//             TokenType::UnsignedRightShift => ">>>",
-//             TokenType::BitwiseAnd => "&",
-//             TokenType::BitwiseOr => "|",
-//             TokenType::BitwiseXor => "^",
-//             TokenType::LogicalNot => "!",
-//             TokenType::BitwiseNot => "~",
-//             TokenType::LogicalAnd => "&&",
-//             TokenType::LogicalOr => "||",
-//             TokenType::NullishCoalescing => "??",
-//             TokenType::QuestionMark => "?",
-//             TokenType::Colon => ":",
-//             TokenType::Assignment => "=",
-//             TokenType::PlusAssignment => "+=",
-//             TokenType::MinusAssignment => "-=",
-//             TokenType::MultiplyAssignment => "*=",
-//             TokenType::ModulusAssignment => "%=",
-//             TokenType::ExponentiationAssignment => "**=",
-//             TokenType::LeftShiftAssignment => "<<=",
-//             TokenType::RightShiftAssignment => ">>=",
-//             TokenType::UnsignedRightShiftAssignment => ">>>=",
-//             TokenType::BitwiseAndAssignment => "&=",
-//             TokenType::BitwiseOrAssignment => "|=",
-//             TokenType::BitwiseXorAssignment => "^=",
-//             TokenType::LogicalAndAssignment => "&&=",
-//             TokenType::LogicalOrAssignment => "||=",
-//             TokenType::NullishCoalescingAssignment => "??=",
-//             TokenType::ArrowFunction => "=>",
-//             TokenType::Division =>: "/",
-//             TokenType::DivisionAssignment => "/=",
-//             TokenType::RightCurlyBrace =>": "}"
-//             _ => "",
-//         }
-//     }
-// }

@@ -184,10 +184,21 @@ impl<'a> Parser<'a> {
 
     // 13.1 Identifiers
     // https://tc39.es/ecma262/#prod-IdentifierReference
-    fn parse_identifier(&mut self) -> Result<Expression, ParserError> {
+    fn parse_identifier_reference(&mut self) -> Result<Expression, ParserError> {
         let node = self.start_node();
 
-        todo!()
+        let value = self.current_token_value();
+
+        self.expect_one_of_and_advance(vec![
+            TokenKind::Identifier,
+            TokenKind::Keyword(KeywordKind::Await),
+            TokenKind::Keyword(KeywordKind::Yield),
+        ])?;
+
+        Ok(Expression::Identifier {
+            node: self.finish_node(&node),
+            name: value,
+        })
     }
 
     // 13.2 Primary Expression
@@ -198,10 +209,117 @@ impl<'a> Parser<'a> {
         let token_kind = self.current_token_kind();
 
         match token_kind {
-            TokenKind::Identifier => self.parse_identifier(),
+            TokenKind::Identifier => self.parse_identifier_reference(),
+            TokenKind::NullLiteral
+            | TokenKind::StringLiteral
+            | TokenKind::NumberLiteral
+            | TokenKind::BooleanLiteral => self.parse_literal(),
+            TokenKind::LeftSquareBracket => self.parse_array_literal(),
             _ => Err(self.unexpected_current_token_kind()),
         }
     }
+
+    // https://tc39.es/ecma262/#prod-Literal
+    fn parse_literal(&mut self) -> Result<Expression, ParserError> {
+        let node = self.start_node();
+
+        let value = self.current_token_value();
+
+        self.expect_one_of_and_advance(vec![
+            TokenKind::NullLiteral,
+            TokenKind::StringLiteral,
+            TokenKind::NumberLiteral,
+            TokenKind::BooleanLiteral,
+        ])?;
+
+        let node = self.finish_node(&node);
+
+        match self.current_token_kind() {
+            TokenKind::NullLiteral => Ok(Expression::Literal(Literal {
+                node,
+                value: LiteralValue::Null,
+            })),
+            TokenKind::StringLiteral => Ok(Expression::Literal(Literal {
+                node,
+                value: LiteralValue::String(value),
+            })),
+            TokenKind::NumberLiteral => Ok(Expression::Literal(Literal {
+                node,
+                value: LiteralValue::Number(value.parse::<f64>().unwrap()),
+            })),
+            TokenKind::BooleanLiteral => Ok(Expression::Literal(Literal {
+                node,
+                value: LiteralValue::Boolean(value.parse::<bool>().unwrap()),
+            })),
+            _ => Err(self.unexpected_current_token_kind()),
+        }
+    }
+
+    // https://tc39.es/ecma262/#prod-ArrayLiteral
+    fn parse_array_literal(&mut self) -> Result<Expression, ParserError> {
+        let node = self.start_node();
+
+        self.expect_and_advance(TokenKind::LeftSquareBracket)?;
+
+        let element_list = self.parse_element_list()?;
+
+        self.expect_and_advance(TokenKind::RightSquareBracket)?;
+
+        Ok(Expression::ArrayExpression {
+            node: self.finish_node(&node),
+            elements: element_list,
+        })
+    }
+
+    // https://tc39.es/ecma262/#prod-ElementList
+    fn parse_element_list(
+        &mut self,
+    ) -> Result<Vec<Option<Box<MemberExpressionElements>>>, ParserError> {
+        let mut elements = vec![];
+
+        let token_kind = self.current_token_kind();
+
+        while token_kind != TokenKind::RightSquareBracket {
+            match token_kind {
+                TokenKind::Comma => {
+                    self.expect_and_advance(TokenKind::Comma)?;
+
+                    elements.push(None);
+
+                    continue;
+                }
+                TokenKind::Ellipsis => {
+                    self.expect_and_advance(TokenKind::Ellipsis)?;
+
+                    let node = self.start_node();
+
+                    let assigment_expression = self.parse_assignment_expression()?;
+
+                    elements.push(Some(Box::new(MemberExpressionElements::SpreadElement(
+                        SpreadElement {
+                            node: self.finish_node(&node),
+                            argument: assigment_expression,
+                        },
+                    ))));
+
+                    continue;
+                }
+                _ => {
+                    let assigment_expression: Expression = self.parse_assignment_expression()?;
+
+                    elements.push(Some(Box::new(MemberExpressionElements::Expression(
+                        assigment_expression,
+                    ))));
+                }
+            };
+
+            self.advance();
+        }
+
+        Ok(elements)
+    }
+
+    // https://tc39.es/ecma262/#prod-ObjectLiteral
 
     // 13.3 Left-Hand-Side Expressions
     // https://tc39.es/ecma262/#prod-LeftHandSideExpression
@@ -682,8 +800,6 @@ impl<'a> Parser<'a> {
     // 13.15 Assignment Operators
     // https://tc39.es/ecma262/#prod-AssignmentExpression
     fn parse_assignment_expression(&mut self) -> Result<Expression, ParserError> {
-        let node = self.start_node();
-
         let left = self.parse_conditional_expression()?;
 
         Ok(left)

@@ -1,4 +1,5 @@
-use crate::{FunctionBody, MetaProperty, Node, TaggedTemplateExpression, TemplateLiteral};
+use crate::{FunctionBody, Literal, MetaProperty, Node, TaggedTemplateExpression, TemplateLiteral};
+
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -104,9 +105,18 @@ pub enum Expression {
         argument: Option<Box<Expression>>,
         delegate: bool,
     },
+
+    Identifier {
+        #[serde(flatten)]
+        node: Node,
+        name: String,
+    },
+
     TemplateLiteral(TemplateLiteral),
     TaggedTemplate(TaggedTemplateExpression),
     MetaProperty(MetaProperty),
+
+    Literal(Literal),
 
     // ES2017
     AwaitExpression {

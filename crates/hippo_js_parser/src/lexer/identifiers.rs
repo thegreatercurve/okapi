@@ -25,7 +25,25 @@ impl<'a> Lexer<'a> {
         let keyword_or_identifer_name = &self.source_str[start_index..self.read_index];
 
         match self.match_reserved_keyword(keyword_or_identifer_name) {
-            Some(keyword_token) => Token::new(keyword_token, start_index, self.read_index, None),
+            Some(keyword_token) => match keyword_token {
+                // https://tc39.es/ecma262/#prod-BooleanLiteral
+                TokenKind::Keyword(KeywordKind::True) | TokenKind::Keyword(KeywordKind::False) => {
+                    Token::new(
+                        TokenKind::BooleanLiteral,
+                        start_index,
+                        self.read_index,
+                        None,
+                    )
+                }
+                // https://tc39.es/ecma262/#sec-null-literals
+                TokenKind::Keyword(KeywordKind::Null) => Token::new(
+                    TokenKind::BooleanLiteral,
+                    start_index,
+                    self.read_index,
+                    None,
+                ),
+                _ => Token::new(keyword_token, start_index, self.read_index, None),
+            },
             None => Token::new(
                 TokenKind::Identifier,
                 start_index,
