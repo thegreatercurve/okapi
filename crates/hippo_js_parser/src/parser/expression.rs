@@ -182,7 +182,13 @@ impl<'a> Parser<'a> {
         todo!()
     }
 
-    // 13.1
+    // 13.1 Identifiers
+    // https://tc39.es/ecma262/#prod-IdentifierReference
+    fn parse_identifier(&mut self) -> Result<Expression, ParserError> {
+        let node = self.start_node();
+
+        todo!()
+    }
 
     // 13.2 Primary Expression
     // https://tc39.es/ecma262/#prod-PrimaryExpression
@@ -192,7 +198,7 @@ impl<'a> Parser<'a> {
         let token_kind = self.current_token_kind();
 
         match token_kind {
-            
+            TokenKind::Identifier => self.parse_identifier(),
             _ => Err(self.unexpected_current_token_kind()),
         }
     }
