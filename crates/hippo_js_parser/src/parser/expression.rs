@@ -147,10 +147,10 @@ impl<'a> Parser<'a> {
 
             let right = self.parse_expression()?;
 
-            return Ok(Expression::SequenceExpression {
+            return Ok(Expression::Sequence(SequenceExpression {
                 node: self.finish_node(&node),
                 expressions: vec![assignment_expression, right],
-            });
+            }));
         } else {
             Ok(assignment_expression)
         }
@@ -195,10 +195,10 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Yield),
         ])?;
 
-        Ok(Expression::Identifier {
+        Ok(Expression::Identifier(Identifier {
             node: self.finish_node(&node),
             name: value,
-        })
+        }))
     }
 
     // 13.2 Primary Expression
@@ -265,10 +265,10 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 
-        Ok(Expression::ArrayExpression {
+        Ok(Expression::Array(ArrayExpression {
             node: self.finish_node(&node),
             elements: element_list,
-        })
+        }))
     }
 
     // https://tc39.es/ecma262/#prod-ElementList
@@ -352,7 +352,7 @@ impl<'a> Parser<'a> {
 
         let _callee = self.parse_left_hand_side_expression()?;
 
-        // Ok(Expression::NewExpression {
+        // Ok(Expression::New {
         //     node: self.finish_node(&node),
         //     callee: Box::new(callee),
         //     arguments,
@@ -373,13 +373,13 @@ impl<'a> Parser<'a> {
 
                 let arguments = self.parse_arguments()?;
 
-                return Ok(Expression::CallExpression {
+                return Ok(Expression::Call(CallExpression {
                     node: self.finish_node(&node),
                     callee: Box::new(CallExpressionCallee::Super(Super {
                         node: self.finish_node(&node),
                     })),
                     arguments,
-                });
+                }));
             }
             TokenKind::Keyword(KeywordKind::Import) => {
                 self.advance(); // Eat the import token.
@@ -391,11 +391,11 @@ impl<'a> Parser<'a> {
 
                 let call_expression = self.parse_call_expression()?;
 
-                return Ok(Expression::CallExpression {
+                return Ok(Expression::Call(CallExpression {
                     node: self.finish_node(&node),
                     callee: Box::new(CallExpressionCallee::Expression(call_expression)),
                     arguments,
-                });
+                }));
             }
             _ => todo!(),
         }
@@ -457,12 +457,12 @@ impl<'a> Parser<'a> {
 
             let operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
 
-            Ok(Expression::UpdateExpression {
+            Ok(Expression::Update(UpdateExpression {
                 node: self.finish_node(&node),
                 operator,
                 argument: Box::new(unary_expression),
                 prefix: true,
-            })
+            }))
         } else {
             let left_hand_side_expression = self.parse_left_hand_side_expression()?;
 
@@ -474,12 +474,12 @@ impl<'a> Parser<'a> {
 
             let update_operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
 
-            Ok(Expression::UpdateExpression {
+            Ok(Expression::Update(UpdateExpression {
                 node: self.finish_node(&node),
                 operator: update_operator,
                 argument: Box::new(left_hand_side_expression),
                 prefix: false,
-            })
+            }))
         }
     }
 
@@ -506,21 +506,21 @@ impl<'a> Parser<'a> {
 
                 self.advance();
 
-                Ok(Expression::UnaryExpression {
+                Ok(Expression::Unary(UnaryExpression {
                     node: self.finish_node(&node),
                     operator,
                     prefix: true,
                     argument: Box::new(unary_argument),
-                })
+                }))
             }
             TokenKind::Keyword(KeywordKind::Await) => {
                 let unary_expression = self.parse_unary_expression()?;
 
                 // TODO check if is supported by ECMA script version.
-                Ok(Expression::AwaitExpression {
+                Ok(Expression::Await(AwaitExpression {
                     node: self.finish_node(&node),
                     argument: Box::new(unary_expression),
-                })
+                }))
             }
             _ => self.parse_update_expression(),
         }
@@ -538,12 +538,12 @@ impl<'a> Parser<'a> {
 
             let exponentiation_expression = self.parse_exponentiation_expression()?;
 
-            Ok(Expression::BinaryExpression {
+            Ok(Expression::Binary(BinaryExpression {
                 node: self.finish_node(&node),
                 operator: BinaryOperator::StarStar,
                 left: Box::new(unary_expression),
                 right: Box::new(exponentiation_expression),
-            })
+            }))
         } else {
             Ok(unary_expression)
         }
@@ -566,12 +566,12 @@ impl<'a> Parser<'a> {
 
             let multiplicative_expression = self.parse_multiplicative_expression()?;
 
-            Ok(Expression::BinaryExpression {
+            Ok(Expression::Binary(BinaryExpression {
                 node: self.finish_node(&node),
                 operator,
                 left: Box::new(exponentiation_expression),
                 right: Box::new(multiplicative_expression),
-            })
+            }))
         } else {
             Ok(exponentiation_expression)
         }
@@ -593,12 +593,12 @@ impl<'a> Parser<'a> {
 
             let additive_expression = self.parse_additive_expression()?;
 
-            Ok(Expression::BinaryExpression {
+            Ok(Expression::Binary(BinaryExpression {
                 node: self.finish_node(&node),
                 operator,
                 left: Box::new(additive_expression),
                 right: Box::new(multiplicative_expression),
-            })
+            }))
         } else {
             Ok(multiplicative_expression)
         }
@@ -620,12 +620,12 @@ impl<'a> Parser<'a> {
 
             let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
 
-            Ok(Expression::BinaryExpression {
+            Ok(Expression::Binary(BinaryExpression {
                 node: self.finish_node(&node),
                 operator,
                 left: Box::new(bitwise_shift_expression),
                 right: Box::new(additive_expression),
-            })
+            }))
         } else {
             Ok(additive_expression)
         }
@@ -647,12 +647,12 @@ impl<'a> Parser<'a> {
 
             let relational_expression = self.parse_relational_expression()?;
 
-            Ok(Expression::BinaryExpression {
+            Ok(Expression::Binary(BinaryExpression {
                 node: self.finish_node(&node),
                 operator,
                 left: Box::new(relational_expression),
                 right: Box::new(bitwise_shift_expression),
-            })
+            }))
         } else {
             Ok(bitwise_shift_expression)
         }
@@ -674,12 +674,12 @@ impl<'a> Parser<'a> {
 
             let equality_expression = self.parse_equality_expression()?;
 
-            Ok(Expression::BinaryExpression {
+            Ok(Expression::Binary(BinaryExpression {
                 node: self.finish_node(&node),
                 operator,
                 left: Box::new(equality_expression),
                 right: Box::new(relational_expression),
-            })
+            }))
         } else {
             Ok(relational_expression)
         }
@@ -697,12 +697,12 @@ impl<'a> Parser<'a> {
 
             let bitwise_and_expression = self.parse_bitwise_and_expression()?;
 
-            Ok(Expression::BinaryExpression {
+            Ok(Expression::Binary(BinaryExpression {
                 node: self.finish_node(&node),
                 operator: BinaryOperator::Ampersand,
                 left: Box::new(bitwise_and_expression),
                 right: Box::new(equality_expression),
-            })
+            }))
         } else {
             Ok(equality_expression)
         }
@@ -719,12 +719,12 @@ impl<'a> Parser<'a> {
 
             let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
 
-            Ok(Expression::BinaryExpression {
+            Ok(Expression::Binary(BinaryExpression {
                 node: self.finish_node(&node),
                 operator: BinaryOperator::Caret,
                 left: Box::new(bitwise_xor_expression),
                 right: Box::new(bitwise_and_expression),
-            })
+            }))
         } else {
             Ok(bitwise_and_expression)
         }
@@ -741,12 +741,12 @@ impl<'a> Parser<'a> {
 
             let bitwise_or_expression = self.parse_bitwise_or_expression()?;
 
-            Ok(Expression::BinaryExpression {
+            Ok(Expression::Binary(BinaryExpression {
                 node: self.finish_node(&node),
                 operator: BinaryOperator::Bar,
                 left: Box::new(bitwise_or_expression),
                 right: Box::new(bitwise_xor_expression),
-            })
+            }))
         } else {
             Ok(bitwise_xor_expression)
         }
@@ -764,12 +764,12 @@ impl<'a> Parser<'a> {
 
             let logical_and_expression = self.parse_logical_and_expression()?;
 
-            Ok(Expression::LogicalExpression {
+            Ok(Expression::Logical(LogicalExpression {
                 node: self.finish_node(&node),
                 operator: LogicalOperator::And,
                 left: Box::new(bitwise_or_expression),
                 right: Box::new(logical_and_expression),
-            })
+            }))
         } else {
             Ok(bitwise_or_expression)
         }
@@ -786,12 +786,12 @@ impl<'a> Parser<'a> {
 
             let logical_or_expression = self.parse_logical_or_expression()?;
 
-            Ok(Expression::LogicalExpression {
+            Ok(Expression::Logical(LogicalExpression {
                 node: self.finish_node(&node),
                 operator: LogicalOperator::Or,
                 left: Box::new(logical_or_expression),
                 right: Box::new(logical_and_expression),
-            })
+            }))
         } else {
             Ok(logical_and_expression)
         }
