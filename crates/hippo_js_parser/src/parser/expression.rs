@@ -182,6 +182,21 @@ impl<'a> Parser<'a> {
         todo!()
     }
 
+    // 13.1
+
+    // 13.2 Primary Expression
+    // https://tc39.es/ecma262/#prod-PrimaryExpression
+    fn parse_primary_expresison(&mut self) -> Result<Expression, ParserError> {
+        let node = self.start_node();
+
+        let token_kind = self.current_token_kind();
+
+        match token_kind {
+            
+            _ => Err(self.unexpected_current_token_kind()),
+        }
+    }
+
     // 13.3 Left-Hand-Side Expressions
     // https://tc39.es/ecma262/#prod-LeftHandSideExpression
     fn parse_left_hand_side_expression(&mut self) -> Result<Expression, ParserError> {
@@ -194,13 +209,15 @@ impl<'a> Parser<'a> {
 
             Ok(new_expression)
         } else {
-            todo!()
+            self.parse_member_expression()
         }
     }
 
     // https://tc39.es/ecma262/#prod-MemberExpression
     fn parse_member_expression(&mut self) -> Result<Expression, ParserError> {
-        todo!()
+        let primary_expression = self.parse_primary_expresison();
+
+        primary_expression
     }
 
     // https://tc39.es/ecma262/#prod-NewExpression
@@ -357,6 +374,8 @@ impl<'a> Parser<'a> {
             | TokenKind::Subtraction
             | TokenKind::BitwiseNot
             | TokenKind::LogicalNot => {
+                self.advance(); // Eat the delete or void or typeof or + or - or ~ or ! token.
+
                 let unary_argument = self.parse_unary_expression()?;
 
                 let operator = match_token_kind_to_unary_operator(&current_token_kind).unwrap();
