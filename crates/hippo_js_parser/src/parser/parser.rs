@@ -47,7 +47,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse(&mut self) -> Program {
+    pub fn parse_script(&mut self) -> Program {
         // TODO Parse parser statement of declaration.
         let program_body = self.parse_statement().unwrap();
 
@@ -58,8 +58,25 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse_json(&mut self) -> Result<String, serde_json::Error> {
-        let program = self.parse();
+    pub fn parse_script_json(&mut self) -> Result<String, serde_json::Error> {
+        let program = self.parse_script();
+
+        serde_json::to_string(&program)
+    }
+
+    pub fn parse_module(&mut self) -> Program {
+        // TODO Parse parser statement of declaration.
+        let program_body = self.parse_statement().unwrap();
+
+        Program {
+            body: vec![ProgramBody::Statement(program_body)],
+            source_type: ProgramSourceTypes::Module,
+            node: Node::new(0, self.lexer.len()),
+        }
+    }
+
+    pub fn parse_module_json(&mut self) -> Result<String, serde_json::Error> {
+        let program = self.parse_module();
 
         serde_json::to_string(&program)
     }

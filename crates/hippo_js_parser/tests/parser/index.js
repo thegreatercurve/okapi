@@ -46,7 +46,7 @@ function main() {
                 } catch (e) {}
 
                 output += `
-                    assert_parser_eq!(
+                    assert_parse_module_eq!(
                         r#"${line.trim()}"#,
                         r#"${parsedJSON}"#
                     );`;
@@ -56,7 +56,7 @@ function main() {
             };
 
             const content = `
-use crate::parser::common::assert_parser_eq;
+use crate::parser::common::assert_parse_module_eq;
 
 #[test]
 fn ${file.slice(0, -3)}() {

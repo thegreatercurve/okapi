@@ -1,8 +1,8 @@
-// use crate::parser::common::assert_parser_eq;
+// use crate::parser::common::assert_parse_module_eq;
 
 #[test]
 fn return_statement() {
-    // assert_parser_eq!(
+    // assert_parse_module_eq!(
     //     r#"
     //     () => {
     //         return;
@@ -11,7 +11,7 @@ fn return_statement() {
     //     r#"{"type":"Program","start":0,"end":19,"body":[{"type":"ExpressionStatement","start":0,"end":18,"expression":{"type":"ArrowFunctionExpression","start":0,"end":18,"id":null,"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":6,"end":18,"body":[{"type":"ReturnStatement","start":9,"end":16,"argument":null}]}}}],"sourceType":"module"}"#
     // );
 
-    // assert_parser_eq!(
+    // assert_parse_module_eq!(
     //     r#"
     //     () => {
     //         return 1 + 1;
