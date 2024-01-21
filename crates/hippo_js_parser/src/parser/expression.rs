@@ -213,6 +213,7 @@ impl<'a> Parser<'a> {
             | TokenKind::NumberLiteral
             | TokenKind::BooleanLiteral => self.parse_literal(),
             TokenKind::LeftSquareBracket => self.parse_array_literal(),
+            TokenKind::LeftCurlyBrace => self.parse_object_literal(),
             _ => Err(self.unexpected_current_token_kind()),
         }
     }
@@ -318,6 +319,55 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-ObjectLiteral
+    fn parse_object_literal(&mut self) -> Result<Expression, ParserError> {
+        let start_token = self.start_token();
+
+        self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
+
+        let mut properties = self.parse_property_definition_list()?;
+
+        self.expect_and_advance(TokenKind::RightCurlyBrace)?;
+
+        Ok(Expression::Object(ObjectExpression {
+            node: self.create_node(&start_token, &self.previous_token),
+            properties: vec![],
+        }))
+    }
+
+    // https://tc39.es/ecma262/#prod-PropertyDefinitionList
+    fn parse_property_definition_list(
+        &mut self,
+    ) -> Result<Vec<ObjectExpressionProperties>, ParserError> {
+        let mut properties = vec![];
+
+        while self.current_token_kind() != TokenKind::RightCurlyBrace {
+            let property = self.parse_property_definition()?;
+
+            properties.push(property);
+
+            if self.current_token_kind() == TokenKind::RightCurlyBrace {
+                break;
+            }
+
+            self.expect_and_advance(TokenKind::Comma)?;
+        }
+
+        Ok(properties)
+    }
+
+    // https://tc39.es/ecma262/#prod-PropertyDefinition
+    fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperties, ParserError> {
+        let start_token = self.start_token();
+
+        let current_token_kind = self.current_token_kind();
+
+        match self.current_token_kind() {
+            // TokenKind::Identifier => Ok(ObjectExpressionProperties::Property(
+            //     self.parse_identifier_reference(),
+            // )),
+            _ => Err(self.unexpected_current_token_kind()),
+        }
+    }
 
     // 13.3 Left-Hand-Side Expressions
     // https://tc39.es/ecma262/#prod-LeftHandSideExpression

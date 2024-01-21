@@ -37,6 +37,8 @@ pub enum ParserError {
     InvalidRegexLiteralFirstChar,
 
     UnexpectedToken(TokenKind),
+
+    JsonError,
 }
 
 impl std::fmt::Display for ParserError {
@@ -99,6 +101,7 @@ impl std::fmt::Display for ParserError {
             ParserError::UnexpectedToken(token_kind) => {
                 write!(f, "UnexpectedToken({:?})", token_kind)
             }
+            ParserError::JsonError => write!(f, "JsonError"),
         }
     }
 }
