@@ -5,6 +5,8 @@ use crate::{
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+
 pub enum Expression {
     // ES5
     This,
@@ -52,6 +54,8 @@ pub struct ArrayExpression {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+
 pub enum MemberExpressionElements {
     Expression(Expression),
     SpreadElement(SpreadElement),
@@ -66,6 +70,8 @@ pub struct ObjectExpression {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+
 pub enum ObjectExpressionProperties {
     Property(Property),
     SpreadElement(SpreadElement),
@@ -234,6 +240,8 @@ pub struct MemberExpression {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+
 pub enum MemberExpressionObject {
     Expression(Expression),
     Super(Super),
@@ -259,12 +267,16 @@ pub struct CallExpression {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+
 pub enum CallExpressionCallee {
     Expression(Expression),
     Super(Super),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+
 pub enum CallExpressionArguments {
     Expression(Expression),
     SpreadElement(SpreadElement),
@@ -280,6 +292,8 @@ pub struct NewExpression {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+
 pub enum NewExpressionArguments {
     Expression(Expression),
     SpreadElement(SpreadElement),
@@ -319,6 +333,8 @@ pub struct ArrowFunctionExpression {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+
 pub enum ArrowFunctionExpressionBody {
     FunctionBody(FunctionBody),
     Expression(Box<Expression>),

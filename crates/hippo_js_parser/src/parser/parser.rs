@@ -21,8 +21,9 @@ impl Default for Config {
 
 pub struct Parser<'a> {
     config: Config,
-    current_token: Token,
+    pub(crate) current_token: Token,
     next_token: Token,
+    pub(crate) previous_token: Token,
     source_str: &'a str,
     lexer: Lexer<'a>,
 }
@@ -38,8 +39,9 @@ impl<'a> Parser<'a> {
 
         Self {
             config,
-            current_token,
+            previous_token: current_token.clone(),
             next_token,
+            current_token,
             source_str: input,
             lexer,
         }
@@ -51,7 +53,7 @@ impl<'a> Parser<'a> {
 
         Program {
             body: vec![ProgramBody::Statement(program_body)],
-            source_type: ProgramSourceTypes::Module,
+            source_type: ProgramSourceTypes::Script,
             node: Node::new(0, self.lexer.len()),
         }
     }
@@ -83,6 +85,7 @@ impl<'a> Parser<'a> {
     }
 
     pub(crate) fn advance(&mut self) {
+        self.previous_token = self.current_token.clone();
         self.current_token = self.next_token.clone();
         self.next_token = self.lexer.next_token();
     }
@@ -112,19 +115,17 @@ impl<'a> Parser<'a> {
         Err(self.unexpected_current_token_kind())
     }
 
-    pub(crate) fn start_node(&mut self) -> Node {
-        let token = &self.current_token;
-
-        Node::new(token.start, 0)
+    pub(crate) fn start_token(&mut self) -> Token {
+        self.current_token.clone()
     }
 
-    pub(crate) fn finish_node(&mut self, node: &Node) -> Node {
-        Node::new(node.loc.start, self.current_token.end)
+    pub(crate) fn create_node(&self, start_token: &Token, end_token: &Token) -> Node {
+        Node::new(start_token.start, end_token.end)
     }
 
     // https://tc39.es/ecma262/#sec-let-and-const-declarations
     pub(crate) fn parse_lexical_declaration(&mut self) -> Result<Statement, ParserError> {
-        let start_node = self.start_node();
+        let start_token = self.start_token();
 
         let kind = match self.current_token_kind() {
             TokenKind::Keyword(KeywordKind::Let) => VariableKind::Let,
@@ -149,7 +150,7 @@ impl<'a> Parser<'a> {
 
         Ok(Statement::Declaration(Declaration::Variable(
             VariableDeclaration {
-                node: self.finish_node(&start_node),
+                node: self.create_node(&start_token, &self.current_token),
                 declarations,
                 kind,
             },
@@ -195,7 +196,7 @@ impl<'a> Parser<'a> {
         };
 
         Ok(VariableDeclarator {
-            node: self.finish_node(&node),
+            node,
             id: binding_identifier,
             init: None,
         })
@@ -203,7 +204,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
     fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
-        let node = self.start_node();
+        let start_token = self.start_token();
 
         let name = match self.current_token_kind() {
             TokenKind::Identifier => self.current_token_value(),
@@ -213,14 +214,14 @@ impl<'a> Parser<'a> {
         };
 
         Ok(BindingKind::Identifier(Identifier {
-            node: self.finish_node(&node),
+            node: self.create_node(&start_token, &self.current_token),
             name: name,
         }))
     }
 
     // https://tc39.es/ecma262/#prod-ObjectBindingPattern
     fn parse_object_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
-        let node = self.start_node();
+        let start_token = self.start_token();
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?; // Eat `{` token.
 
@@ -241,35 +242,35 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(BindingKind::ObjectPattern(ObjectPattern {
-            node: self.finish_node(&node),
+            node: self.create_node(&start_token, &self.current_token),
             properties,
         }))
     }
 
     // https://tc39.es/ecma262/#prod-ArrayBindingPattern
     fn parse_array_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
-        let node = self.start_node();
+        let start_token = self.start_token();
 
         self.expect_and_advance(TokenKind::LeftSquareBracket)?; // Eat `[` token.
 
         let elements = vec![];
 
         Ok(BindingKind::ArrayPattern(ArrayPattern {
-            node: self.finish_node(&node),
+            node: self.create_node(&start_token, &self.current_token),
             elements,
         }))
     }
 
     // https://tc39.es/ecma262/#prod-BindingRestProperty
     fn parse_binding_rest_property(&mut self) -> Result<RestElement, ParserError> {
-        let node = self.start_node();
+        let start_token = self.start_token();
 
         self.expect_and_advance(TokenKind::Ellipsis)?; // Eat `...` token.
 
         let argument = self.parse_binding_identifier()?;
 
         Ok(RestElement {
-            node: self.finish_node(&node),
+            node: self.create_node(&start_token, &self.current_token),
             argument,
         })
     }
