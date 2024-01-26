@@ -99,7 +99,7 @@ impl std::fmt::Display for ParserError {
             ParserError::UnterminatedRegExLiteral => write!(f, "UnterminatedRegExLiteral"),
             ParserError::InvalidRegexLiteralFirstChar => write!(f, "InvalidRegexLiteralFirstChar"),
             ParserError::UnexpectedToken(token_kind) => {
-                write!(f, "UnexpectedToken({:?})", token_kind)
+                write!(f, "UnexpectedToken({:?})", token_kind,)
             }
             ParserError::JsonError => write!(f, "JsonError"),
         }

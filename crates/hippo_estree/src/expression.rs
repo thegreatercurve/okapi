@@ -4,7 +4,7 @@ use crate::{
 };
 use serde::Serialize;
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 
 pub enum Expression {
@@ -38,14 +38,14 @@ pub enum Expression {
     Identifier(Identifier),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ThisExpression {
     #[serde(flatten)]
     pub node: Node,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ArrayExpression {
     #[serde(flatten)]
@@ -53,7 +53,7 @@ pub struct ArrayExpression {
     pub elements: Vec<Option<Box<MemberExpressionElements>>>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 
 pub enum MemberExpressionElements {
@@ -61,7 +61,7 @@ pub enum MemberExpressionElements {
     SpreadElement(SpreadElement),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ObjectExpression {
     #[serde(flatten)]
@@ -69,7 +69,7 @@ pub struct ObjectExpression {
     pub properties: Vec<ObjectExpressionProperties>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 
 pub enum ObjectExpressionProperties {
@@ -77,42 +77,43 @@ pub enum ObjectExpressionProperties {
     SpreadElement(SpreadElement),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct Property {
     #[serde(flatten)]
     pub node: Node,
-    pub key: PropertyKey,
-    pub value: Box<Expression>,
-    pub kind: PropertyKind,
     pub method: bool,
     pub shorthand: bool,
     pub computed: bool,
+    pub key: PropertyKey,
+    pub kind: PropertyKind,
+    pub value: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum PropertyKey {
     Literal(Literal),
-    Identifier(Identifier),
+    Identifier(Expression),
     Expression(Expression),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum PropertyKind {
     Init,
     Get,
     Set,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct FunctionExpression {
     #[serde(flatten)]
     pub node: Node,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct UnaryExpression {
     #[serde(flatten)]
@@ -122,7 +123,7 @@ pub struct UnaryExpression {
     pub argument: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum UnaryOperator {
     Minus,
     Plus,
@@ -133,7 +134,7 @@ pub enum UnaryOperator {
     Delete,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct UpdateExpression {
     #[serde(flatten)]
@@ -143,13 +144,13 @@ pub struct UpdateExpression {
     pub prefix: bool,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum UpdateOperator {
     PlusPlus,
     MinusMinus,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct BinaryExpression {
     #[serde(flatten)]
@@ -159,7 +160,7 @@ pub struct BinaryExpression {
     pub right: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum BinaryOperator {
     EqualEqual,
     NotEqual,
@@ -185,7 +186,7 @@ pub enum BinaryOperator {
     StarStar,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct AssignmentExpression {
     #[serde(flatten)]
@@ -195,13 +196,13 @@ pub struct AssignmentExpression {
     pub right: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum AssignmentExpressionLeft {
     Pattern,
     Expression,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum AssignmentOperator {
     Equal,
     PlusEqual,
@@ -218,7 +219,7 @@ pub enum AssignmentOperator {
     StarStarEqual,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct LogicalExpression {
     #[serde(flatten)]
@@ -228,13 +229,13 @@ pub struct LogicalExpression {
     pub right: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum LogicalOperator {
     Or,
     And,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct MemberExpression {
     #[serde(flatten)]
@@ -244,7 +245,7 @@ pub struct MemberExpression {
     pub computed: bool,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 
 pub enum MemberExpressionObject {
@@ -252,7 +253,7 @@ pub enum MemberExpressionObject {
     Super(Super),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ConditionalExpression {
     #[serde(flatten)]
@@ -262,7 +263,7 @@ pub struct ConditionalExpression {
     pub consequent: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct CallExpression {
     #[serde(flatten)]
@@ -271,7 +272,7 @@ pub struct CallExpression {
     pub arguments: Vec<CallExpressionArguments>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 
 pub enum CallExpressionCallee {
@@ -279,7 +280,7 @@ pub enum CallExpressionCallee {
     Super(Super),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 
 pub enum CallExpressionArguments {
@@ -287,7 +288,7 @@ pub enum CallExpressionArguments {
     SpreadElement(SpreadElement),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct NewExpression {
     #[serde(flatten)]
@@ -296,7 +297,7 @@ pub struct NewExpression {
     pub arguments: Vec<NewExpressionArguments>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 
 pub enum NewExpressionArguments {
@@ -304,7 +305,7 @@ pub enum NewExpressionArguments {
     SpreadElement(SpreadElement),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct SequenceExpression {
     #[serde(flatten)]
@@ -312,14 +313,14 @@ pub struct SequenceExpression {
     pub expressions: Vec<Expression>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct Super {
     #[serde(flatten)]
     pub node: Node,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct SpreadElement {
     #[serde(flatten)]
@@ -327,7 +328,7 @@ pub struct SpreadElement {
     pub argument: Expression,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ArrowFunctionExpression {
     #[serde(flatten)]
@@ -337,7 +338,7 @@ pub struct ArrowFunctionExpression {
     pub generator: bool,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 
 pub enum ArrowFunctionExpressionBody {
@@ -345,7 +346,7 @@ pub enum ArrowFunctionExpressionBody {
     Expression(Box<Expression>),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct YieldExpression {
     #[serde(flatten)]
@@ -354,7 +355,7 @@ pub struct YieldExpression {
     pub delegate: bool,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct AwaitExpression {
     #[serde(flatten)]

@@ -1,4 +1,4 @@
-use crate::{Expression, Identifier, Node};
+use crate::{Expression, FunctionExpression, Identifier, Node};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -26,10 +26,9 @@ pub struct MethodDefinition {
     #[serde(flatten)]
     pub node: Node,
     pub key: Expression,
-    // TODO Fix the types. Should be a function expression
-    pub value: Expression,
-    pub kind: MethodDefinitionKind,
+    pub value: FunctionExpression,
     pub computed: bool,
+    pub kind: MethodDefinitionKind,
     #[serde(alias = "static")]
     pub statc: bool,
 }
@@ -57,7 +56,7 @@ pub struct ClassExpression {
     pub node: Node,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct MetaProperty {
     #[serde(flatten)]

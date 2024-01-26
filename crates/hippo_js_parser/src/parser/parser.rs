@@ -276,7 +276,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(BindingKind::ObjectPattern(ObjectPattern {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.previous_token),
             properties,
         }))
     }

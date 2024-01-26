@@ -54,7 +54,7 @@ pub struct BlockStatement {
     pub body: Vec<Statement>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct FunctionBody {
     #[serde(flatten)]
@@ -62,7 +62,7 @@ pub struct FunctionBody {
     pub body: FunctionBodyBody,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum FunctionBodyBody {
     Directive,
     Statement,
