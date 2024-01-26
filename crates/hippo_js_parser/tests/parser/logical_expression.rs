@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parse_module_eq;
 
 #[test]
-fn logical_expressions() {
+fn logical_expression() {
     assert_parse_module_eq!(
         r#"foo ?? bar"#,
         r#"{"type":"Program","start":0,"end":10,"body":[{"type":"ExpressionStatement","start":0,"end":10,"expression":{"type":"LogicalExpression","start":0,"end":10,"left":{"type":"Identifier","start":0,"end":3,"name":"foo"},"operator":"??","right":{"type":"Identifier","start":7,"end":10,"name":"bar"}}}],"sourceType":"script"}"#
