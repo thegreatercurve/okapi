@@ -162,7 +162,7 @@ impl<'a> Parser<'a> {
 
         let short_circuit = self.parse_short_circuit_expression()?;
 
-        // TODO Make it not shit.
+        // TODO This is currently incomplete.
 
         Ok(short_circuit)
     }
@@ -173,7 +173,7 @@ impl<'a> Parser<'a> {
 
         let logical = self.parse_logical_or_expression()?;
 
-        // TODO Make it not shit.
+        // TODO This is currently incomplete.
 
         Ok(logical)
     }
@@ -185,6 +185,8 @@ impl<'a> Parser<'a> {
     // 13.1 Identifiers
     // https://tc39.es/ecma262/#prod-IdentifierReference
     fn parse_identifier_reference(&mut self) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete. Nede to handle yield and await.
+
         let start_token = self.start_token();
 
         let value = self.current_token_value();
@@ -206,7 +208,10 @@ impl<'a> Parser<'a> {
     fn parse_primary_expresison(&mut self) -> Result<Expression, ParserError> {
         let token_kind = self.current_token_kind();
 
+        // TODO This is currently incomplete.
+
         match token_kind {
+            TokenKind::Keyword(KeywordKind::This) => self.parse_this_expression(),
             TokenKind::Identifier => self.parse_identifier_reference(),
             TokenKind::StringLiteral
             | TokenKind::NumberLiteral
@@ -215,8 +220,19 @@ impl<'a> Parser<'a> {
             | TokenKind::Keyword(KeywordKind::False) => self.parse_literal(),
             TokenKind::LeftSquareBracket => self.parse_array_literal(),
             TokenKind::LeftCurlyBrace => self.parse_object_literal(),
+            TokenKind::LeftParenthesis => self.parse_grouping_expression(),
             _ => Err(self.unexpected_current_token_kind()),
         }
+    }
+
+    fn parse_this_expression(&mut self) -> Result<Expression, ParserError> {
+        let start_token = self.start_token();
+
+        self.expect_and_advance(TokenKind::Keyword(KeywordKind::This))?;
+
+        Ok(Expression::This(ThisExpression {
+            node: self.create_node(&start_token, &self.current_token),
+        }))
     }
 
     // https://tc39.es/ecma262/#prod-Literal
@@ -367,7 +383,7 @@ impl<'a> Parser<'a> {
     fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperties, ParserError> {
         let start_token = self.start_token();
 
-        // TODO Make this not shit.
+        // TODO This is currently incomplete..
 
         match self.current_token_kind() {
             TokenKind::Identifier => {
@@ -407,6 +423,8 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-MemberExpression
     fn parse_member_expression(&mut self) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete.
+
         let primary_expression = self.parse_primary_expresison();
 
         primary_expression
@@ -414,6 +432,8 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-NewExpression
     fn parse_new_expression(&mut self) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete.
+
         let _node = self.start_token();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::New))?;
@@ -431,6 +451,8 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-CallExpression
     fn parse_call_expression(&mut self) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete.
+
         let start_token = self.start_token();
 
         let current_token_kind = self.current_token_kind();

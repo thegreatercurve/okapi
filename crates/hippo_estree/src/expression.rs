@@ -9,7 +9,7 @@ use serde::Serialize;
 
 pub enum Expression {
     // ES5
-    This,
+    This(ThisExpression),
     Array(ArrayExpression),
     Object(ObjectExpression),
     Function(FunctionExpression),

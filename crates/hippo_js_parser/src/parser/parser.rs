@@ -231,7 +231,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
-    fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
+    pub(crate) fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
         let start_token: Token = self.start_token();
 
         let name = match self.current_token_kind() {

@@ -6,4 +6,5 @@ mod empty_statement;
 mod lexical_declaration;
 mod object_expression;
 mod return_statement;
+mod this_expression;
 // mod throw_statement;
