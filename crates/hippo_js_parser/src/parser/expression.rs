@@ -368,19 +368,21 @@ impl<'a> Parser<'a> {
         let start_token = self.start_token();
 
         match self.current_token_kind() {
-            // TokenKind::Identifier => {
-            //     let identifier_reference = self.parse_identifier_reference()?;
+            TokenKind::Identifier => {
+                let identifier_reference = self.parse_identifier_reference()?;
 
-            //     Ok(ObjectExpressionProperties::Property(Property {
-            //         node: self.create_node(&start_token, &self.previous_token),
-            //         key: PropertyKey::Identifier,
-            //         value: Box::new(identifier_reference),
-            //         kind: PropertyKind::Init,
-            //         method: todo!(),
-            //         shorthand: todo!(),
-            //         computed: todo!(),
-            //     }))
-            // }
+                let peek_token_kind = self.peek_token_kind();
+
+                Ok(ObjectExpressionProperties::Property(Property {
+                    method: peek_token_kind == TokenKind::LeftParenthesis,
+                    shorthand: peek_token_kind != TokenKind::Colon,
+                    computed: false,
+                    kind: PropertyKind::Init,
+                    key: PropertyKey::Identifier(identifier_reference.clone()),
+                    node: self.create_node(&start_token, &self.previous_token),
+                    value: Box::new(identifier_reference),
+                }))
+            }
             _ => Err(self.unexpected_current_token_kind()),
         }
     }

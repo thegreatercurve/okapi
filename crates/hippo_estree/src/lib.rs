@@ -26,7 +26,7 @@ pub struct Identifier {
     pub name: String,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct Literal {
     #[serde(flatten)]
@@ -34,7 +34,7 @@ pub struct Literal {
     pub value: LiteralValue,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum LiteralValue {
     String(String),
     Boolean(bool),
@@ -43,13 +43,13 @@ pub enum LiteralValue {
     RegExp(RegExpLiteral),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct RegExpLiteral {
     pub regex: Regex,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct Regex {
     #[serde(flatten)]
