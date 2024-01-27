@@ -1,4 +1,4 @@
-use crate::{Lexer, Token, TokenKind};
+use crate::{Lexer, Token, TokenKind, TokenValue};
 
 // 12.9.6 Template Literal Lexical Components
 // https://tc39.es/ecma262/#sec-template-literal-lexical-components
@@ -33,7 +33,7 @@ impl<'a> Lexer<'a> {
             TokenKind::NoSubstitutionTemplate,
             start_index,
             self.read_index,
-            Some("".to_string()),
+            TokenValue::String("".to_string()),
         )
     }
 }

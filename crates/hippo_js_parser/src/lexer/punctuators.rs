@@ -1,4 +1,4 @@
-use crate::{Lexer, Token, TokenKind};
+use crate::{Lexer, Token, TokenKind, TokenValue};
 
 // 12.8 Punctuators
 // https://tc39.es/ecma262/#sec-punctuators
@@ -254,6 +254,6 @@ impl<'a> Lexer<'a> {
 
         self.read_char();
 
-        Token::new(token_kind, start_index, self.read_index, None)
+        Token::new(token_kind, start_index, self.read_index, TokenValue::Null)
     }
 }

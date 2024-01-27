@@ -1,4 +1,4 @@
-use crate::{Lexer, ParserError, Token, TokenKind};
+use crate::{Lexer, ParserError, Token, TokenKind, TokenValue};
 
 use super::utils::is_ascii_octaldigit;
 
@@ -93,10 +93,10 @@ impl<'a> Lexer<'a> {
                     TokenKind::BigIntLiteral,
                     start_index,
                     self.read_index,
-                    Some(self.source_str[start_index..self.read_index].to_string()),
+                    TokenValue::BigInt(self.source_str[start_index..self.read_index].to_string()),
                 ),
                 _ => {
-                    let number_literal_u64 = self.parse_num_str_to_f64(
+                    let number_literal_f64 = self.parse_num_str_to_f64(
                         &num_kind,
                         start_index + match_num_kind_to_start_index_offset(&num_kind),
                     );
@@ -105,7 +105,10 @@ impl<'a> Lexer<'a> {
                         TokenKind::NumberLiteral,
                         start_index,
                         self.read_index,
-                        Some(number_literal_u64.unwrap().to_string()),
+                        TokenValue::Number {
+                            raw: self.source_str[start_index..self.read_index].to_string(),
+                            value: number_literal_f64.unwrap(),
+                        },
                     )
                 }
             },
@@ -113,7 +116,7 @@ impl<'a> Lexer<'a> {
                 TokenKind::Illegal,
                 start_index,
                 self.read_index,
-                Some(error.to_string()),
+                TokenValue::String(error.to_string()),
             ),
         }
     }

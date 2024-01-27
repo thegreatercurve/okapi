@@ -1,4 +1,7 @@
-use crate::{tokens::Token, KeywordKind, Lexer, ParserError, TokenKind};
+use crate::{
+    tokens::{Token, TokenValue},
+    KeywordKind, Lexer, ParserError, TokenKind,
+};
 use hippo_estree::*;
 
 fn is_lexical_declaration(token: &TokenKind) -> bool {
@@ -85,7 +88,7 @@ impl<'a> Parser<'a> {
         self.current_token.kind.clone()
     }
 
-    pub(crate) fn current_token_value(&self) -> T {
+    pub(crate) fn current_token_value(&self) -> TokenValue {
         self.current_token.value.clone()
     }
 
@@ -93,8 +96,8 @@ impl<'a> Parser<'a> {
         self.next_token.kind.clone()
     }
 
-    pub(crate) fn peek_token_value(&self) -> String {
-        self.next_token.value.clone().unwrap_or_default()
+    pub(crate) fn peek_token_value(&self) -> TokenValue {
+        self.next_token.value.clone()
     }
 
     pub(crate) fn unexpected_current_token_kind(&self) -> ParserError {
@@ -234,10 +237,10 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
         let start_token: Token = self.start_token();
 
-        let name = match self.current_token_kind() {
+        let token_value = match self.current_token_kind() {
             TokenKind::Identifier => self.current_token_value(),
-            TokenKind::Keyword(KeywordKind::Await) => todo!(),
-            TokenKind::Keyword(KeywordKind::Yield) => todo!(),
+            TokenKind::Keyword(KeywordKind::Await) => todo!("parse_binding_identifier await"),
+            TokenKind::Keyword(KeywordKind::Yield) => todo!("parse_binding_identifier yield"),
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
@@ -247,10 +250,13 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Yield),
         ])?; // Eat identifier token.
 
-        Ok(BindingKind::Identifier(Identifier {
-            node: self.create_node(&start_token, &self.previous_token),
-            name: name,
-        }))
+        match token_value {
+            TokenValue::String(name) => Ok(BindingKind::Identifier(Identifier {
+                node: self.create_node(&start_token, &self.previous_token),
+                name,
+            })),
+            _ => Err(ParserError::UnexpectedTokenValue),
+        }
     }
 
     // https://tc39.es/ecma262/#prod-ObjectBindingPattern

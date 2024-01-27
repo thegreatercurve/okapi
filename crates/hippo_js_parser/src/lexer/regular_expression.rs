@@ -1,4 +1,4 @@
-use crate::{Lexer, ParserError, Token, TokenKind};
+use crate::{Lexer, ParserError, Token, TokenKind, TokenValue};
 
 use super::utils::{is_identifier_part, is_line_terminator};
 
@@ -18,7 +18,7 @@ impl<'a> Lexer<'a> {
                 TokenKind::Illegal,
                 start_index,
                 self.read_index,
-                Some(regular_expression_body.unwrap_err().to_string()),
+                TokenValue::String(regular_expression_body.unwrap_err().to_string()),
             );
         }
 
@@ -32,7 +32,7 @@ impl<'a> Lexer<'a> {
             TokenKind::RegularExpressionLiteral,
             start_index,
             self.read_index,
-            Some(regular_expression_str.to_string()),
+            TokenValue::String(regular_expression_str.to_string()),
         )
     }
 

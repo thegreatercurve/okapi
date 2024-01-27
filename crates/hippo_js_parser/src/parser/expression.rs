@@ -1,6 +1,6 @@
 use std::vec;
 
-use crate::{KeywordKind, Parser, ParserError, TokenKind};
+use crate::{KeywordKind, Parser, ParserError, TokenKind, TokenValue};
 use hippo_estree::*;
 
 fn march_token_kind_to_update_operator(token_kind: &TokenKind) -> Option<UpdateOperator> {
@@ -188,7 +188,7 @@ impl<'a> Parser<'a> {
 
         let start_token = self.start_token();
 
-        let value = self.current_token_value();
+        let token_value = self.current_token_value();
 
         self.expect_one_of_and_advance(vec![
             TokenKind::Identifier,
@@ -196,10 +196,13 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Yield),
         ])?;
 
-        Ok(Expression::Identifier(Identifier {
-            node: self.create_node(&start_token, &self.previous_token),
-            name: value,
-        }))
+        match token_value {
+            TokenValue::String(name) => Ok(Expression::Identifier(Identifier {
+                node: self.create_node(&start_token, &self.previous_token),
+                name,
+            })),
+            _ => Err(ParserError::UnexpectedTokenValue),
+        }
     }
 
     // 13.2 Primary Expression
@@ -271,32 +274,49 @@ impl<'a> Parser<'a> {
     fn parse_literal(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let value = self.current_token_value();
+        let token_value = self.current_token_value();
 
         let node = self.create_node(&start_token, &self.current_token);
 
         let literal = match self.current_token_kind() {
-            TokenKind::StringLiteral => Ok(Expression::Literal(Literal {
-                node,
-                value: LiteralValue::String(value),
-                raw: LiteralValue::String(value),
-            })),
-            TokenKind::NumberLiteral => Ok(Expression::Literal(Literal {
-                node,
-                value: LiteralValue::Number(value.parse::<f64>().unwrap()),
-                raw: LiteralValue::Number(value.parse::<f64>().unwrap()),
-            })),
+            TokenKind::StringLiteral => {
+                let token_value = match token_value {
+                    TokenValue::String(value) => value,
+                    _ => return Err(ParserError::UnexpectedTokenValue),
+                };
+
+                Ok(Expression::Literal(Literal {
+                    node,
+                    value: LiteralValue::String(token_value.clone()),
+                    raw: token_value,
+                }))
+            }
+            TokenKind::NumberLiteral => {
+                let (raw, value) = match token_value {
+                    TokenValue::Number { raw, value } => (raw, value),
+                    _ => return Err(ParserError::UnexpectedTokenValue),
+                };
+
+                Ok(Expression::Literal(Literal {
+                    node,
+                    value: LiteralValue::Number(value),
+                    raw: raw,
+                }))
+            }
             TokenKind::Keyword(KeywordKind::Null) => Ok(Expression::Literal(Literal {
                 node,
                 value: LiteralValue::Null,
+                raw: "null".to_string(),
             })),
             TokenKind::Keyword(KeywordKind::True) => Ok(Expression::Literal(Literal {
                 node,
                 value: LiteralValue::Boolean(true),
+                raw: "true".to_string(),
             })),
             TokenKind::Keyword(KeywordKind::False) => Ok(Expression::Literal(Literal {
                 node,
                 value: LiteralValue::Boolean(false),
+                raw: "false".to_string(),
             })),
             _ => Err(self.unexpected_current_token_kind()),
         };

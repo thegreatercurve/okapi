@@ -62,15 +62,24 @@ pub enum KeywordKind {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub enum TokenValue {
+    String(String),
+    Number { raw: String, value: f64 },
+    Boolean(bool),
+    BigInt(String),
+    Null,
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct Token {
     pub kind: TokenKind,
     pub start: usize,
     pub end: usize,
-    pub value: Option<String>,
+    pub value: TokenValue,
 }
 
 impl Token {
-    pub fn new(kind: TokenKind, start: usize, end: usize, value: Option<String>) -> Self {
+    pub fn new(kind: TokenKind, start: usize, end: usize, value: TokenValue) -> Self {
         Self {
             kind,
             start,

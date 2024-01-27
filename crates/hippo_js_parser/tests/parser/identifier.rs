@@ -8,6 +8,6 @@ fn identifier() {
     );
     assert_parse_script_eq!(
         r#"let accessor = 5;"#,
-        r#"{"type":"Program","start":0,"end":17,"body":[{"type":"VariableDeclaration","start":0,"end":17,"declarations":[{"type":"VariableDeclarator","start":4,"end":16,"id":{"type":"Identifier","start":4,"end":12,"name":"accessor"},"init":{"type":"Literal","start":15,"end":16,"value":5,"raw":"5"}}],"kind":"let"}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":17,"body":[{"type":"VariableDeclaration","start":0,"end":17,"declarations":[{"type":"VariableDeclarator","start":4,"end":16,"id":{"type":"Identifier","start":4,"end":12,"name":"accessor"},"init":{"type":"Literal","start":15,"end":16,"value":5.0,"raw":"5"}}],"kind":"let"}],"sourceType":"script"}"#
     );
 }

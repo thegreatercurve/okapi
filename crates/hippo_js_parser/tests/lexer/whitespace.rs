@@ -1,4 +1,4 @@
-use hippo_js_parser::{KeywordKind, Token, TokenKind};
+use hippo_js_parser::{KeywordKind, Token, TokenKind, TokenValue};
 
 use crate::lexer::{
     common::assert_lexer_eq,
@@ -10,7 +10,12 @@ fn whitespace_minified() {
     assert_lexer_eq!(
         "const foo=\"hello\";",
         vec![
-            Token::new(TokenKind::Keyword(KeywordKind::Const), 0, 5, None),
+            Token::new(
+                TokenKind::Keyword(KeywordKind::Const),
+                0,
+                5,
+                TokenValue::Null
+            ),
             identifier("foo", 6, 9),
             punctuator(TokenKind::Assignment, 9, 10),
             string_literal("hello", 10, 17),

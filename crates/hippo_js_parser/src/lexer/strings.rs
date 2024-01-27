@@ -1,4 +1,4 @@
-use crate::{Lexer, ParserError, Token, TokenKind};
+use crate::{Lexer, ParserError, Token, TokenKind, TokenValue};
 
 use super::utils::{is_ascii_octaldigit, CR, LF};
 
@@ -71,7 +71,9 @@ impl<'a> Lexer<'a> {
                                     TokenKind::Illegal,
                                     start_index,
                                     self.read_index,
-                                    Some(ParserError::InvalidHexadecimalEscapeSequence.to_string()),
+                                    TokenValue::String(
+                                        ParserError::InvalidHexadecimalEscapeSequence.to_string(),
+                                    ),
                                 );
                             }
                         }
@@ -107,7 +109,7 @@ impl<'a> Lexer<'a> {
                                         TokenKind::Illegal,
                                         start_index,
                                         self.read_index,
-                                        None,
+                                        TokenValue::Null,
                                     );
                                 }
                                 SurrogatePair::LeadingValidTrailingInvalid(
@@ -143,7 +145,7 @@ impl<'a> Lexer<'a> {
                                     TokenKind::Illegal,
                                     start_index,
                                     self.read_index,
-                                    None,
+                                    TokenValue::Null,
                                 );
                             }
                         }
@@ -158,7 +160,7 @@ impl<'a> Lexer<'a> {
                         TokenKind::Illegal,
                         start_index,
                         self.read_index,
-                        Some(ParserError::UnterminatedStringLiteral.to_string()),
+                        TokenValue::String(ParserError::UnterminatedStringLiteral.to_string()),
                     );
                 }
                 _ => string_literal.push(current_char),
@@ -173,7 +175,7 @@ impl<'a> Lexer<'a> {
             TokenKind::StringLiteral,
             start_index,
             self.read_index,
-            Some(string_literal),
+            TokenValue::String(string_literal),
         )
     }
 

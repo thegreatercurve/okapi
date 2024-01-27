@@ -1,5 +1,3 @@
-use std::vec;
-
 use crate::{KeywordKind, Parser, ParserError, TokenKind};
 use hippo_estree::*;
 

@@ -32,7 +32,7 @@ pub struct Literal {
     #[serde(flatten)]
     pub node: Node,
     pub value: LiteralValue,
-    pub raw: LiteralValue,
+    pub raw: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

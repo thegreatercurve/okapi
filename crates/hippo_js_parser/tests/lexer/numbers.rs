@@ -1,4 +1,4 @@
-use hippo_js_parser::{ParserError, Token, TokenKind};
+use hippo_js_parser::{ParserError, Token, TokenKind, TokenValue};
 
 use crate::lexer::{
     common::assert_lexer_eq,
@@ -7,57 +7,80 @@ use crate::lexer::{
 
 #[test]
 fn numbers_zero() {
-    assert_lexer_eq!("0", vec![number_literal("0", 0, 1)]);
+    assert_lexer_eq!("0", vec![number_literal("0", 0.0, 0, 1)]);
 }
 
 #[test]
 fn numbers_integers() {
-    assert_lexer_eq!("1234567890", vec![number_literal("1234567890", 0, 10)]);
-    assert_lexer_eq!("1234567890", vec![number_literal("1234567890", 0, 10)]);
+    assert_lexer_eq!(
+        "1234567890",
+        vec![number_literal("1234567890", 1234567890.0, 0, 10)]
+    );
+    assert_lexer_eq!(
+        "1234567890",
+        vec![number_literal("1234567890", 1234567890.0, 0, 10)]
+    );
 }
 
 #[test]
 fn numbers_floats() {
-    assert_lexer_eq!("1212345.6789", vec![number_literal("1212345.6789", 0, 12)]);
-    assert_lexer_eq!("0.0123456789", vec![number_literal("0.0123456789", 0, 12)]);
-    assert_lexer_eq!(".0123456789", vec![number_literal("0.0123456789", 0, 11)]);
-
-    // Weird JavasScript rounding idiosyncrasies.
     assert_lexer_eq!(
-        ".12345678900011222",
-        vec![number_literal("0.12345678900011221", 0, 18)]
+        "1212345.6789",
+        vec![number_literal("1212345.6789", 1212345.6789, 0, 12)]
     );
     assert_lexer_eq!(
-        "1212345.678900",
-        vec![number_literal("1212345.6789", 0, 14)]
+        "0.0123456789",
+        vec![number_literal("0.0123456789", 0.0123456789, 0, 12)]
+    );
+    assert_lexer_eq!(
+        ".0123456789",
+        vec![number_literal(".0123456789", 0.0123456789, 0, 11)]
     );
 }
 
 #[test]
 fn numbers_binary_integer_literals() {
-    assert_lexer_eq!("0b10101010", vec![number_literal("170", 0, 10)]);
-    assert_lexer_eq!("0B10101010", vec![number_literal("170", 0, 10)]);
+    assert_lexer_eq!(
+        "0b10101010",
+        vec![number_literal("0b10101010", 170.0, 0, 10)]
+    );
+    assert_lexer_eq!(
+        "0B10101010",
+        vec![number_literal("0B10101010", 170.0, 0, 10)]
+    );
 }
 
 #[test]
 fn numbers_binary_integer_literals_invalid() {
     assert_lexer_eq!(
         "0b1012111111",
-        vec![number_literal("5", 0, 5), number_literal("2111111", 5, 12)]
+        vec![
+            number_literal("0b101", 5.0, 0, 5),
+            number_literal("2111111", 2111111.0, 5, 12)
+        ]
     );
 }
 
 #[test]
 fn numbers_octal_integer_literals_modern() {
-    assert_lexer_eq!("0o12345670", vec![number_literal("2739128", 0, 10)]);
-    assert_lexer_eq!("0O12345670", vec![number_literal("2739128", 0, 10)]);
+    assert_lexer_eq!(
+        "0o12345670",
+        vec![number_literal("0o12345670", 2739128.0, 0, 10)]
+    );
+    assert_lexer_eq!(
+        "0O12345670",
+        vec![number_literal("0O12345670", 2739128.0, 0, 10)]
+    );
 }
 
 #[test]
 fn numbers_octal_integer_literals_modern_invalid() {
     assert_lexer_eq!(
         "0o123456780",
-        vec![number_literal("342391", 0, 9), number_literal("80", 9, 11)]
+        vec![
+            number_literal("0o1234567", 342391.0, 0, 9),
+            number_literal("80", 80.0, 9, 11)
+        ]
     );
 }
 
@@ -65,11 +88,21 @@ fn numbers_octal_integer_literals_modern_invalid() {
 fn numbers_hexadecimal_integer_literals() {
     assert_lexer_eq!(
         "0x1234567890abcdef",
-        vec![number_literal("1311768467294899700", 0, 18)]
+        vec![number_literal(
+            "0x1234567890abcdef",
+            1311768467294899700.0,
+            0,
+            18
+        )]
     );
     assert_lexer_eq!(
         "0X1234567890abcdef",
-        vec![number_literal("1311768467294899700", 0, 18)]
+        vec![number_literal(
+            "0X1234567890abcdef",
+            1311768467294899700.0,
+            0,
+            18
+        )]
     );
 }
 
@@ -78,7 +111,7 @@ fn numbers_hexadecimal_integer_literals_invalid() {
     assert_lexer_eq!(
         "0X1234567890abcdefgggg123",
         vec![
-            number_literal("1311768467294899700", 0, 18),
+            number_literal("0X1234567890abcdef", 1311768467294899700.0, 0, 18),
             identifier("gggg123", 18, 25),
         ]
     );
@@ -86,27 +119,42 @@ fn numbers_hexadecimal_integer_literals_invalid() {
 
 #[test]
 fn numbers_octal_integer_literals_legacy() {
-    assert_lexer_eq!("0012345670", vec![number_literal("2739128", 0, 10)]);
+    assert_lexer_eq!(
+        "0012345670",
+        vec![number_literal("0012345670", 2739128.0, 0, 10)]
+    );
 
-    assert_lexer_eq!("0012345670", vec![number_literal("2739128", 0, 10)]);
+    assert_lexer_eq!(
+        "0012345670",
+        vec![number_literal("0012345670", 2739128.0, 0, 10)]
+    );
 }
 
 #[test]
 fn numbers_octal_integer_literals_legacy_invalid() {
     assert_lexer_eq!(
         "00123459670",
-        vec![number_literal("5349", 0, 7), number_literal("9670", 7, 11)]
+        vec![
+            number_literal("0012345", 5349.0, 0, 7),
+            number_literal("9670", 9670.0, 7, 11)
+        ]
     );
 
     assert_lexer_eq!(
         "00123456970",
-        vec![number_literal("42798", 0, 8), number_literal("970", 8, 11)]
+        vec![
+            number_literal("00123456", 42798.0, 0, 8),
+            number_literal("970", 970.0, 8, 11)
+        ]
     );
 }
 
 #[test]
 fn numbers_numeric_separator() {
-    assert_lexer_eq!("123_456_789", vec![number_literal("123456789", 0, 11)]);
+    assert_lexer_eq!(
+        "123_456_789",
+        vec![number_literal("123_456_789", 123456789.0, 0, 11)]
+    );
 }
 
 #[test]
@@ -133,7 +181,10 @@ fn numbers_exponent() {
             kind: TokenKind::NumberLiteral,
             start: 0,
             end: 13,
-            value: Some("123123123000000000000".to_string()),
+            value: TokenValue::Number {
+                raw: "123123123e+12".to_string(),
+                value: 123123123000000000000.0
+            },
         }]
     );
     assert_lexer_eq!(
@@ -142,7 +193,10 @@ fn numbers_exponent() {
             kind: TokenKind::NumberLiteral,
             start: 0,
             end: 14,
-            value: Some("123123123000000".to_string()),
+            value: TokenValue::Number {
+                raw: "123.123123E+12".to_string(),
+                value: 123123123000000.0
+            },
         }]
     );
     assert_lexer_eq!(
@@ -151,7 +205,10 @@ fn numbers_exponent() {
             kind: TokenKind::NumberLiteral,
             start: 0,
             end: 12,
-            value: Some("123123123000000000000".to_string()),
+            value: TokenValue::Number {
+                raw: "123123123e12".to_string(),
+                value: 123123123000000000000.0
+            },
         }]
     );
     assert_lexer_eq!(
@@ -160,7 +217,10 @@ fn numbers_exponent() {
             kind: TokenKind::NumberLiteral,
             start: 0,
             end: 13,
-            value: Some("123123123000000".to_string()),
+            value: TokenValue::Number {
+                raw: "123.123123E12".to_string(),
+                value: 123123123000000.0
+            },
         }]
     );
 
@@ -171,7 +231,10 @@ fn numbers_exponent() {
             kind: TokenKind::NumberLiteral,
             start: 0,
             end: 13,
-            value: Some("0.000000123123123".to_string()),
+            value: TokenValue::Number {
+                raw: "123123123e-15".to_string(),
+                value: 0.000000123123123
+            },
         }]
     );
     assert_lexer_eq!(
@@ -180,7 +243,10 @@ fn numbers_exponent() {
             kind: TokenKind::NumberLiteral,
             start: 0,
             end: 14,
-            value: Some("0.000000000000123123123".to_string()),
+            value: TokenValue::Number {
+                raw: "123.123123E-15".to_string(),
+                value: 0.000000000000123123123
+            },
         }]
     );
 }
@@ -193,7 +259,7 @@ fn numbers_big_int() {
             kind: TokenKind::BigIntLiteral,
             start: 0,
             end: 4,
-            value: Some("123n".to_string()),
+            value: TokenValue::BigInt("123n".to_string()),
         },]
     );
     assert_lexer_eq!(
@@ -202,7 +268,7 @@ fn numbers_big_int() {
             kind: TokenKind::BigIntLiteral,
             start: 0,
             end: 2,
-            value: Some("0n".to_string()),
+            value: TokenValue::BigInt("0n".to_string()),
         }]
     );
 }
@@ -216,7 +282,10 @@ fn numbers_big_int_invalid() {
                 kind: TokenKind::NumberLiteral,
                 start: 0,
                 end: 7,
-                value: Some("123.123".to_string()),
+                value: TokenValue::Number {
+                    raw: "123.123".to_string(),
+                    value: 123.123
+                },
             },
             identifier("n", 7, 8)
         ]

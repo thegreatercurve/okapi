@@ -1,4 +1,4 @@
-use crate::{parser::Config, tokens::Token, ParserError, TokenKind};
+use crate::{parser::Config, tokens::Token, ParserError, TokenKind, TokenValue};
 
 use super::utils::{is_identifier_start, is_line_terminator, is_punctuator_start, is_whitespace};
 
@@ -74,7 +74,12 @@ impl<'a> Lexer<'a> {
         self.skip_whitespace();
 
         if self.is_end_of_file() {
-            return Token::new(TokenKind::EOF, self.read_index, self.read_index, None);
+            return Token::new(
+                TokenKind::EOF,
+                self.read_index,
+                self.read_index,
+                TokenValue::Null,
+            );
         }
 
         let token = self.advance();
@@ -103,7 +108,7 @@ impl<'a> Lexer<'a> {
                     TokenKind::Illegal,
                     start_index,
                     self.read_index,
-                    Some(ParserError::SyntaxError.to_string()),
+                    TokenValue::String(ParserError::SyntaxError.to_string()),
                 )
             }
         };

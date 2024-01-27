@@ -1,6 +1,6 @@
 use hippo_unicode::is_unicode_id_start;
 
-use crate::{KeywordKind, Lexer, ParserError, Token, TokenKind};
+use crate::{KeywordKind, Lexer, ParserError, Token, TokenKind, TokenValue};
 
 use super::utils::is_identifier_part;
 
@@ -18,19 +18,24 @@ impl<'a> Lexer<'a> {
                 TokenKind::Illegal,
                 start_index,
                 self.read_index,
-                Some(identifier.unwrap_err().to_string()),
+                TokenValue::String(identifier.unwrap_err().to_string()),
             );
         };
 
         let keyword_or_identifer_name = &self.source_str[start_index..self.read_index];
 
         match self.match_reserved_keyword(keyword_or_identifer_name) {
-            Some(keyword_token) => Token::new(keyword_token, start_index, self.read_index, None),
+            Some(keyword_token) => Token::new(
+                keyword_token,
+                start_index,
+                self.read_index,
+                TokenValue::Null,
+            ),
             None => Token::new(
                 TokenKind::Identifier,
                 start_index,
                 self.read_index,
-                Some(keyword_or_identifer_name.to_string()),
+                TokenValue::String(keyword_or_identifer_name.to_string()),
             ),
         }
     }
@@ -161,13 +166,13 @@ impl<'a> Lexer<'a> {
                 TokenKind::Identifier,
                 start_index,
                 self.read_index,
-                Some(identifer_name.to_string()),
+                TokenValue::String(identifer_name.to_string()),
             ),
             Err(error) => Token::new(
                 TokenKind::Illegal,
                 start_index,
                 self.read_index,
-                Some(error.to_string()),
+                TokenValue::String(error.to_string()),
             ),
         }
     }
