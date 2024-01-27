@@ -124,7 +124,7 @@ impl<'a> Lexer<'a> {
             "with" => Some(TokenKind::Keyword(KeywordKind::With)),
             "yield" => Some(TokenKind::Keyword(KeywordKind::Yield)),
 
-            // Strict mode future reserved words
+            // Strict mode future reserved words.
             "let" => Some(TokenKind::Keyword(KeywordKind::Let)),
             "static" => Some(TokenKind::Keyword(KeywordKind::Static)),
             "implements" => Some(TokenKind::Keyword(KeywordKind::Implements)),
@@ -133,6 +133,15 @@ impl<'a> Lexer<'a> {
             "private" => Some(TokenKind::Keyword(KeywordKind::Private)),
             "protected" => Some(TokenKind::Keyword(KeywordKind::Protected)),
             "public" => Some(TokenKind::Keyword(KeywordKind::Public)),
+
+            // Appear as keywords within certain syntactic productions, at places where Identifier is not allowed.
+            "as" => Some(TokenKind::Keyword(KeywordKind::As)),
+            "async" => Some(TokenKind::Keyword(KeywordKind::Async)),
+            "from" => Some(TokenKind::Keyword(KeywordKind::From)),
+            "get" => Some(TokenKind::Keyword(KeywordKind::Get)),
+            "of" => Some(TokenKind::Keyword(KeywordKind::Of)),
+            "set" => Some(TokenKind::Keyword(KeywordKind::Set)),
+            "target" => Some(TokenKind::Keyword(KeywordKind::Target)),
             _ => None,
         }
     }

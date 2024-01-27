@@ -85,8 +85,8 @@ impl<'a> Parser<'a> {
         self.current_token.kind.clone()
     }
 
-    pub(crate) fn current_token_value(&self) -> String {
-        self.current_token.value.clone().unwrap_or_default()
+    pub(crate) fn current_token_value(&self) -> T {
+        self.current_token.value.clone()
     }
 
     pub(crate) fn peek_token_kind(&self) -> TokenKind {
@@ -132,7 +132,7 @@ impl<'a> Parser<'a> {
         Err(self.unexpected_current_token_kind())
     }
 
-    pub(crate) fn possible_and_advance(
+    pub(crate) fn expect_optional_and_advance(
         &mut self,
         token_kind: TokenKind,
     ) -> Result<(), ParserError> {
@@ -176,7 +176,7 @@ impl<'a> Parser<'a> {
             // TODO Check const declarations have a valid identifier.
         }
 
-        self.possible_and_advance(TokenKind::Semicolon)?; // Eat `;` token.
+        self.expect_optional_and_advance(TokenKind::Semicolon)?; // Eat `;` token.
 
         Ok(Statement::Declaration(Declaration::Variable(
             VariableDeclaration {

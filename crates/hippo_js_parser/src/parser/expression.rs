@@ -205,7 +205,7 @@ impl<'a> Parser<'a> {
     // 13.2 Primary Expression
     // https://tc39.es/ecma262/#prod-PrimaryExpression
     fn parse_primary_expresison(&mut self) -> Result<Expression, ParserError> {
-        // TODO This is currently incomplete.
+        // TODO This is currently incomplete. Handle template literals and Regex.
         let token_kind = self.current_token_kind();
 
         match token_kind {
@@ -220,12 +220,21 @@ impl<'a> Parser<'a> {
             TokenKind::LeftCurlyBrace => self.parse_object_literal(),
             TokenKind::Keyword(KeywordKind::Function) => {
                 if self.peek_token_kind() == TokenKind::Multiplication {
-                    self.parse_generator_function_expression()
+                    self.parse_generator_expression()
                 } else {
                     self.parse_function_expression()
                 }
             }
             TokenKind::Keyword(KeywordKind::Class) => self.parse_class_expression(),
+            TokenKind::Keyword(KeywordKind::Async) => {
+                self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
+
+                if self.peek_token_kind() == TokenKind::Multiplication {
+                    self.parse_async_generator_expression()
+                } else {
+                    self.parse_async_function_expression()
+                }
+            }
             TokenKind::LeftParenthesis => {
                 self.parse_cover_parenthesized_expression_and_arrow_parameter_list()
             }
@@ -270,10 +279,12 @@ impl<'a> Parser<'a> {
             TokenKind::StringLiteral => Ok(Expression::Literal(Literal {
                 node,
                 value: LiteralValue::String(value),
+                raw: LiteralValue::String(value),
             })),
             TokenKind::NumberLiteral => Ok(Expression::Literal(Literal {
                 node,
                 value: LiteralValue::Number(value.parse::<f64>().unwrap()),
+                raw: LiteralValue::Number(value.parse::<f64>().unwrap()),
             })),
             TokenKind::Keyword(KeywordKind::Null) => Ok(Expression::Literal(Literal {
                 node,

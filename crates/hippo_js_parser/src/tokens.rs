@@ -41,7 +41,7 @@ pub enum KeywordKind {
     With,
     Yield,
 
-    // Strict mode future reserved words
+    // Strict mode future reserved words.
     Let,
     Static,
     Implements,
@@ -50,6 +50,15 @@ pub enum KeywordKind {
     Private,
     Protected,
     Public,
+
+    // Appear as keywords within certain syntactic productions, at places where Identifier is not allowed.
+    As,
+    Async,
+    From,
+    Get,
+    Of,
+    Set,
+    Target,
 }
 
 #[derive(Clone, Debug, PartialEq)]

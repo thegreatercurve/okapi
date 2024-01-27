@@ -17,13 +17,15 @@ impl<'a> Parser<'a> {
     }
 
     // 15.2 Function Definitions
-    // https://tc39.es/ecma262/#sec-function-definitions
+    // https://tc39.es/ecma262/#prod-FunctionExpression
     pub(crate) fn parse_function_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
 
-        let identifier = self.parse_binding_identifier()?;
+        if self.peek_token_kind() == TokenKind::Identifier {
+            let identifier = self.parse_binding_identifier()?;
+        }
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
@@ -44,8 +46,8 @@ impl<'a> Parser<'a> {
 
     // 15.3 Arrow Function Definitions
     // https://tc39.es/ecma262/#sec-arrow-function-definitions
-    fn parse_arrow_function_expression(&mut self) -> Result<Expression, ParserError> {
-        todo!("parse_arrow_function_expression")
+    fn parse_arrow_function(&mut self) -> Result<Expression, ParserError> {
+        todo!("parse_arrow_function")
     }
 
     // 15.4 Method Definitions
@@ -55,14 +57,26 @@ impl<'a> Parser<'a> {
     }
 
     // 15.5 Generator Function Definitions
-    // https://tc39.es/ecma262/#sec-class-definitions
+    // https://tc39.es/ecma262/#prod-GeneratorExpression
     pub(crate) fn parse_generator_expression(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_generator_expression")
     }
 
+    // 15.6 Async Generator Function Definitions
+    // https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
+    pub(crate) fn parse_async_generator_expression(&mut self) -> Result<Expression, ParserError> {
+        todo!("parse_async_generator_expression")
+    }
+
     // 15.7 Class Definitions
-    // https://tc39.es/ecma262/#sec-class-definitions
+    // https://tc39.es/ecma262/#prod-ClassExpression
     pub(crate) fn parse_class_expression(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_class_expression")
+    }
+
+    // 15.8 Async Function Definitions
+    // https://tc39.es/ecma262/#prod-AsyncFunctionExpression
+    pub fn parse_async_function_expression(&mut self) -> Result<Expression, ParserError> {
+        todo!("parse_async_function_expression")
     }
 }

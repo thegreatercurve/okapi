@@ -55,7 +55,7 @@ impl<'a> Parser<'a> {
     fn parse_empty_statement(&mut self) -> Result<Statement, ParserError> {
         let start_token = self.start_token();
 
-        self.possible_and_advance(TokenKind::Semicolon)?;
+        self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Empty(EmptyStatement {
             node: self.create_node(&start_token, &self.current_token),
@@ -74,7 +74,7 @@ impl<'a> Parser<'a> {
         if self.current_token_kind() == TokenKind::Colon {
             todo!("parse_labelled_statement")
         } else {
-            self.possible_and_advance(TokenKind::Semicolon)?;
+            self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
             Ok(Statement::Expression(ExpressionStatement {
                 node: self.create_node(&start_token, &self.current_token),
@@ -178,7 +178,7 @@ impl<'a> Parser<'a> {
             Some(self.parse_label_identifier()?)
         };
 
-        self.possible_and_advance(TokenKind::Semicolon)?;
+        self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Continue(ContinueStatement {
             node: self.create_node(&start_token, &self.current_token),
@@ -216,7 +216,7 @@ impl<'a> Parser<'a> {
             Some(self.parse_expression()?)
         };
 
-        self.possible_and_advance(TokenKind::Semicolon)?;
+        self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Return(ReturnStatement {
             node: self.create_node(&start_token, &self.current_token),
@@ -232,7 +232,7 @@ impl<'a> Parser<'a> {
 
         let argument = self.parse_expression()?;
 
-        self.possible_and_advance(TokenKind::Semicolon)?;
+        self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Throw(ThrowStatement {
             node: self.create_node(&start_token, &self.current_token),

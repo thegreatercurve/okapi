@@ -32,9 +32,11 @@ pub struct Literal {
     #[serde(flatten)]
     pub node: Node,
     pub value: LiteralValue,
+    pub raw: LiteralValue,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum LiteralValue {
     String(String),
     Boolean(bool),
