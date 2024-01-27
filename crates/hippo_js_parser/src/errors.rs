@@ -38,7 +38,7 @@ pub enum ParserError {
 
     UnexpectedToken(TokenKind),
 
-    JsonError,
+    TemporaryError,
 }
 
 impl std::fmt::Display for ParserError {
@@ -101,7 +101,7 @@ impl std::fmt::Display for ParserError {
             ParserError::UnexpectedToken(token_kind) => {
                 write!(f, "UnexpectedToken({:?})", token_kind,)
             }
-            ParserError::JsonError => write!(f, "JsonError"),
+            ParserError::TemporaryError => write!(f, "TemporaryError"),
         }
     }
 }

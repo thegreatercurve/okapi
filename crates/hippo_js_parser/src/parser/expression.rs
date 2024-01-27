@@ -158,22 +158,21 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-ConditionalExpression
     fn parse_conditional_expression(&mut self) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete.
         let _node = self.start_token();
 
         let short_circuit = self.parse_short_circuit_expression()?;
-
-        // TODO This is currently incomplete.
 
         Ok(short_circuit)
     }
 
     // https://tc39.es/ecma262/#prod-ShortCircuitExpression
     fn parse_short_circuit_expression(&mut self) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete.
+
         let _node = self.start_token();
 
         let logical = self.parse_logical_or_expression()?;
-
-        // TODO This is currently incomplete.
 
         Ok(logical)
     }
@@ -206,9 +205,8 @@ impl<'a> Parser<'a> {
     // 13.2 Primary Expression
     // https://tc39.es/ecma262/#prod-PrimaryExpression
     fn parse_primary_expresison(&mut self) -> Result<Expression, ParserError> {
-        let token_kind = self.current_token_kind();
-
         // TODO This is currently incomplete.
+        let token_kind = self.current_token_kind();
 
         match token_kind {
             TokenKind::Keyword(KeywordKind::This) => self.parse_this_expression(),
@@ -220,7 +218,17 @@ impl<'a> Parser<'a> {
             | TokenKind::Keyword(KeywordKind::False) => self.parse_literal(),
             TokenKind::LeftSquareBracket => self.parse_array_literal(),
             TokenKind::LeftCurlyBrace => self.parse_object_literal(),
-            TokenKind::LeftParenthesis => self.parse_grouping_expression(),
+            TokenKind::Keyword(KeywordKind::Function) => {
+                if self.peek_token_kind() == TokenKind::Multiplication {
+                    self.parse_generator_function_expression()
+                } else {
+                    self.parse_function_expression()
+                }
+            }
+            TokenKind::Keyword(KeywordKind::Class) => self.parse_class_expression(),
+            TokenKind::LeftParenthesis => {
+                self.parse_cover_parenthesized_expression_and_arrow_parameter_list()
+            }
             _ => Err(self.unexpected_current_token_kind()),
         }
     }
@@ -233,6 +241,21 @@ impl<'a> Parser<'a> {
         Ok(Expression::This(ThisExpression {
             node: self.create_node(&start_token, &self.current_token),
         }))
+    }
+
+    // https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
+    pub(crate) fn parse_cover_parenthesized_expression_and_arrow_parameter_list(
+        &mut self,
+    ) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete.
+
+        self.expect_and_advance(TokenKind::LeftParenthesis)?;
+
+        let expression = self.parse_expression()?;
+
+        self.expect_and_advance(TokenKind::RightParenthesis)?;
+
+        Ok(expression)
     }
 
     // https://tc39.es/ecma262/#prod-Literal
@@ -381,9 +404,8 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-PropertyDefinition
     fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperties, ParserError> {
+        // TODO This is currently incomplete.
         let start_token = self.start_token();
-
-        // TODO This is currently incomplete..
 
         match self.current_token_kind() {
             TokenKind::Identifier => {
@@ -408,6 +430,8 @@ impl<'a> Parser<'a> {
     // 13.3 Left-Hand-Side Expressions
     // https://tc39.es/ecma262/#prod-LeftHandSideExpression
     fn parse_left_hand_side_expression(&mut self) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete.
+
         let _node = self.start_token();
 
         let current_token_kind = self.current_token_kind();

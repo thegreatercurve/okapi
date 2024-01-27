@@ -8,6 +8,9 @@ use serde::Serialize;
 #[serde(untagged)]
 
 pub enum Expression {
+    Literal(Literal),
+    Identifier(Identifier),
+
     // ES5
     This(ThisExpression),
     Array(ArrayExpression),
@@ -33,9 +36,6 @@ pub enum Expression {
 
     // ES2017
     Await(AwaitExpression),
-
-    Literal(Literal),
-    Identifier(Identifier),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
