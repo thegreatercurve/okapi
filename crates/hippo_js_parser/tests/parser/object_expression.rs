@@ -1,10 +1,10 @@
-use crate::parser::common::{assert_parse_module_eq, assert_parse_script_eq};
+use crate::parser::common::assert_parse_module_eq;
 
 #[test]
 fn object_expression() {
-    assert_parse_script_eq!(
+    assert_parse_module_eq!(
         r#"let a = {};"#,
-        r#"{"type":"Program","start":0,"end":11,"body":[{"type":"VariableDeclaration","start":0,"end":11,"declarations":[{"type":"VariableDeclarator","start":4,"end":10,"id":{"type":"Identifier","start":4,"end":5,"name":"a"},"init":{"type":"ObjectExpression","start":8,"end":10,"properties":[]}}],"kind":"let"}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":11,"body":[{"type":"VariableDeclaration","start":0,"end":11,"declarations":[{"type":"VariableDeclarator","start":4,"end":10,"id":{"type":"Identifier","start":4,"end":5,"name":"a"},"init":{"type":"ObjectExpression","start":8,"end":10,"properties":[]}}],"kind":"let"}],"sourceType":"module"}"#
     );
     assert_parse_module_eq!(
         r#"let b = {foo,};"#,

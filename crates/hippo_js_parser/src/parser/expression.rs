@@ -440,18 +440,47 @@ impl<'a> Parser<'a> {
 
         match self.current_token_kind() {
             TokenKind::Identifier => {
+                let method = false;
+                let mut shorthand = false;
+                let computed = false;
+                let kind = PropertyKind::Init;
+
                 let identifier_reference = self.parse_identifier_reference()?;
 
-                let peek_token_kind = self.peek_token_kind();
+                let key = PropertyKey::Identifier(identifier_reference.clone());
+
+                let value;
+
+                if self.current_token_kind() == TokenKind::Colon {
+                    self.expect_and_advance(TokenKind::Colon)?;
+
+                    let assignment_expression = self.parse_assignment_expression()?;
+
+                    value = Box::new(assignment_expression);
+                } else {
+                    shorthand = true;
+
+                    value = Box::new(identifier_reference);
+                }
 
                 Ok(ObjectExpressionProperties::Property(Property {
-                    method: peek_token_kind == TokenKind::LeftParenthesis,
-                    shorthand: peek_token_kind != TokenKind::Colon,
-                    computed: false,
-                    kind: PropertyKind::Init,
-                    key: PropertyKey::Identifier(identifier_reference.clone()),
+                    method,
+                    shorthand,
+                    computed,
+                    kind,
+                    key,
                     node: self.create_node(&start_token, &self.previous_token),
-                    value: Box::new(identifier_reference),
+                    value,
+                }))
+            }
+            TokenKind::Ellipsis => {
+                self.advance(); // Eat the ... token.
+
+                let assigment_expression: Expression = self.parse_assignment_expression()?;
+
+                Ok(ObjectExpressionProperties::SpreadElement(SpreadElement {
+                    node: self.create_node(&start_token, &self.previous_token),
+                    argument: assigment_expression,
                 }))
             }
             _ => Err(self.unexpected_current_token_kind()),
