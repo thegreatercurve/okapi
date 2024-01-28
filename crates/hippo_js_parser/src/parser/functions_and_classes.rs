@@ -50,7 +50,7 @@ impl<'a> Parser<'a> {
 
     // 15.4 Method Definitions
     // https://tc39.es/ecma262/#sec-method-definitions
-    fn parse_method_definition(&mut self) -> Result<Statement, ParserError> {
+    pub(crate) fn parse_method_definition(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_method_definition")
     }
 

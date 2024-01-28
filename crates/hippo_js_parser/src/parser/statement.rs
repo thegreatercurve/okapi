@@ -46,7 +46,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Statement::Block(BlockStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.previous_token),
             body,
         }))
     }
@@ -76,8 +76,10 @@ impl<'a> Parser<'a> {
         } else {
             self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
+            let node: Node = self.create_node(&start_token, &self.current_token);
+
             Ok(Statement::Expression(ExpressionStatement {
-                node: self.create_node(&start_token, &self.current_token),
+                node,
                 expression: expression,
             }))
         }

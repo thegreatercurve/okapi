@@ -38,6 +38,9 @@ pub enum ParserError {
 
     UnexpectedToken(TokenKind),
     UnexpectedTokenValue,
+
+    // Object expressions
+    InvalidPropertyKey,
 }
 
 impl std::fmt::Display for ParserError {
@@ -101,6 +104,7 @@ impl std::fmt::Display for ParserError {
                 write!(f, "UnexpectedToken({:?})", token_kind,)
             }
             ParserError::UnexpectedTokenValue => write!(f, "UnexpectedTokenValue"),
+            ParserError::InvalidPropertyKey => write!(f, "InvalidPropertyKey"),
         }
     }
 }

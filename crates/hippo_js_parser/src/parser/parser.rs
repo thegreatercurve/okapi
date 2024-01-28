@@ -327,11 +327,6 @@ impl<'a> Parser<'a> {
         todo!()
     }
 
-    // https://tc39.es/ecma262/#prod-PropertyName
-    fn parse_property_name(&mut self) -> Result<(), ParserError> {
-        todo!()
-    }
-
     // https://tc39.es/ecma262/#prod-Initializer
     fn parse_initializer(&mut self) -> Result<(), ParserError> {
         todo!()

@@ -94,7 +94,7 @@ pub struct Property {
 #[serde(untagged)]
 pub enum PropertyKey {
     Literal(Literal),
-    Identifier(Expression),
+    Identifier(Identifier),
     Expression(Expression),
 }
 
@@ -155,34 +155,56 @@ pub enum UpdateOperator {
 pub struct BinaryExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub operator: BinaryOperator,
     pub left: Box<Expression>,
+    pub operator: BinaryOperator,
     pub right: Box<Expression>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum BinaryOperator {
+    #[serde(rename = "==")]
     EqualEqual,
+    #[serde(rename = "!=")]
     NotEqual,
+    #[serde(rename = "===")]
     EqualEqualEqual,
+    #[serde(rename = "!==")]
     NotEqualEqual,
+    #[serde(rename = "<")]
     LessThan,
+    #[serde(rename = "<=")]
     LessThanEqual,
+    #[serde(rename = ">")]
     GreaterThan,
+    #[serde(rename = ">=")]
     GreaterThanEqual,
+    #[serde(rename = "<<")]
     LessThanLessThan,
+    #[serde(rename = ">>")]
     GreaterThanGreaterThan,
+    #[serde(rename = ">>>")]
     GreaterThanGreaterThanGreaterThan,
+    #[serde(rename = "+")]
     Plus,
+    #[serde(rename = "-")]
     Minus,
+    #[serde(rename = "*")]
     Star,
+    #[serde(rename = "/")]
     Slash,
+    #[serde(rename = "%")]
     Percent,
+    #[serde(rename = "|")]
     Bar,
+    #[serde(rename = "^")]
     Caret,
+    #[serde(rename = "&")]
     Ampersand,
+    #[serde(rename = "in")]
     In,
+    #[serde(rename = "instanceof")]
     Instanceof,
+    #[serde(rename = "**")]
     StarStar,
 }
 

@@ -280,15 +280,15 @@ impl<'a> Parser<'a> {
 
         let literal = match self.current_token_kind() {
             TokenKind::StringLiteral => {
-                let token_value = match token_value {
+                let raw_value = match token_value {
                     TokenValue::String(value) => value,
                     _ => return Err(ParserError::UnexpectedTokenValue),
                 };
 
                 Ok(Expression::Literal(Literal {
                     node,
-                    value: LiteralValue::String(token_value.clone()),
-                    raw: token_value,
+                    value: LiteralValue::String(raw_value.clone()),
+                    raw: raw_value,
                 }))
             }
             TokenKind::NumberLiteral => {
@@ -435,42 +435,73 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-PropertyDefinition
     fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperties, ParserError> {
-        // TODO This is currently incomplete.
         let start_token = self.start_token();
 
         match self.current_token_kind() {
-            TokenKind::Identifier => {
-                let method = false;
-                let mut shorthand = false;
-                let computed = false;
+            TokenKind::Identifier
+            | TokenKind::StringLiteral
+            | TokenKind::NumberLiteral
+            | TokenKind::LeftSquareBracket => {
+                let property_key = self.parse_property_name()?;
+
+                let mut shorthand = match property_key {
+                    PropertyKey::Identifier(_) => true,
+                    _ => false,
+                };
+                let computed = match property_key {
+                    PropertyKey::Expression(_) => true,
+                    _ => false,
+                };
+                let mut method = false;
+                // TODO Add support for `get` and `set`.
                 let kind = PropertyKind::Init;
-
-                let identifier_reference = self.parse_identifier_reference()?;
-
-                let key = PropertyKey::Identifier(identifier_reference.clone());
 
                 let value;
 
-                if self.current_token_kind() == TokenKind::Colon {
-                    self.expect_and_advance(TokenKind::Colon)?;
+                match self.current_token_kind() {
+                    TokenKind::Colon => {
+                        shorthand = false;
 
-                    let assignment_expression = self.parse_assignment_expression()?;
+                        self.expect_and_advance(TokenKind::Colon)?;
 
-                    value = Box::new(assignment_expression);
-                } else {
-                    shorthand = true;
+                        let assignment_expression = self.parse_assignment_expression()?;
 
-                    value = Box::new(identifier_reference);
+                        value = Box::new(assignment_expression);
+                    }
+                    TokenKind::Equal => {
+                        shorthand = false;
+
+                        let assignment_expression = self.parse_assignment_expression()?;
+
+                        value = Box::new(assignment_expression);
+                    }
+                    TokenKind::LeftParenthesis => {
+                        method = true;
+
+                        let method_definition = self.parse_method_definition()?;
+
+                        value = Box::new(method_definition);
+                    }
+                    _ => {
+                        shorthand = true;
+
+                        match &property_key {
+                            PropertyKey::Identifier(identifier) => {
+                                value = Box::new(Expression::Identifier(identifier.clone()));
+                            }
+                            _ => return Err(ParserError::InvalidPropertyKey),
+                        };
+                    }
                 }
 
                 Ok(ObjectExpressionProperties::Property(Property {
                     method,
                     shorthand,
                     computed,
-                    kind,
-                    key,
+                    key: property_key,
                     node: self.create_node(&start_token, &self.previous_token),
                     value,
+                    kind,
                 }))
             }
             TokenKind::Ellipsis => {
@@ -485,6 +516,70 @@ impl<'a> Parser<'a> {
             }
             _ => Err(self.unexpected_current_token_kind()),
         }
+    }
+
+    // https://tc39.es/ecma262/#prod-PropertyName
+    fn parse_property_name(&mut self) -> Result<PropertyKey, ParserError> {
+        let start_token = self.start_token();
+
+        let token_value = self.current_token_value();
+
+        match self.current_token_kind() {
+            TokenKind::Identifier => {
+                self.advance(); // Eat the identifier token.
+
+                let name = match token_value {
+                    TokenValue::String(value) => value,
+                    _ => return Err(ParserError::UnexpectedTokenValue),
+                };
+
+                Ok(PropertyKey::Identifier(Identifier {
+                    node: self.create_node(&start_token, &self.previous_token),
+                    name,
+                }))
+            }
+            TokenKind::StringLiteral => {
+                self.advance(); // Eat the string literal token.
+
+                let raw_value = match token_value {
+                    TokenValue::String(value) => value,
+                    _ => return Err(ParserError::UnexpectedTokenValue),
+                };
+
+                Ok(PropertyKey::Literal(Literal {
+                    node: self.create_node(&start_token, &self.previous_token),
+                    value: LiteralValue::String(raw_value.clone()),
+                    raw: format!("\"{}\"", raw_value.to_string()),
+                }))
+            }
+            TokenKind::NumberLiteral => {
+                self.advance(); // Eat the number literal token.
+
+                let (raw, value) = match token_value {
+                    TokenValue::Number { raw, value } => (raw, value),
+                    _ => return Err(ParserError::UnexpectedTokenValue),
+                };
+
+                Ok(PropertyKey::Literal(Literal {
+                    node: self.create_node(&start_token, &self.previous_token),
+                    value: LiteralValue::Number(value.clone()),
+                    raw,
+                }))
+            }
+            TokenKind::LeftSquareBracket => self.parse_computed_property_name(),
+            _ => Err(self.unexpected_current_token_kind()),
+        }
+    }
+
+    // https://tc39.es/ecma262/#prod-PropertyName
+    fn parse_computed_property_name(&mut self) -> Result<PropertyKey, ParserError> {
+        self.expect_and_advance(TokenKind::LeftSquareBracket)?;
+
+        let assignment_expression = self.parse_assignment_expression()?;
+
+        self.expect_and_advance(TokenKind::RightSquareBracket)?;
+
+        Ok(PropertyKey::Expression(assignment_expression))
     }
 
     // 13.3 Left-Hand-Side Expressions
@@ -713,7 +808,7 @@ impl<'a> Parser<'a> {
             let exponentiation_expression = self.parse_exponentiation_expression()?;
 
             Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator: BinaryOperator::StarStar,
                 left: Box::new(unary_expression),
                 right: Box::new(exponentiation_expression),
@@ -741,7 +836,7 @@ impl<'a> Parser<'a> {
             let multiplicative_expression = self.parse_multiplicative_expression()?;
 
             Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator,
                 left: Box::new(exponentiation_expression),
                 right: Box::new(multiplicative_expression),
@@ -756,8 +851,6 @@ impl<'a> Parser<'a> {
     fn parse_additive_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let multiplicative_expression = self.parse_multiplicative_expression()?;
-
         let current_token_kind = self.current_token_kind();
 
         if is_token_kind_additive_operator(&current_token_kind) {
@@ -767,13 +860,17 @@ impl<'a> Parser<'a> {
 
             let additive_expression = self.parse_additive_expression()?;
 
+            let multiplicative_expression = self.parse_multiplicative_expression()?;
+
             Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator,
                 left: Box::new(additive_expression),
                 right: Box::new(multiplicative_expression),
             }))
         } else {
+            let multiplicative_expression = self.parse_multiplicative_expression()?;
+
             Ok(multiplicative_expression)
         }
     }
@@ -782,8 +879,6 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-ShiftExpression
     fn parse_bitwise_shift_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
-
-        let additive_expression = self.parse_additive_expression()?;
 
         let current_token_kind = self.current_token_kind();
 
@@ -794,13 +889,17 @@ impl<'a> Parser<'a> {
 
             let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
 
+            let additive_expression = self.parse_additive_expression()?;
+
             Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator,
                 left: Box::new(bitwise_shift_expression),
                 right: Box::new(additive_expression),
             }))
         } else {
+            let additive_expression = self.parse_additive_expression()?;
+
             Ok(additive_expression)
         }
     }
@@ -809,8 +908,6 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-RelationalExpression
     fn parse_relational_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
-
-        let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
 
         let current_token_kind = self.current_token_kind();
 
@@ -821,13 +918,17 @@ impl<'a> Parser<'a> {
 
             let relational_expression = self.parse_relational_expression()?;
 
+            let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
+
             Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator,
                 left: Box::new(relational_expression),
                 right: Box::new(bitwise_shift_expression),
             }))
         } else {
+            let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
+
             Ok(bitwise_shift_expression)
         }
     }
@@ -837,24 +938,27 @@ impl<'a> Parser<'a> {
     fn parse_equality_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let relational_expression = self.parse_relational_expression()?;
-
         let current_token_kind = self.current_token_kind();
 
         if is_token_kind_equality_operator(&current_token_kind) {
             self.advance(); // Eat the == or != or === or !== token.
 
-            let operator = match_token_kind_to_equality_operator(&current_token_kind).unwrap();
+            let operator: BinaryOperator =
+                match_token_kind_to_equality_operator(&current_token_kind).unwrap();
 
             let equality_expression = self.parse_equality_expression()?;
 
+            let relational_expression = self.parse_relational_expression()?;
+
             Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator,
                 left: Box::new(equality_expression),
                 right: Box::new(relational_expression),
             }))
         } else {
+            let relational_expression = self.parse_relational_expression()?;
+
             Ok(relational_expression)
         }
     }
@@ -864,20 +968,22 @@ impl<'a> Parser<'a> {
     fn parse_bitwise_and_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let equality_expression = self.parse_equality_expression()?;
-
         if self.current_token_kind() == TokenKind::BitwiseAnd {
             self.advance(); // Eat the & token.
 
             let bitwise_and_expression = self.parse_bitwise_and_expression()?;
 
+            let equality_expression: Expression = self.parse_equality_expression()?;
+
             Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator: BinaryOperator::Ampersand,
                 left: Box::new(bitwise_and_expression),
                 right: Box::new(equality_expression),
             }))
         } else {
+            let equality_expression: Expression = self.parse_equality_expression()?;
+
             Ok(equality_expression)
         }
     }
@@ -886,20 +992,22 @@ impl<'a> Parser<'a> {
     fn parse_bitwise_xor_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let bitwise_and_expression = self.parse_bitwise_and_expression()?;
-
         if self.current_token_kind() == TokenKind::BitwiseXor {
             self.advance(); // Eat the ^ token.
 
             let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
 
+            let bitwise_and_expression = self.parse_bitwise_and_expression()?;
+
             Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator: BinaryOperator::Caret,
                 left: Box::new(bitwise_xor_expression),
                 right: Box::new(bitwise_and_expression),
             }))
         } else {
+            let bitwise_and_expression = self.parse_bitwise_and_expression()?;
+
             Ok(bitwise_and_expression)
         }
     }
@@ -908,20 +1016,22 @@ impl<'a> Parser<'a> {
     fn parse_bitwise_or_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
-
         if self.current_token_kind() == TokenKind::BitwiseOr {
             self.advance(); // Eat the | token.
 
             let bitwise_or_expression = self.parse_bitwise_or_expression()?;
 
+            let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
+
             Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator: BinaryOperator::Bar,
                 left: Box::new(bitwise_or_expression),
                 right: Box::new(bitwise_xor_expression),
             }))
         } else {
+            let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
+
             Ok(bitwise_xor_expression)
         }
     }
@@ -953,12 +1063,12 @@ impl<'a> Parser<'a> {
     fn parse_logical_or_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let logical_and_expression = self.parse_logical_and_expression()?;
-
         if self.current_token_kind() == TokenKind::LogicalOr {
             self.advance(); // Eat the || token.
 
             let logical_or_expression = self.parse_logical_or_expression()?;
+
+            let logical_and_expression = self.parse_logical_and_expression()?;
 
             Ok(Expression::Logical(LogicalExpression {
                 node: self.create_node(&start_token, &self.current_token),
@@ -967,6 +1077,8 @@ impl<'a> Parser<'a> {
                 right: Box::new(logical_and_expression),
             }))
         } else {
+            let logical_and_expression = self.parse_logical_and_expression()?;
+
             Ok(logical_and_expression)
         }
     }
