@@ -1,6 +1,4 @@
-use std::vec;
-
-use crate::{KeywordKind, Parser, ParserError, TokenKind, TokenValue};
+use crate::{KeywordKind, Parser, ParserError, Token, TokenKind, TokenValue};
 use hippo_estree::*;
 
 fn march_token_kind_to_update_operator(token_kind: &TokenKind) -> Option<UpdateOperator> {
@@ -133,6 +131,72 @@ fn match_token_kind_to_equality_operator(token_kind: &TokenKind) -> Option<Binar
     }
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence#table
+#[derive(PartialEq, PartialOrd)]
+enum Precedence {
+    Comma,
+    Assignment,
+    Conditional,
+    NullishCoalescing,
+    LogicalOr,
+    LogicalAnd,
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseAnd,
+    Equality,
+    Relational,
+    BitwiseShift,
+    Additive,
+    Multiplicative,
+    Exponentiation,
+    Prefix,
+    Postfix,
+    New,
+    Call,
+    Grouping,
+}
+
+impl Precedence {
+    fn is_right_associative(self) -> bool {
+        match self {
+            Precedence::Assignment | Precedence::Exponentiation => true,
+            _ => false,
+        }
+    }
+}
+
+// TODO Pratt parser experiment
+fn match_token_kind_to_operator_precedence(token_kind: &TokenKind) -> Option<Precedence> {
+    match token_kind {
+        TokenKind::NullishCoalescing => Some(Precedence::NullishCoalescing),
+        TokenKind::LogicalOr => Some(Precedence::LogicalOr),
+        TokenKind::LogicalAnd => Some(Precedence::LogicalAnd),
+        TokenKind::BitwiseOr => Some(Precedence::BitwiseOr),
+        TokenKind::BitwiseXor => Some(Precedence::BitwiseXor),
+        TokenKind::BitwiseAnd => Some(Precedence::BitwiseAnd),
+        TokenKind::Equal
+        | TokenKind::NotEqual
+        | TokenKind::StrictEqual
+        | TokenKind::StrictNotEqual => Some(Precedence::Equality),
+        TokenKind::LessThan
+        | TokenKind::GreaterThan
+        | TokenKind::LessThanOrEqual
+        | TokenKind::GreaterThanOrEqual
+        | TokenKind::Keyword(KeywordKind::Instanceof)
+        | TokenKind::Keyword(KeywordKind::In) => Some(Precedence::Relational),
+        TokenKind::LeftShift | TokenKind::RightShift | TokenKind::UnsignedRightShift => {
+            Some(Precedence::BitwiseShift)
+        }
+        TokenKind::Addition | TokenKind::Subtraction => Some(Precedence::Additive),
+        TokenKind::Multiplication | TokenKind::Division | TokenKind::Modulus => {
+            Some(Precedence::Multiplicative)
+        }
+        TokenKind::Exponentiation => Some(Precedence::Exponentiation),
+        TokenKind::Increment | TokenKind::Decrement => Some(Precedence::Prefix),
+        _ => None,
+    }
+}
+
 // 13 ECMAScript Language: Expressions
 // https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 impl<'a> Parser<'a> {
@@ -159,9 +223,7 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-ConditionalExpression
     fn parse_conditional_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
-        let _node = self.start_token();
-
-        let short_circuit = self.parse_short_circuit_expression()?;
+        let short_circuit = self.parse_binary_expression(Precedence::Comma)?;
 
         Ok(short_circuit)
     }
@@ -771,7 +833,8 @@ impl<'a> Parser<'a> {
 
                 let unary_argument = self.parse_unary_expression()?;
 
-                let operator = match_token_kind_to_unary_operator(&current_token_kind).unwrap();
+                let operator =
+                    match_token_kind_to_unary_operator(&self.current_token_kind()).unwrap();
 
                 self.advance();
 
@@ -823,15 +886,15 @@ impl<'a> Parser<'a> {
     fn parse_multiplicative_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let exponentiation_expression = self.parse_exponentiation_expression()?;
-
         let current_token_kind = self.current_token_kind();
 
-        if is_token_kind_multiplicative_operator(&current_token_kind) {
-            self.advance(); // Eat the * or / or % token.
+        let exponentiation_expression = self.parse_exponentiation_expression()?;
 
+        if is_token_kind_multiplicative_operator(&self.current_token_kind()) {
             let operator =
-                match_token_kind_to_multiplicative_operator(&current_token_kind).unwrap();
+                match_token_kind_to_multiplicative_operator(&self.current_token_kind()).unwrap();
+
+            self.advance(); // Eat the * or / or % token.
 
             let multiplicative_expression = self.parse_multiplicative_expression()?;
 
@@ -851,14 +914,15 @@ impl<'a> Parser<'a> {
     fn parse_additive_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let current_token_kind = self.current_token_kind();
+        self.clone().parse_multiplicative_expression()?;
 
-        if is_token_kind_additive_operator(&current_token_kind) {
-            self.advance(); // Eat the + or - token.
-
-            let operator = match_token_kind_to_additive_operator(&current_token_kind).unwrap();
-
+        if is_token_kind_additive_operator(&self.current_token_kind()) {
             let additive_expression = self.parse_additive_expression()?;
+
+            let operator =
+                match_token_kind_to_additive_operator(&self.current_token_kind()).unwrap();
+
+            self.advance(); // Eat the + or - token.
 
             let multiplicative_expression = self.parse_multiplicative_expression()?;
 
@@ -880,14 +944,13 @@ impl<'a> Parser<'a> {
     fn parse_bitwise_shift_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let current_token_kind = self.current_token_kind();
-
-        if is_token_kind_bitwise_shift_operator(&current_token_kind) {
-            self.advance(); // Eat the > or >> or >>> token.
-
-            let operator = match_token_kind_to_bitwise_shift_operator(&current_token_kind).unwrap();
-
+        if is_token_kind_bitwise_shift_operator(&self.current_token_kind()) {
             let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
+
+            let operator =
+                match_token_kind_to_bitwise_shift_operator(&self.current_token_kind()).unwrap();
+
+            self.advance(); // Eat the > or >> or >>> token.
 
             let additive_expression = self.parse_additive_expression()?;
 
@@ -909,14 +972,15 @@ impl<'a> Parser<'a> {
     fn parse_relational_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let current_token_kind = self.current_token_kind();
+        self.clone().parse_bitwise_shift_expression()?;
 
-        if is_token_kind_relational_operator(&current_token_kind) {
-            self.advance(); // Eat the < or > or <= or >= or instanceof or in token.
-
-            let operator = match_token_kind_to_relational_operator(&current_token_kind).unwrap();
-
+        if is_token_kind_relational_operator(&self.current_token_kind()) {
             let relational_expression = self.parse_relational_expression()?;
+
+            let operator =
+                match_token_kind_to_relational_operator(&self.current_token_kind()).unwrap();
+
+            self.advance(); // Eat the < or > or <= or >= or instanceof or in token.
 
             let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
 
@@ -938,15 +1002,15 @@ impl<'a> Parser<'a> {
     fn parse_equality_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let current_token_kind = self.current_token_kind();
+        self.clone().parse_relational_expression()?;
 
-        if is_token_kind_equality_operator(&current_token_kind) {
-            self.advance(); // Eat the == or != or === or !== token.
+        if is_token_kind_equality_operator(&self.current_token_kind()) {
+            let equality_expression = self.parse_equality_expression()?;
 
             let operator: BinaryOperator =
-                match_token_kind_to_equality_operator(&current_token_kind).unwrap();
+                match_token_kind_to_equality_operator(&self.current_token_kind()).unwrap();
 
-            let equality_expression = self.parse_equality_expression()?;
+            self.advance(); // Eat the == or != or === or !== token.
 
             let relational_expression = self.parse_relational_expression()?;
 
@@ -968,12 +1032,14 @@ impl<'a> Parser<'a> {
     fn parse_bitwise_and_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        if self.current_token_kind() == TokenKind::BitwiseAnd {
-            self.advance(); // Eat the & token.
+        self.clone().parse_equality_expression()?;
 
+        if self.current_token_kind() == TokenKind::BitwiseAnd {
             let bitwise_and_expression = self.parse_bitwise_and_expression()?;
 
-            let equality_expression: Expression = self.parse_equality_expression()?;
+            self.advance(); // Eat the & token.
+
+            let equality_expression = self.parse_equality_expression()?;
 
             Ok(Expression::Binary(BinaryExpression {
                 node: self.create_node(&start_token, &self.previous_token),
@@ -992,10 +1058,12 @@ impl<'a> Parser<'a> {
     fn parse_bitwise_xor_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        if self.current_token_kind() == TokenKind::BitwiseXor {
-            self.advance(); // Eat the ^ token.
+        self.clone().parse_bitwise_and_expression()?;
 
+        if self.current_token_kind() == TokenKind::BitwiseXor {
             let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
+
+            self.advance(); // Eat the ^ token.
 
             let bitwise_and_expression = self.parse_bitwise_and_expression()?;
 
@@ -1017,9 +1085,9 @@ impl<'a> Parser<'a> {
         let start_token = self.start_token();
 
         if self.current_token_kind() == TokenKind::BitwiseOr {
-            self.advance(); // Eat the | token.
-
             let bitwise_or_expression = self.parse_bitwise_or_expression()?;
+
+            self.advance(); // Eat the | token.
 
             let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
 
@@ -1063,10 +1131,12 @@ impl<'a> Parser<'a> {
     fn parse_logical_or_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        if self.current_token_kind() == TokenKind::LogicalOr {
-            self.advance(); // Eat the || token.
+        self.clone().parse_logical_and_expression()?;
 
+        if self.current_token_kind() == TokenKind::LogicalOr {
             let logical_or_expression = self.parse_logical_or_expression()?;
+
+            self.advance(); // Eat the || token.
 
             let logical_and_expression = self.parse_logical_and_expression()?;
 
@@ -1086,8 +1156,58 @@ impl<'a> Parser<'a> {
     // 13.15 Assignment Operators
     // https://tc39.es/ecma262/#prod-AssignmentExpression
     fn parse_assignment_expression(&mut self) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete.
         let left = self.parse_conditional_expression()?;
 
         Ok(left)
+    }
+
+    fn parse_binary_expression(
+        &mut self,
+        minimum_precedence: Precedence,
+    ) -> Result<Expression, ParserError> {
+        let start_token = self.start_token();
+
+        let exponentiation_expression = self.parse_exponentiation_expression()?;
+
+        self.parse_binary_expression_recursive_impl(
+            exponentiation_expression,
+            &start_token,
+            Precedence::Comma,
+        )
+    }
+
+    fn parse_binary_expression_recursive_impl(
+        &mut self,
+        mut lhs: Expression,
+        lhs_start_token: &Token,
+        minimum_precedence: Precedence,
+    ) -> Result<Expression, ParserError> {
+        loop {
+            let current_token_kind = self.current_token_kind();
+
+            let Some(left_precedence) =
+                match_token_kind_to_operator_precedence(&current_token_kind)
+            else {
+                break;
+            };
+
+            if left_precedence < minimum_precedence {
+                break;
+            }
+
+            self.advance();
+
+            let rhs = self.parse_binary_expression(left_precedence)?;
+
+            lhs = Expression::Binary(BinaryExpression {
+                node: self.create_node(&lhs_start_token, &self.current_token),
+                operator: BinaryOperator::Plus,
+                left: Box::new(lhs),
+                right: Box::new(rhs),
+            });
+        }
+
+        Ok(lhs)
     }
 }

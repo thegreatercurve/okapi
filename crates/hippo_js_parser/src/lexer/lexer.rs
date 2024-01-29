@@ -3,7 +3,7 @@ use crate::{parser::Config, tokens::Token, ParserError, TokenKind, TokenValue};
 use super::utils::{is_identifier_start, is_line_terminator, is_punctuator_start, is_whitespace};
 
 // https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum GoalSymbol {
     Div,
     RegExp,
@@ -12,7 +12,7 @@ pub enum GoalSymbol {
     HashbangOrRegExp,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Lexer<'a> {
     pub config: Config,
     pub read_index: usize,

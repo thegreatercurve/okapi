@@ -22,6 +22,7 @@ impl Default for Config {
     }
 }
 
+#[derive(Clone)]
 pub struct Parser<'a> {
     config: Config,
     pub(crate) current_token: Token,
