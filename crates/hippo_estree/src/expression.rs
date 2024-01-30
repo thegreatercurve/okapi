@@ -246,14 +246,18 @@ pub enum AssignmentOperator {
 pub struct LogicalExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub operator: LogicalOperator,
     pub left: Box<Expression>,
+    pub operator: LogicalOperator,
     pub right: Box<Expression>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum LogicalOperator {
+    #[serde(rename = "??")]
+    NullishCoalescing,
+    #[serde(rename = "||")]
     Or,
+    #[serde(rename = "&&")]
     And,
 }
 
@@ -281,8 +285,8 @@ pub struct ConditionalExpression {
     #[serde(flatten)]
     pub node: Node,
     pub test: Box<Expression>,
-    pub alternate: Box<Expression>,
     pub consequent: Box<Expression>,
+    pub alternate: Box<Expression>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

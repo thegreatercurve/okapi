@@ -171,6 +171,39 @@ pub enum TokenKind {
     EOF,
 }
 
+impl TokenKind {
+    pub(crate) fn is_logical_operator(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::NullishCoalescing | TokenKind::LogicalAnd | TokenKind::LogicalOr
+        )
+    }
+
+    pub(crate) fn is_binary_operator(&self) -> bool {
+        matches!(self, |TokenKind::BitwiseOr| TokenKind::BitwiseXor
+            | TokenKind::BitwiseAnd
+            | TokenKind::Equal
+            | TokenKind::NotEqual
+            | TokenKind::StrictEqual
+            | TokenKind::StrictNotEqual
+            | TokenKind::LessThan
+            | TokenKind::GreaterThan
+            | TokenKind::LessThanOrEqual
+            | TokenKind::GreaterThanOrEqual
+            | TokenKind::Keyword(KeywordKind::Instanceof)
+            | TokenKind::Keyword(KeywordKind::In)
+            | TokenKind::LeftShift
+            | TokenKind::RightShift
+            | TokenKind::UnsignedRightShift
+            | TokenKind::Addition
+            | TokenKind::Subtraction
+            | TokenKind::Multiplication
+            | TokenKind::Division
+            | TokenKind::Modulus
+            | TokenKind::Exponentiation)
+    }
+}
+
 impl std::fmt::Display for TokenKind {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {

@@ -1,7 +1,7 @@
 use crate::parser::common::assert_parse_module_eq;
 
 #[test]
-fn js_unary_expression() {
+fn unary_expression() {
     assert_parse_module_eq!(
         r#"delete a['test'];"#,
         r#"{"type":"Program","start":0,"end":17,"body":[{"type":"ExpressionStatement","start":0,"end":17,"expression":{"type":"UnaryExpression","start":0,"end":16,"operator":"delete","prefix":true,"argument":{"type":"MemberExpression","start":7,"end":16,"object":{"type":"Identifier","start":7,"end":8,"name":"a"},"property":{"type":"Literal","start":9,"end":15,"value":"test","raw":"'test'"},"computed":true,"optional":false}}}],"sourceType":"module"}"#

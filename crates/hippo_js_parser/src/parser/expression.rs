@@ -31,168 +31,68 @@ fn match_token_kind_to_unary_operator(token_kind: &TokenKind) -> Option<UnaryOpe
     }
 }
 
-// 13.7 Multiplicative Operators
-// https://tc39.es/ecma262/#prod-MultiplicativeExpression
-fn is_token_kind_multiplicative_operator(token_kind: &TokenKind) -> bool {
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence#table
+fn match_token_kind_to_operator_precedence(token_kind: &TokenKind) -> Option<(u8, u8)> {
     match token_kind {
-        TokenKind::Multiplication | TokenKind::Division | TokenKind::Modulus => true,
-        _ => false,
-    }
-}
-
-fn match_token_kind_to_multiplicative_operator(token_kind: &TokenKind) -> Option<BinaryOperator> {
-    match token_kind {
-        TokenKind::Multiplication => Some(BinaryOperator::Star),
-        TokenKind::Division => Some(BinaryOperator::Slash),
-        TokenKind::Modulus => Some(BinaryOperator::Percent),
-        _ => None,
-    }
-}
-
-// 13.8 Additive Operators
-// https://tc39.es/ecma262/#prod-AdditiveExpression
-fn is_token_kind_additive_operator(token_kind: &TokenKind) -> bool {
-    match token_kind {
-        TokenKind::Addition | TokenKind::Subtraction => true,
-        _ => false,
-    }
-}
-
-fn match_token_kind_to_additive_operator(token_kind: &TokenKind) -> Option<BinaryOperator> {
-    match token_kind {
-        TokenKind::Addition => Some(BinaryOperator::Plus),
-        TokenKind::Subtraction => Some(BinaryOperator::Minus),
-        _ => None,
-    }
-}
-// 13.9 Bitwise Shift Operators
-// https://tc39.es/ecma262/#prod-ShiftExpression
-fn is_token_kind_bitwise_shift_operator(token_kind: &TokenKind) -> bool {
-    match token_kind {
-        TokenKind::LeftShift | TokenKind::RightShift | TokenKind::UnsignedRightShift => true,
-        _ => false,
-    }
-}
-
-fn match_token_kind_to_bitwise_shift_operator(token_kind: &TokenKind) -> Option<BinaryOperator> {
-    match token_kind {
-        TokenKind::LeftShift => Some(BinaryOperator::GreaterThan),
-        TokenKind::RightShift => Some(BinaryOperator::GreaterThanGreaterThan),
-        TokenKind::UnsignedRightShift => Some(BinaryOperator::GreaterThanGreaterThanGreaterThan),
-        _ => None,
-    }
-}
-
-// 13.10 Relational Operators
-// https://tc39.es/ecma262/#prod-RelationalExpression
-fn is_token_kind_relational_operator(token_kind: &TokenKind) -> bool {
-    match token_kind {
+        TokenKind::NullishCoalescing => Some((0, 1)),
+        TokenKind::LogicalOr => Some((2, 3)),
+        TokenKind::LogicalAnd => Some((4, 5)),
+        TokenKind::BitwiseOr => Some((6, 7)),
+        TokenKind::BitwiseXor => Some((8, 9)),
+        TokenKind::BitwiseAnd => Some((10, 11)),
+        TokenKind::Equal
+        | TokenKind::NotEqual
+        | TokenKind::StrictEqual
+        | TokenKind::StrictNotEqual => Some((12, 13)),
         TokenKind::LessThan
         | TokenKind::GreaterThan
         | TokenKind::LessThanOrEqual
         | TokenKind::GreaterThanOrEqual
         | TokenKind::Keyword(KeywordKind::Instanceof)
-        | TokenKind::Keyword(KeywordKind::In) => true,
-        _ => false,
-    }
-}
-
-fn match_token_kind_to_relational_operator(token_kind: &TokenKind) -> Option<BinaryOperator> {
-    match token_kind {
-        TokenKind::LessThan => Some(BinaryOperator::LessThan),
-        TokenKind::GreaterThan => Some(BinaryOperator::GreaterThan),
-        TokenKind::LessThanOrEqual => Some(BinaryOperator::LessThanEqual),
-        TokenKind::GreaterThanOrEqual => Some(BinaryOperator::GreaterThanEqual),
-        TokenKind::Keyword(KeywordKind::Instanceof) => Some(BinaryOperator::Instanceof),
-        TokenKind::Keyword(KeywordKind::In) => Some(BinaryOperator::In),
+        | TokenKind::Keyword(KeywordKind::In) => Some((14, 15)),
+        TokenKind::LeftShift | TokenKind::RightShift | TokenKind::UnsignedRightShift => {
+            Some((16, 17))
+        }
+        TokenKind::Addition | TokenKind::Subtraction => Some((18, 19)),
+        TokenKind::Multiplication | TokenKind::Division | TokenKind::Modulus => Some((20, 21)),
+        TokenKind::Exponentiation => Some((23, 22)),
         _ => None,
     }
 }
 
-// 13.11 Equality Operators
-// https://tc39.es/ecma262/#prod-EqualityExpression
-fn is_token_kind_equality_operator(token_kind: &TokenKind) -> bool {
+fn match_token_kind_to_binary_operator(token_kind: &TokenKind) -> Option<BinaryOperator> {
     match token_kind {
-        TokenKind::Equal
-        | TokenKind::NotEqual
-        | TokenKind::StrictEqual
-        | TokenKind::StrictNotEqual => true,
-        _ => false,
-    }
-}
-
-fn match_token_kind_to_equality_operator(token_kind: &TokenKind) -> Option<BinaryOperator> {
-    match token_kind {
+        TokenKind::BitwiseOr => Some(BinaryOperator::Bar),
+        TokenKind::BitwiseXor => Some(BinaryOperator::Caret),
+        TokenKind::BitwiseAnd => Some(BinaryOperator::Ampersand),
         TokenKind::Equal => Some(BinaryOperator::EqualEqual),
         TokenKind::NotEqual => Some(BinaryOperator::NotEqual),
         TokenKind::StrictEqual => Some(BinaryOperator::EqualEqualEqual),
         TokenKind::StrictNotEqual => Some(BinaryOperator::NotEqualEqual),
+        TokenKind::LessThan => Some(BinaryOperator::LessThan),
+        TokenKind::GreaterThan => Some(BinaryOperator::GreaterThan),
+        TokenKind::LessThanOrEqual => Some(BinaryOperator::LessThanEqual),
+        TokenKind::GreaterThanOrEqual => Some(BinaryOperator::GreaterThan),
+        TokenKind::Keyword(KeywordKind::Instanceof) => Some(BinaryOperator::Instanceof),
+        TokenKind::Keyword(KeywordKind::In) => Some(BinaryOperator::In),
+        TokenKind::LeftShift => Some(BinaryOperator::LessThanLessThan),
+        TokenKind::RightShift => Some(BinaryOperator::GreaterThanGreaterThan),
+        TokenKind::UnsignedRightShift => Some(BinaryOperator::GreaterThanGreaterThanGreaterThan),
+        TokenKind::Addition => Some(BinaryOperator::Plus),
+        TokenKind::Subtraction => Some(BinaryOperator::Minus),
+        TokenKind::Multiplication => Some(BinaryOperator::Star),
+        TokenKind::Division => Some(BinaryOperator::Slash),
+        TokenKind::Modulus => Some(BinaryOperator::Percent),
+        TokenKind::Exponentiation => Some(BinaryOperator::StarStar),
         _ => None,
     }
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence#table
-#[derive(PartialEq, PartialOrd)]
-enum Precedence {
-    Comma,
-    Assignment,
-    Conditional,
-    NullishCoalescing,
-    LogicalOr,
-    LogicalAnd,
-    BitwiseOr,
-    BitwiseXor,
-    BitwiseAnd,
-    Equality,
-    Relational,
-    BitwiseShift,
-    Additive,
-    Multiplicative,
-    Exponentiation,
-    Prefix,
-    Postfix,
-    New,
-    Call,
-    Grouping,
-}
-
-impl Precedence {
-    fn is_right_associative(self) -> bool {
-        match self {
-            Precedence::Assignment | Precedence::Exponentiation => true,
-            _ => false,
-        }
-    }
-}
-
-// TODO Pratt parser experiment
-fn match_token_kind_to_operator_precedence(token_kind: &TokenKind) -> Option<Precedence> {
+fn match_token_kind_to_logical_operator(token_kind: &TokenKind) -> Option<LogicalOperator> {
     match token_kind {
-        TokenKind::NullishCoalescing => Some(Precedence::NullishCoalescing),
-        TokenKind::LogicalOr => Some(Precedence::LogicalOr),
-        TokenKind::LogicalAnd => Some(Precedence::LogicalAnd),
-        TokenKind::BitwiseOr => Some(Precedence::BitwiseOr),
-        TokenKind::BitwiseXor => Some(Precedence::BitwiseXor),
-        TokenKind::BitwiseAnd => Some(Precedence::BitwiseAnd),
-        TokenKind::Equal
-        | TokenKind::NotEqual
-        | TokenKind::StrictEqual
-        | TokenKind::StrictNotEqual => Some(Precedence::Equality),
-        TokenKind::LessThan
-        | TokenKind::GreaterThan
-        | TokenKind::LessThanOrEqual
-        | TokenKind::GreaterThanOrEqual
-        | TokenKind::Keyword(KeywordKind::Instanceof)
-        | TokenKind::Keyword(KeywordKind::In) => Some(Precedence::Relational),
-        TokenKind::LeftShift | TokenKind::RightShift | TokenKind::UnsignedRightShift => {
-            Some(Precedence::BitwiseShift)
-        }
-        TokenKind::Addition | TokenKind::Subtraction => Some(Precedence::Additive),
-        TokenKind::Multiplication | TokenKind::Division | TokenKind::Modulus => {
-            Some(Precedence::Multiplicative)
-        }
-        TokenKind::Exponentiation => Some(Precedence::Exponentiation),
-        TokenKind::Increment | TokenKind::Decrement => Some(Precedence::Prefix),
+        TokenKind::NullishCoalescing => Some(LogicalOperator::NullishCoalescing),
+        TokenKind::LogicalOr => Some(LogicalOperator::Or),
+        TokenKind::LogicalAnd => Some(LogicalOperator::And),
         _ => None,
     }
 }
@@ -220,23 +120,14 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // https://tc39.es/ecma262/#prod-ConditionalExpression
-    fn parse_conditional_expression(&mut self) -> Result<Expression, ParserError> {
-        // TODO This is currently incomplete.
-        let short_circuit = self.parse_binary_expression(Precedence::Comma)?;
-
-        Ok(short_circuit)
-    }
-
     // https://tc39.es/ecma262/#prod-ShortCircuitExpression
     fn parse_short_circuit_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
-
         let _node = self.start_token();
 
-        let logical = self.parse_logical_or_expression()?;
+        let binary_expression = self.parse_binary_expression(0)?;
 
-        Ok(logical)
+        Ok(binary_expression)
     }
 
     pub(crate) fn parse_label_identifier(&mut self) -> Result<Identifier, ParserError> {
@@ -860,333 +751,50 @@ impl<'a> Parser<'a> {
 
     // 13.6 Exponentiation Operators
     // https://tc39.es/ecma262/#prod-ExponentiationExpression
-    fn parse_exponentiation_expression(&mut self) -> Result<Expression, ParserError> {
+
+    // 13.7 Multiplicative Operators
+    // https://tc39.es/ecma262/#prod-MultiplicativeExpression
+
+    // 13.8 Additive Operators
+    // https://tc39.es/ecma262/#prod-AdditiveExpression
+
+    // 13.9 Bitwise Shift Operators
+    // https://tc39.es/ecma262/#prod-ShiftExpression
+
+    // 13.10 Relational Operators
+    // https://tc39.es/ecma262/#prod-RelationalExpression
+
+    // 13.11 Equality Operators
+    // https://tc39.es/ecma262/#prod-EqualityExpression
+
+    // 13.12 Binary Bitwise Operators
+    // https://tc39.es/ecma262/#prod-BitwiseANDExpression
+    // https://tc39.es/ecma262/#prod-BitwiseXORExpression
+    // https://tc39.es/ecma262/#prod-BitwiseORExpression
+
+    // 13.13 Binary Logical Operators
+    // https://tc39.es/ecma262/#prod-LogicalANDExpression
+    // https://tc39.es/ecma262/#prod-LogicalORExpression
+
+    // A Pratt parser is a top-down parser that parses expressions based on operator precedence.
+    fn parse_binary_expression(&mut self, precedence: u8) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
         let unary_expression = self.parse_unary_expression()?;
 
-        if self.current_token_kind() == TokenKind::Exponentiation {
-            self.advance(); // Eat the ** token.
-
-            let exponentiation_expression = self.parse_exponentiation_expression()?;
-
-            Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator: BinaryOperator::StarStar,
-                left: Box::new(unary_expression),
-                right: Box::new(exponentiation_expression),
-            }))
-        } else {
-            Ok(unary_expression)
-        }
-    }
-
-    // 13.7 Multiplicative Operators
-    // https://tc39.es/ecma262/#prod-MultiplicativeExpression
-    fn parse_multiplicative_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        let current_token_kind = self.current_token_kind();
-
-        let exponentiation_expression = self.parse_exponentiation_expression()?;
-
-        if is_token_kind_multiplicative_operator(&self.current_token_kind()) {
-            let operator =
-                match_token_kind_to_multiplicative_operator(&self.current_token_kind()).unwrap();
-
-            self.advance(); // Eat the * or / or % token.
-
-            let multiplicative_expression = self.parse_multiplicative_expression()?;
-
-            Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator,
-                left: Box::new(exponentiation_expression),
-                right: Box::new(multiplicative_expression),
-            }))
-        } else {
-            Ok(exponentiation_expression)
-        }
-    }
-
-    // 13.8 Additive Operators
-    // https://tc39.es/ecma262/#prod-AdditiveExpression
-    fn parse_additive_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        self.clone().parse_multiplicative_expression()?;
-
-        if is_token_kind_additive_operator(&self.current_token_kind()) {
-            let additive_expression = self.parse_additive_expression()?;
-
-            let operator =
-                match_token_kind_to_additive_operator(&self.current_token_kind()).unwrap();
-
-            self.advance(); // Eat the + or - token.
-
-            let multiplicative_expression = self.parse_multiplicative_expression()?;
-
-            Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator,
-                left: Box::new(additive_expression),
-                right: Box::new(multiplicative_expression),
-            }))
-        } else {
-            let multiplicative_expression = self.parse_multiplicative_expression()?;
-
-            Ok(multiplicative_expression)
-        }
-    }
-
-    // 13.9 Bitwise Shift Operators
-    // https://tc39.es/ecma262/#prod-ShiftExpression
-    fn parse_bitwise_shift_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        if is_token_kind_bitwise_shift_operator(&self.current_token_kind()) {
-            let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
-
-            let operator =
-                match_token_kind_to_bitwise_shift_operator(&self.current_token_kind()).unwrap();
-
-            self.advance(); // Eat the > or >> or >>> token.
-
-            let additive_expression = self.parse_additive_expression()?;
-
-            Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator,
-                left: Box::new(bitwise_shift_expression),
-                right: Box::new(additive_expression),
-            }))
-        } else {
-            let additive_expression = self.parse_additive_expression()?;
-
-            Ok(additive_expression)
-        }
-    }
-
-    // 13.10 Relational Operators
-    // https://tc39.es/ecma262/#prod-RelationalExpression
-    fn parse_relational_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        self.clone().parse_bitwise_shift_expression()?;
-
-        if is_token_kind_relational_operator(&self.current_token_kind()) {
-            let relational_expression = self.parse_relational_expression()?;
-
-            let operator =
-                match_token_kind_to_relational_operator(&self.current_token_kind()).unwrap();
-
-            self.advance(); // Eat the < or > or <= or >= or instanceof or in token.
-
-            let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
-
-            Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator,
-                left: Box::new(relational_expression),
-                right: Box::new(bitwise_shift_expression),
-            }))
-        } else {
-            let bitwise_shift_expression = self.parse_bitwise_shift_expression()?;
-
-            Ok(bitwise_shift_expression)
-        }
-    }
-
-    // 13.11 Equality Operators
-    // https://tc39.es/ecma262/#prod-EqualityExpression
-    fn parse_equality_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        self.clone().parse_relational_expression()?;
-
-        if is_token_kind_equality_operator(&self.current_token_kind()) {
-            let equality_expression = self.parse_equality_expression()?;
-
-            let operator: BinaryOperator =
-                match_token_kind_to_equality_operator(&self.current_token_kind()).unwrap();
-
-            self.advance(); // Eat the == or != or === or !== token.
-
-            let relational_expression = self.parse_relational_expression()?;
-
-            Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator,
-                left: Box::new(equality_expression),
-                right: Box::new(relational_expression),
-            }))
-        } else {
-            let relational_expression = self.parse_relational_expression()?;
-
-            Ok(relational_expression)
-        }
-    }
-
-    // 13.12 Binary Bitwise Operators
-    // https://tc39.es/ecma262/#prod-BitwiseANDExpression
-    fn parse_bitwise_and_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        self.clone().parse_equality_expression()?;
-
-        if self.current_token_kind() == TokenKind::BitwiseAnd {
-            let bitwise_and_expression = self.parse_bitwise_and_expression()?;
-
-            self.advance(); // Eat the & token.
-
-            let equality_expression = self.parse_equality_expression()?;
-
-            Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator: BinaryOperator::Ampersand,
-                left: Box::new(bitwise_and_expression),
-                right: Box::new(equality_expression),
-            }))
-        } else {
-            let equality_expression: Expression = self.parse_equality_expression()?;
-
-            Ok(equality_expression)
-        }
-    }
-
-    // https://tc39.es/ecma262/#prod-BitwiseXORExpression
-    fn parse_bitwise_xor_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        self.clone().parse_bitwise_and_expression()?;
-
-        if self.current_token_kind() == TokenKind::BitwiseXor {
-            let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
-
-            self.advance(); // Eat the ^ token.
-
-            let bitwise_and_expression = self.parse_bitwise_and_expression()?;
-
-            Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator: BinaryOperator::Caret,
-                left: Box::new(bitwise_xor_expression),
-                right: Box::new(bitwise_and_expression),
-            }))
-        } else {
-            let bitwise_and_expression = self.parse_bitwise_and_expression()?;
-
-            Ok(bitwise_and_expression)
-        }
-    }
-
-    // https://tc39.es/ecma262/#prod-BitwiseORExpression
-    fn parse_bitwise_or_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        if self.current_token_kind() == TokenKind::BitwiseOr {
-            let bitwise_or_expression = self.parse_bitwise_or_expression()?;
-
-            self.advance(); // Eat the | token.
-
-            let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
-
-            Ok(Expression::Binary(BinaryExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator: BinaryOperator::Bar,
-                left: Box::new(bitwise_or_expression),
-                right: Box::new(bitwise_xor_expression),
-            }))
-        } else {
-            let bitwise_xor_expression = self.parse_bitwise_xor_expression()?;
-
-            Ok(bitwise_xor_expression)
-        }
-    }
-
-    // 13.13 Binary Logical Operators
-    // https://tc39.es/ecma262/#prod-LogicalANDExpression
-    fn parse_logical_and_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        let bitwise_or_expression = self.parse_bitwise_or_expression()?;
-
-        if self.current_token_kind() == TokenKind::LogicalAnd {
-            self.advance(); // Eat the && token.
-
-            let logical_and_expression = self.parse_logical_and_expression()?;
-
-            Ok(Expression::Logical(LogicalExpression {
-                node: self.create_node(&start_token, &self.current_token),
-                operator: LogicalOperator::And,
-                left: Box::new(bitwise_or_expression),
-                right: Box::new(logical_and_expression),
-            }))
-        } else {
-            Ok(bitwise_or_expression)
-        }
-    }
-
-    // https://tc39.es/ecma262/#prod-LogicalORExpression
-    fn parse_logical_or_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        self.clone().parse_logical_and_expression()?;
-
-        if self.current_token_kind() == TokenKind::LogicalOr {
-            let logical_or_expression = self.parse_logical_or_expression()?;
-
-            self.advance(); // Eat the || token.
-
-            let logical_and_expression = self.parse_logical_and_expression()?;
-
-            Ok(Expression::Logical(LogicalExpression {
-                node: self.create_node(&start_token, &self.current_token),
-                operator: LogicalOperator::Or,
-                left: Box::new(logical_or_expression),
-                right: Box::new(logical_and_expression),
-            }))
-        } else {
-            let logical_and_expression = self.parse_logical_and_expression()?;
-
-            Ok(logical_and_expression)
-        }
-    }
-
-    // 13.15 Assignment Operators
-    // https://tc39.es/ecma262/#prod-AssignmentExpression
-    fn parse_assignment_expression(&mut self) -> Result<Expression, ParserError> {
-        // TODO This is currently incomplete.
-        let left = self.parse_conditional_expression()?;
-
-        Ok(left)
-    }
-
-    fn parse_binary_expression(
-        &mut self,
-        minimum_precedence: Precedence,
-    ) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
-
-        let exponentiation_expression = self.parse_exponentiation_expression()?;
-
-        self.parse_binary_expression_recursive_impl(
-            exponentiation_expression,
-            &start_token,
-            Precedence::Comma,
-        )
+        self.parse_binary_expression_recursive_impl(unary_expression, &start_token, precedence)
     }
 
     fn parse_binary_expression_recursive_impl(
         &mut self,
-        mut lhs: Expression,
-        lhs_start_token: &Token,
-        minimum_precedence: Precedence,
+        mut left_expression: Expression,
+        left_start_token: &Token,
+        minimum_precedence: u8,
     ) -> Result<Expression, ParserError> {
-        loop {
+        while self.current_token_kind() != TokenKind::EOF {
             let current_token_kind = self.current_token_kind();
 
-            let Some(left_precedence) =
+            let Some((left_precedence, right_precedence)) =
                 match_token_kind_to_operator_precedence(&current_token_kind)
             else {
                 break;
@@ -1196,18 +804,79 @@ impl<'a> Parser<'a> {
                 break;
             }
 
-            self.advance();
+            self.advance(); // Eat the operator token.
 
-            let rhs = self.parse_binary_expression(left_precedence)?;
+            let right_expression = self.parse_binary_expression(right_precedence)?;
 
-            lhs = Expression::Binary(BinaryExpression {
-                node: self.create_node(&lhs_start_token, &self.current_token),
-                operator: BinaryOperator::Plus,
-                left: Box::new(lhs),
-                right: Box::new(rhs),
-            });
+            let node = self.create_node(&left_start_token, &self.previous_token);
+
+            if current_token_kind.is_logical_operator() {
+                let Some(operator) = match_token_kind_to_logical_operator(&current_token_kind)
+                else {
+                    break;
+                };
+
+                left_expression = Expression::Logical(LogicalExpression {
+                    node,
+                    operator,
+                    left: Box::new(left_expression),
+                    right: Box::new(right_expression),
+                });
+            } else if current_token_kind.is_binary_operator() {
+                let Some(operator) = match_token_kind_to_binary_operator(&current_token_kind)
+                else {
+                    break;
+                };
+
+                left_expression = Expression::Binary(BinaryExpression {
+                    node,
+                    operator,
+                    left: Box::new(left_expression),
+                    right: Box::new(right_expression),
+                });
+            } else {
+                break;
+            }
         }
 
-        Ok(lhs)
+        Ok(left_expression)
+    }
+
+    // 13.14 Conditional Operator ( ? : )
+    // https://tc39.es/ecma262/#prod-ConditionalExpression
+    fn parse_conditional_expression(&mut self) -> Result<Expression, ParserError> {
+        let start_token = self.start_token();
+
+        let short_circuit_expression = self.parse_binary_expression(0)?;
+
+        if self.current_token_kind() == TokenKind::QuestionMark {
+            self.advance(); // Eat the ? token.
+
+            let consequent = self.parse_assignment_expression()?;
+
+            self.expect_and_advance(TokenKind::Colon)?;
+
+            let alternate = self.parse_assignment_expression()?;
+
+            return Ok(Expression::Conditional(ConditionalExpression {
+                node: self.create_node(&start_token, &self.current_token),
+                test: Box::new(short_circuit_expression),
+                consequent: Box::new(consequent),
+                alternate: Box::new(alternate),
+            }));
+        }
+
+        Ok(short_circuit_expression)
+    }
+
+    // 13.15 Assignment Operators
+    // https://tc39.es/ecma262/#prod-AssignmentExpression
+    fn parse_assignment_expression(&mut self) -> Result<Expression, ParserError> {
+        // TODO This is currently incomplete.
+        let left = self.parse_conditional_expression()?;
+
+        let current_token_kind = self.current_token_kind();
+
+        Ok(left)
     }
 }
