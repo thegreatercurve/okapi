@@ -120,20 +120,6 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // https://tc39.es/ecma262/#prod-ShortCircuitExpression
-    fn parse_short_circuit_expression(&mut self) -> Result<Expression, ParserError> {
-        // TODO This is currently incomplete.
-        let _node = self.start_token();
-
-        let binary_expression = self.parse_binary_expression(0)?;
-
-        Ok(binary_expression)
-    }
-
-    pub(crate) fn parse_label_identifier(&mut self) -> Result<Identifier, ParserError> {
-        todo!()
-    }
-
     // 13.1 Identifiers
     // https://tc39.es/ecma262/#prod-IdentifierReference
     fn parse_identifier_reference(&mut self) -> Result<Expression, ParserError> {
@@ -156,6 +142,10 @@ impl<'a> Parser<'a> {
             })),
             _ => Err(ParserError::UnexpectedTokenValue),
         }
+    }
+
+    pub(crate) fn parse_label_identifier(&mut self) -> Result<Identifier, ParserError> {
+        todo!("parse_label_identifier")
     }
 
     // 13.2 Primary Expression
