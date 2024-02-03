@@ -97,6 +97,26 @@ fn match_token_kind_to_logical_operator(token_kind: &TokenKind) -> Option<Logica
     }
 }
 
+fn match_token_kind_to_assignment_operator(token_kind: &TokenKind) -> Option<AssignmentOperator> {
+    match token_kind {
+        TokenKind::MultiplyAssignment => Some(AssignmentOperator::StarEqual),
+        TokenKind::DivisionAssignment => Some(AssignmentOperator::SlashEqual),
+        TokenKind::ModulusAssignment => Some(AssignmentOperator::PercentEqual),
+        TokenKind::AdditionAssignment => Some(AssignmentOperator::PlusEqual),
+        TokenKind::MinusAssignment => Some(AssignmentOperator::MinusEqual),
+        TokenKind::LeftShiftAssignment => Some(AssignmentOperator::LessThanLessThanEqual),
+        TokenKind::RightShiftAssignment => Some(AssignmentOperator::GreaterThanGreaterThanEqual),
+        TokenKind::UnsignedRightShiftAssignment => {
+            Some(AssignmentOperator::GreaterThanGreaterThanGreaterThanEqual)
+        }
+        TokenKind::BitwiseAndAssignment => Some(AssignmentOperator::AmpersandEqual),
+        TokenKind::BitwiseOrAssignment => Some(AssignmentOperator::BarEqual),
+        TokenKind::BitwiseXorAssignment => Some(AssignmentOperator::CaretEqual),
+        TokenKind::ExponentiationAssignment => Some(AssignmentOperator::StarStarEqual),
+        _ => None,
+    }
+}
+
 // 13 ECMAScript Language: Expressions
 // https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 impl<'a> Parser<'a> {
@@ -556,19 +576,17 @@ impl<'a> Parser<'a> {
     fn parse_new_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
 
-        let _node = self.start_token();
+        let start_token = self.start_token();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::New))?;
 
-        let _callee = self.parse_left_hand_side_expression()?;
+        let callee = self.parse_member_expression()?;
 
-        // Ok(Expression::New {
-        //     node: self.finish_node(&node),
-        //     callee: Box::new(callee),
-        //     arguments,
-        // })
-
-        todo!()
+        Ok(Expression::New(NewExpression {
+            node: self.create_node(&start_token, &self.current_token),
+            callee: Box::new(callee),
+            arguments: vec![],
+        }))
     }
 
     // https://tc39.es/ecma262/#prod-CallExpression
@@ -863,9 +881,40 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-AssignmentExpression
     fn parse_assignment_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
-        let left = self.parse_conditional_expression()?;
 
-        let current_token_kind = self.current_token_kind();
+        let mut current_token_kind = self.current_token_kind();
+
+        if current_token_kind == TokenKind::Keyword(KeywordKind::Yield) {
+            return self.parse_yield_expression();
+        }
+
+        if current_token_kind == TokenKind::Identifier {
+            // TODO Handle CoverParenthesizedExpressionAndArrowParameterList.
+            if self.peek_token_kind() == TokenKind::ArrowFunction {
+                return self.parse_arrow_function();
+            }
+        }
+
+        // TODO Handle async arrow functions.
+
+        let start_token = self.start_token();
+
+        let left = self.parse_left_hand_side_expression()?;
+
+        current_token_kind = self.current_token_kind();
+
+        if current_token_kind.is_assignment_operator() {
+            let operator = match_token_kind_to_assignment_operator(&current_token_kind).unwrap();
+
+            let right = self.parse_assignment_expression()?;
+
+            return Ok(Expression::Assignment(AssignmentExpression {
+                node: self.create_node(&start_token, &self.current_token),
+                operator,
+                left: Box::new(AssignmentExpressionLeft::Expression(left)),
+                right: Box::new(right),
+            }));
+        }
 
         Ok(left)
     }

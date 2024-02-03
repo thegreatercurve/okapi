@@ -116,7 +116,7 @@ impl<'a> Lexer<'a> {
                 if peek_char == '=' {
                     self.read_char();
 
-                    TokenKind::PlusAssignment
+                    TokenKind::AdditionAssignment
                 } else if peek_char == '+' {
                     self.read_char();
 

@@ -44,7 +44,7 @@ impl<'a> Parser<'a> {
 
     // 15.3 Arrow Function Definitions
     // https://tc39.es/ecma262/#sec-arrow-function-definitions
-    fn parse_arrow_function(&mut self) -> Result<Expression, ParserError> {
+    pub(crate) fn parse_arrow_function(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_arrow_function")
     }
 
@@ -58,6 +58,11 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-GeneratorExpression
     pub(crate) fn parse_generator_expression(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_generator_expression")
+    }
+
+    // https://tc39.es/ecma262/#prod-YieldExpression
+    pub(crate) fn parse_yield_expression(&mut self) -> Result<Expression, ParserError> {
+        todo!("parse_yield_expression")
     }
 
     // 15.6 Async Generator Function Definitions

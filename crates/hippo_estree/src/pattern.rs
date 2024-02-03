@@ -1,7 +1,7 @@
 use crate::{BindingKind, Expression, Node};
 use serde::Serialize;
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Pattern {
     #[serde(flatten)]
     pub node: Node,

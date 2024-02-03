@@ -1,6 +1,5 @@
 use crate::{
-    FunctionBody, Identifier, Literal, MetaProperty, Node, TaggedTemplateExpression,
-    TemplateLiteral,
+    FunctionBody, Identifier, Literal, MetaProperty, Node, Pattern, TaggedTemplateExpression, TemplateLiteral
 };
 use serde::Serialize;
 
@@ -214,14 +213,14 @@ pub struct AssignmentExpression {
     #[serde(flatten)]
     pub node: Node,
     pub operator: AssignmentOperator,
-    pub left: AssignmentExpressionLeft,
+    pub left: Box<AssignmentExpressionLeft>,
     pub right: Box<Expression>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum AssignmentExpressionLeft {
-    Pattern,
-    Expression,
+    Pattern(Pattern),
+    Expression(Expression),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

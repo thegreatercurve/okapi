@@ -46,7 +46,7 @@ fn punctuators() {
             punctuator(TokenKind::QuestionMark, 93, 94),
             punctuator(TokenKind::Colon, 95, 96),
             punctuator(TokenKind::Assignment, 97, 98),
-            punctuator(TokenKind::PlusAssignment, 99, 101),
+            punctuator(TokenKind::AdditionAssignment, 99, 101),
             punctuator(TokenKind::MinusAssignment, 102, 104),
             punctuator(TokenKind::MultiplyAssignment, 105, 107),
             punctuator(TokenKind::ModulusAssignment, 108, 110),

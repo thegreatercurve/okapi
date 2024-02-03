@@ -141,7 +141,7 @@ pub enum TokenKind {
     QuestionMark,
     Colon,
     Assignment,
-    PlusAssignment,
+    AdditionAssignment,
     MinusAssignment,
     MultiplyAssignment,
     ModulusAssignment,
@@ -176,6 +176,25 @@ impl TokenKind {
         matches!(
             self,
             TokenKind::NullishCoalescing | TokenKind::LogicalAnd | TokenKind::LogicalOr
+        )
+    }
+
+    // https://tc39.es/ecma262/#prod-AssignmentOperator
+    pub(crate) fn is_assignment_operator(&self) -> bool {
+        matches!(
+            self,
+            |TokenKind::MultiplyAssignment| TokenKind::DivisionAssignment
+                | TokenKind::ModulusAssignment
+                | TokenKind::AdditionAssignment
+                | TokenKind::MinusAssignment
+                | TokenKind::LeftShiftAssignment
+                | TokenKind::RightShiftAssignment
+                | TokenKind::UnsignedRightShiftAssignment
+                | TokenKind::BitwiseAndAssignment
+                | TokenKind::BitwiseOrAssignment
+                | TokenKind::BitwiseXorAssignment
+                | TokenKind::ExponentiationAssignment
+            
         )
     }
 
@@ -252,7 +271,7 @@ impl std::fmt::Display for TokenKind {
             TokenKind::QuestionMark => write!(f, "QuestionMark"),
             TokenKind::Colon => write!(f, "Colon"),
             TokenKind::Assignment => write!(f, "Assignment"),
-            TokenKind::PlusAssignment => write!(f, "PlusAssignment"),
+            TokenKind::AdditionAssignment => write!(f, "AdditionAssignment"),
             TokenKind::MinusAssignment => write!(f, "MinusAssignment"),
             TokenKind::MultiplyAssignment => write!(f, "MultiplyAssignment"),
             TokenKind::ModulusAssignment => write!(f, "ModulusAssignment"),
