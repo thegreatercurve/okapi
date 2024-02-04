@@ -201,12 +201,11 @@ impl<'a> Parser<'a> {
 
         let properties = self.parse_property_definition_list()?;
 
+        let node = self.end_node()?;
+
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
-        Ok(Expression::Object(ObjectExpression {
-            node: self.end_node()?,
-            properties,
-        }))
+        Ok(Expression::Object(ObjectExpression { node, properties }))
     }
 
     // https://tc39.es/ecma262/#prod-PropertyDefinitionList

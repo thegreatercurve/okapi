@@ -37,6 +37,7 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
 
+        // TODO parse block statement
         let mut body = vec![];
 
         while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {

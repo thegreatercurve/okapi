@@ -9,8 +9,6 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_left_hand_side_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
 
-        let _node = self.start_node();
-
         let current_token_kind = self.cursor.current_token_kind();
 
         if current_token_kind == TokenKind::Keyword(KeywordKind::New) {
@@ -25,7 +23,6 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-MemberExpression
     fn parse_member_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
-
         let primary_expression = self.parse_primary_expression();
 
         primary_expression
@@ -34,7 +31,6 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-NewExpression
     fn parse_new_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
-
         self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::New))?;

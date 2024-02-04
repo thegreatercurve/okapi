@@ -85,9 +85,9 @@ impl<'a> Parser<'a> {
     }
 
     pub fn end_node(&mut self) -> Result<Node, ParserError> {
-        // if self.cursor.token_stack.is_empty() {
-        //     return Err(ParserError::UnexpectedEmptyNode);
-        // }
+        if self.cursor.token_stack.is_empty() {
+            return Err(ParserError::UnexpectedEmptyNode);
+        }
 
         let start = self.cursor.token_stack.pop().unwrap().start;
         let end: usize = self.cursor.current_token.end;
@@ -156,11 +156,13 @@ impl<'a> Parser<'a> {
             // TODO Check const declarations have a valid identifier.
         }
 
+        let node = self.end_node()?;
+
         self.expect_optional_and_advance(TokenKind::Semicolon)?; // Eat `;` token.
 
         Ok(Statement::Declaration(Declaration::Variable(
             VariableDeclaration {
-                node: self.end_node()?,
+                node,
                 declarations,
                 kind,
             },
@@ -169,8 +171,6 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-BindingList
     fn parse_binding_list(&mut self) -> Result<Vec<VariableDeclarator>, ParserError> {
-        self.start_node();
-
         let mut declarations = vec![self.parse_binding_identifier_or_binding_pattern()?];
 
         while self.cursor.current_token_kind() == TokenKind::Comma {
@@ -190,6 +190,8 @@ impl<'a> Parser<'a> {
 
         let current_token_kind = self.cursor.current_token_kind();
 
+        let node = self.end_node()?;
+
         let binding_identifier = match current_token_kind {
             TokenKind::Identifier => self.parse_binding_identifier(),
             TokenKind::LeftCurlyBrace => self.parse_object_binding_pattern(),
@@ -206,7 +208,7 @@ impl<'a> Parser<'a> {
         };
 
         Ok(VariableDeclarator {
-            node: self.end_node()?,
+            node,
             id: binding_identifier,
             init: initializer,
         })
@@ -214,12 +216,16 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
     pub(crate) fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
+        self.start_node();
+
         let token_value = match self.cursor.current_token_kind() {
             TokenKind::Identifier => self.cursor.current_token_value(),
             TokenKind::Keyword(KeywordKind::Await) => todo!("parse_binding_identifier await"),
             TokenKind::Keyword(KeywordKind::Yield) => todo!("parse_binding_identifier yield"),
             _ => return Err(self.unexpected_current_token_kind()),
         };
+
+        let node = self.end_node()?;
 
         self.expect_one_of_and_advance(vec![
             TokenKind::Identifier,
@@ -228,10 +234,7 @@ impl<'a> Parser<'a> {
         ])?; // Eat identifier token.
 
         match token_value {
-            TokenValue::String(name) => Ok(BindingKind::Identifier(Identifier {
-                node: self.end_node()?,
-                name,
-            })),
+            TokenValue::String(name) => Ok(BindingKind::Identifier(Identifier { node, name })),
             _ => Err(ParserError::UnexpectedTokenValue),
         }
     }
