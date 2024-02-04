@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 pub use errors::ParserError;
 pub use lexer::{GoalSymbol, Lexer};
-pub use parser::{Config, Parser};
+pub use parser::{Config, Cursor, Parser};
 pub use tokens::{KeywordKind, Token, TokenKind, TokenValue};
 
 mod config;

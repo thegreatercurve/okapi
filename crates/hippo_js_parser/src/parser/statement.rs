@@ -6,7 +6,7 @@ use hippo_estree::*;
 impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-Statement
     pub(crate) fn parse_statement(&mut self) -> Result<Statement, ParserError> {
-        match self.current_token_kind() {
+        match self.cursor.current_token_kind() {
             TokenKind::Keyword(keyword) => match keyword {
                 KeywordKind::Let | KeywordKind::Const | KeywordKind::Var => {
                     self.parse_lexical_declaration()
@@ -39,14 +39,14 @@ impl<'a> Parser<'a> {
 
         let mut body = vec![];
 
-        while self.current_token_kind() != TokenKind::RightCurlyBrace {
+        while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {
             body.push(self.parse_statement()?);
         }
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Statement::Block(BlockStatement {
-            node: self.create_node(&start_token, &self.previous_token),
+            node: self.create_node(&start_token, &self.cursor.previous_token),
             body,
         }))
     }
@@ -58,7 +58,7 @@ impl<'a> Parser<'a> {
         self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Empty(EmptyStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
         }))
     }
 
@@ -71,12 +71,12 @@ impl<'a> Parser<'a> {
 
         let expression = self.parse_expression()?;
 
-        if self.current_token_kind() == TokenKind::Colon {
+        if self.cursor.current_token_kind() == TokenKind::Colon {
             todo!("parse_labelled_statement")
         } else {
             self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
-            let node: Node = self.create_node(&start_token, &self.current_token);
+            let node: Node = self.create_node(&start_token, &self.cursor.current_token);
 
             Ok(Statement::Expression(ExpressionStatement {
                 node,
@@ -99,7 +99,8 @@ impl<'a> Parser<'a> {
 
         let consequent = self.parse_statement()?;
 
-        let alternate = if self.current_token_kind() == TokenKind::Keyword(KeywordKind::Else) {
+        let alternate = if self.cursor.current_token_kind() == TokenKind::Keyword(KeywordKind::Else)
+        {
             self.expect_and_advance(TokenKind::Keyword(KeywordKind::Else))?;
 
             Some(Box::new(self.parse_statement()?))
@@ -108,7 +109,7 @@ impl<'a> Parser<'a> {
         };
 
         Ok(Statement::If(IfStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
             test: test,
             consequent: Box::new(consequent),
             alternate,
@@ -141,7 +142,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
         Ok(Statement::DoWhile(DoWhileStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
             test: test,
             body: Box::new(body),
         }))
@@ -162,7 +163,7 @@ impl<'a> Parser<'a> {
         let body = self.parse_statement()?;
 
         Ok(Statement::While(WhileStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
             test,
             body: Box::new(body),
         }))
@@ -174,7 +175,7 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Continue))?;
 
-        let label = if self.current_token_kind() == TokenKind::Semicolon {
+        let label = if self.cursor.current_token_kind() == TokenKind::Semicolon {
             None
         } else {
             Some(self.parse_label_identifier()?)
@@ -183,7 +184,7 @@ impl<'a> Parser<'a> {
         self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Continue(ContinueStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
             label,
         }))
     }
@@ -194,14 +195,14 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Break))?;
 
-        let label = if self.current_token_kind() == TokenKind::Semicolon {
+        let label = if self.cursor.current_token_kind() == TokenKind::Semicolon {
             None
         } else {
             Some(self.parse_label_identifier()?)
         };
 
         Ok(Statement::Break(BreakStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
             label,
         }))
     }
@@ -212,7 +213,7 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Return))?;
 
-        let argument = if self.current_token_kind() == TokenKind::Semicolon {
+        let argument = if self.cursor.current_token_kind() == TokenKind::Semicolon {
             None
         } else {
             Some(self.parse_expression()?)
@@ -221,7 +222,7 @@ impl<'a> Parser<'a> {
         self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Return(ReturnStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
             argument,
         }))
     }
@@ -237,7 +238,7 @@ impl<'a> Parser<'a> {
         self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Throw(ThrowStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
             argument,
         }))
     }
@@ -259,7 +260,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Debugger))?;
 
         Ok(Statement::Debugger(DebuggerStatement {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
         }))
     }
 }

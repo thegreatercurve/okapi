@@ -118,6 +118,7 @@ fn match_token_kind_to_assignment_operator(token_kind: &TokenKind) -> Option<Ass
         TokenKind::NullishCoalescingAssignment => {
             Some(AssignmentOperator::NullishCoalescingAssignment)
         }
+        TokenKind::Assignment => Some(AssignmentOperator::Assignment), // TODO Remove this.
         _ => None,
     }
 }
@@ -131,13 +132,13 @@ impl<'a> Parser<'a> {
 
         let assignment_expression = self.parse_assignment_expression()?;
 
-        if self.current_token_kind() == TokenKind::Comma {
+        if self.cursor.current_token_kind() == TokenKind::Comma {
             self.expect_and_advance(TokenKind::Comma)?;
 
             let right = self.parse_expression()?;
 
             return Ok(Expression::Sequence(SequenceExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.cursor.current_token),
                 expressions: vec![assignment_expression, right],
             }));
         } else {
@@ -152,7 +153,7 @@ impl<'a> Parser<'a> {
 
         let start_token = self.start_token();
 
-        let token_value = self.current_token_value();
+        let token_value = self.cursor.current_token_value();
 
         self.expect_one_of_and_advance(vec![
             TokenKind::Identifier,
@@ -162,7 +163,7 @@ impl<'a> Parser<'a> {
 
         match token_value {
             TokenValue::String(name) => Ok(Expression::Identifier(Identifier {
-                node: self.create_node(&start_token, &self.previous_token),
+                node: self.create_node(&start_token, &self.cursor.previous_token),
                 name,
             })),
             _ => Err(ParserError::UnexpectedTokenValue),
@@ -177,7 +178,7 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-PrimaryExpression
     fn parse_primary_expresison(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete. Handle template literals and Regex.
-        let token_kind = self.current_token_kind();
+        let token_kind = self.cursor.current_token_kind();
 
         match token_kind {
             TokenKind::Keyword(KeywordKind::This) => self.parse_this_expression(),
@@ -190,7 +191,7 @@ impl<'a> Parser<'a> {
             TokenKind::LeftSquareBracket => self.parse_array_literal(),
             TokenKind::LeftCurlyBrace => self.parse_object_literal(),
             TokenKind::Keyword(KeywordKind::Function) => {
-                if self.peek_token_kind() == TokenKind::Multiplication {
+                if self.cursor.peek_token_kind() == TokenKind::Multiplication {
                     self.parse_generator_expression()
                 } else {
                     self.parse_function_expression()
@@ -200,7 +201,7 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Async) => {
                 self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
 
-                if self.peek_token_kind() == TokenKind::Multiplication {
+                if self.cursor.peek_token_kind() == TokenKind::Multiplication {
                     self.parse_async_generator_expression()
                 } else {
                     self.parse_async_function_expression()
@@ -219,7 +220,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::This))?;
 
         Ok(Expression::This(ThisExpression {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
         }))
     }
 
@@ -242,11 +243,11 @@ impl<'a> Parser<'a> {
     fn parse_literal(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let token_value = self.current_token_value();
+        let token_value = self.cursor.current_token_value();
 
-        let node = self.create_node(&start_token, &self.current_token);
+        let node = self.create_node(&start_token, &self.cursor.current_token);
 
-        let literal = match self.current_token_kind() {
+        let literal = match self.cursor.current_token_kind() {
             TokenKind::StringLiteral => {
                 let raw_value = match token_value {
                     TokenValue::String(value) => value,
@@ -311,7 +312,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 
         Ok(Expression::Array(ArrayExpression {
-            node: self.create_node(&start_token, &self.previous_token),
+            node: self.create_node(&start_token, &self.cursor.previous_token),
             elements: element_list,
         }))
     }
@@ -320,10 +321,10 @@ impl<'a> Parser<'a> {
     fn parse_element_list(&mut self) -> Result<Vec<Option<MemberExpressionElements>>, ParserError> {
         let mut elements = vec![];
 
-        while self.current_token_kind() != TokenKind::RightSquareBracket {
-            match self.current_token_kind() {
+        while self.cursor.current_token_kind() != TokenKind::RightSquareBracket {
+            match self.cursor.current_token_kind() {
                 TokenKind::Comma => {
-                    self.advance(); // Eat the , token.
+                    self.cursor.advance(); // Eat the , token.
 
                     elements.push(None);
 
@@ -332,13 +333,13 @@ impl<'a> Parser<'a> {
                 TokenKind::Ellipsis => {
                     let start_token = self.start_token();
 
-                    self.advance(); // Eat the ... token.
+                    self.cursor.advance(); // Eat the ... token.
 
                     let assigment_expression: Expression = self.parse_assignment_expression()?;
 
                     elements.push(Some(MemberExpressionElements::SpreadElement(
                         SpreadElement {
-                            node: self.create_node(&start_token, &self.previous_token),
+                            node: self.create_node(&start_token, &self.cursor.previous_token),
                             argument: assigment_expression,
                         },
                     )));
@@ -352,7 +353,7 @@ impl<'a> Parser<'a> {
                 }
             };
 
-            if self.current_token_kind() == TokenKind::RightSquareBracket {
+            if self.cursor.current_token_kind() == TokenKind::RightSquareBracket {
                 break;
             }
 
@@ -373,7 +374,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Expression::Object(ObjectExpression {
-            node: self.create_node(&start_token, &self.previous_token),
+            node: self.create_node(&start_token, &self.cursor.previous_token),
             properties,
         }))
     }
@@ -384,12 +385,12 @@ impl<'a> Parser<'a> {
     ) -> Result<Vec<ObjectExpressionProperties>, ParserError> {
         let mut properties = vec![];
 
-        while self.current_token_kind() != TokenKind::RightCurlyBrace {
+        while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {
             let property = self.parse_property_definition()?;
 
             properties.push(property);
 
-            if self.current_token_kind() == TokenKind::RightCurlyBrace {
+            if self.cursor.current_token_kind() == TokenKind::RightCurlyBrace {
                 break;
             }
 
@@ -403,7 +404,7 @@ impl<'a> Parser<'a> {
     fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperties, ParserError> {
         let start_token = self.start_token();
 
-        match self.current_token_kind() {
+        match self.cursor.current_token_kind() {
             TokenKind::Identifier
             | TokenKind::StringLiteral
             | TokenKind::NumberLiteral
@@ -424,7 +425,7 @@ impl<'a> Parser<'a> {
 
                 let value;
 
-                match self.current_token_kind() {
+                match self.cursor.current_token_kind() {
                     TokenKind::Colon => {
                         shorthand = false;
 
@@ -465,18 +466,18 @@ impl<'a> Parser<'a> {
                     shorthand,
                     computed,
                     key: property_key,
-                    node: self.create_node(&start_token, &self.previous_token),
+                    node: self.create_node(&start_token, &self.cursor.previous_token),
                     value,
                     kind,
                 }))
             }
             TokenKind::Ellipsis => {
-                self.advance(); // Eat the ... token.
+                self.cursor.advance(); // Eat the ... token.
 
                 let assigment_expression: Expression = self.parse_assignment_expression()?;
 
                 Ok(ObjectExpressionProperties::SpreadElement(SpreadElement {
-                    node: self.create_node(&start_token, &self.previous_token),
+                    node: self.create_node(&start_token, &self.cursor.previous_token),
                     argument: assigment_expression,
                 }))
             }
@@ -488,11 +489,11 @@ impl<'a> Parser<'a> {
     fn parse_property_name(&mut self) -> Result<PropertyKey, ParserError> {
         let start_token = self.start_token();
 
-        let token_value = self.current_token_value();
+        let token_value = self.cursor.current_token_value();
 
-        match self.current_token_kind() {
+        match self.cursor.current_token_kind() {
             TokenKind::Identifier => {
-                self.advance(); // Eat the identifier token.
+                self.cursor.advance(); // Eat the identifier token.
 
                 let name = match token_value {
                     TokenValue::String(value) => value,
@@ -500,12 +501,12 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(PropertyKey::Identifier(Identifier {
-                    node: self.create_node(&start_token, &self.previous_token),
+                    node: self.create_node(&start_token, &self.cursor.previous_token),
                     name,
                 }))
             }
             TokenKind::StringLiteral => {
-                self.advance(); // Eat the string literal token.
+                self.cursor.advance(); // Eat the string literal token.
 
                 let raw_value = match token_value {
                     TokenValue::String(value) => value,
@@ -513,13 +514,13 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(PropertyKey::Literal(Literal {
-                    node: self.create_node(&start_token, &self.previous_token),
+                    node: self.create_node(&start_token, &self.cursor.previous_token),
                     value: LiteralValue::String(raw_value.clone()),
                     raw: format!("\"{}\"", raw_value.to_string()),
                 }))
             }
             TokenKind::NumberLiteral => {
-                self.advance(); // Eat the number literal token.
+                self.cursor.advance(); // Eat the number literal token.
 
                 let (raw, value) = match token_value {
                     TokenValue::Number { raw, value } => (raw, value),
@@ -527,7 +528,7 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(PropertyKey::Literal(Literal {
-                    node: self.create_node(&start_token, &self.previous_token),
+                    node: self.create_node(&start_token, &self.cursor.previous_token),
                     value: LiteralValue::Number(value.clone()),
                     raw,
                 }))
@@ -555,7 +556,7 @@ impl<'a> Parser<'a> {
 
         let _node = self.start_token();
 
-        let current_token_kind = self.current_token_kind();
+        let current_token_kind = self.cursor.current_token_kind();
 
         if current_token_kind == TokenKind::Keyword(KeywordKind::New) {
             let new_expression = self.parse_new_expression()?;
@@ -586,7 +587,7 @@ impl<'a> Parser<'a> {
         let callee = self.parse_member_expression()?;
 
         Ok(Expression::New(NewExpression {
-            node: self.create_node(&start_token, &self.current_token),
+            node: self.create_node(&start_token, &self.cursor.current_token),
             callee: Box::new(callee),
             arguments: vec![],
         }))
@@ -598,24 +599,24 @@ impl<'a> Parser<'a> {
 
         let start_token = self.start_token();
 
-        let current_token_kind = self.current_token_kind();
+        let current_token_kind = self.cursor.current_token_kind();
 
         match current_token_kind {
             TokenKind::Keyword(KeywordKind::Super) => {
-                self.advance(); // Eat the super token.
+                self.cursor.advance(); // Eat the super token.
 
                 let arguments = self.parse_arguments()?;
 
                 return Ok(Expression::Call(CallExpression {
-                    node: self.create_node(&start_token, &self.current_token),
+                    node: self.create_node(&start_token, &self.cursor.current_token),
                     callee: Box::new(CallExpressionCallee::Super(Super {
-                        node: self.create_node(&start_token, &self.current_token),
+                        node: self.create_node(&start_token, &self.cursor.current_token),
                     })),
                     arguments,
                 }));
             }
             TokenKind::Keyword(KeywordKind::Import) => {
-                self.advance(); // Eat the import token.
+                self.cursor.advance(); // Eat the import token.
 
                 todo!()
             }
@@ -625,7 +626,7 @@ impl<'a> Parser<'a> {
                 let call_expression = self.parse_call_expression()?;
 
                 return Ok(Expression::Call(CallExpression {
-                    node: self.create_node(&start_token, &self.current_token),
+                    node: self.create_node(&start_token, &self.cursor.current_token),
                     callee: Box::new(CallExpressionCallee::Expression(call_expression)),
                     arguments,
                 }));
@@ -640,11 +641,11 @@ impl<'a> Parser<'a> {
 
         let mut arguments_list = vec![];
 
-        while self.current_token_kind() != TokenKind::RightParenthesis {
+        while self.cursor.current_token_kind() != TokenKind::RightParenthesis {
             let start_token = self.start_token();
 
-            let is_spread = if self.current_token_kind() == TokenKind::Ellipsis {
-                self.advance(); // Eat the ... token.
+            let is_spread = if self.cursor.current_token_kind() == TokenKind::Ellipsis {
+                self.cursor.advance(); // Eat the ... token.
 
                 true
             } else {
@@ -655,22 +656,22 @@ impl<'a> Parser<'a> {
 
             if is_spread {
                 arguments_list.push(CallExpressionArguments::SpreadElement(SpreadElement {
-                    node: self.create_node(&start_token, &self.current_token),
+                    node: self.create_node(&start_token, &self.cursor.current_token),
                     argument,
                 }));
             } else {
                 arguments_list.push(CallExpressionArguments::Expression(argument));
             }
 
-            if self.current_token_kind() != TokenKind::Comma {
+            if self.cursor.current_token_kind() != TokenKind::Comma {
                 break;
             }
 
-            if self.current_token_kind() == TokenKind::RightParenthesis {
+            if self.cursor.current_token_kind() == TokenKind::RightParenthesis {
                 break;
             }
 
-            self.advance();
+            self.cursor.advance();
         }
 
         Ok(arguments_list)
@@ -681,17 +682,17 @@ impl<'a> Parser<'a> {
     fn parse_update_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let mut current_token_kind = self.current_token_kind();
+        let mut current_token_kind = self.cursor.current_token_kind();
 
         if is_token_kind_unary_operator(&current_token_kind) {
-            self.advance(); // Eat the ++ or -- token.
+            self.cursor.advance(); // Eat the ++ or -- token.
 
             let unary_expression = self.parse_unary_expression()?;
 
             let operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
 
             Ok(Expression::Update(UpdateExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.cursor.current_token),
                 operator,
                 argument: Box::new(unary_expression),
                 prefix: true,
@@ -699,7 +700,7 @@ impl<'a> Parser<'a> {
         } else {
             let left_hand_side_expression = self.parse_left_hand_side_expression()?;
 
-            current_token_kind = self.current_token_kind();
+            current_token_kind = self.cursor.current_token_kind();
 
             if !is_token_kind_unary_operator(&current_token_kind) {
                 return Ok(left_hand_side_expression);
@@ -708,7 +709,7 @@ impl<'a> Parser<'a> {
             let update_operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
 
             Ok(Expression::Update(UpdateExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.cursor.current_token),
                 operator: update_operator,
                 argument: Box::new(left_hand_side_expression),
                 prefix: false,
@@ -721,7 +722,7 @@ impl<'a> Parser<'a> {
     fn parse_unary_expression(&mut self) -> Result<Expression, ParserError> {
         let start_token = self.start_token();
 
-        let current_token_kind = self.current_token_kind();
+        let current_token_kind = self.cursor.current_token_kind();
 
         match current_token_kind {
             TokenKind::Keyword(KeywordKind::Delete)
@@ -731,17 +732,17 @@ impl<'a> Parser<'a> {
             | TokenKind::Subtraction
             | TokenKind::BitwiseNot
             | TokenKind::LogicalNot => {
-                self.advance(); // Eat the delete or void or typeof or + or - or ~ or ! token.
+                self.cursor.advance(); // Eat the delete or void or typeof or + or - or ~ or ! token.
 
                 let unary_argument = self.parse_unary_expression()?;
 
                 let operator =
-                    match_token_kind_to_unary_operator(&self.current_token_kind()).unwrap();
+                    match_token_kind_to_unary_operator(&self.cursor.current_token_kind()).unwrap();
 
-                self.advance();
+                self.cursor.advance();
 
                 Ok(Expression::Unary(UnaryExpression {
-                    node: self.create_node(&start_token, &self.current_token),
+                    node: self.create_node(&start_token, &self.cursor.current_token),
                     operator,
                     prefix: true,
                     argument: Box::new(unary_argument),
@@ -752,7 +753,7 @@ impl<'a> Parser<'a> {
 
                 // TODO check if is supported by ECMA script version.
                 Ok(Expression::Await(AwaitExpression {
-                    node: self.create_node(&start_token, &self.current_token),
+                    node: self.create_node(&start_token, &self.cursor.current_token),
                     argument: Box::new(unary_expression),
                 }))
             }
@@ -802,8 +803,8 @@ impl<'a> Parser<'a> {
         left_start_token: &Token,
         minimum_precedence: u8,
     ) -> Result<Expression, ParserError> {
-        while self.current_token_kind() != TokenKind::EOF {
-            let current_token_kind = self.current_token_kind();
+        while self.cursor.current_token_kind() != TokenKind::EOF {
+            let current_token_kind = self.cursor.current_token_kind();
 
             let Some((left_precedence, right_precedence)) =
                 match_token_kind_to_operator_precedence(&current_token_kind)
@@ -815,11 +816,11 @@ impl<'a> Parser<'a> {
                 break;
             }
 
-            self.advance(); // Eat the operator token.
+            self.cursor.advance(); // Eat the operator token.
 
             let right_expression = self.parse_binary_expression(right_precedence)?;
 
-            let node = self.create_node(&left_start_token, &self.previous_token);
+            let node = self.create_node(&left_start_token, &self.cursor.previous_token);
 
             if current_token_kind.is_logical_operator() {
                 let Some(operator) = match_token_kind_to_logical_operator(&current_token_kind)
@@ -860,8 +861,8 @@ impl<'a> Parser<'a> {
 
         let short_circuit_expression = self.parse_binary_expression(0)?;
 
-        if self.current_token_kind() == TokenKind::QuestionMark {
-            self.advance(); // Eat the ? token.
+        if self.cursor.current_token_kind() == TokenKind::QuestionMark {
+            self.cursor.advance(); // Eat the ? token.
 
             let consequent = self.parse_assignment_expression()?;
 
@@ -870,7 +871,7 @@ impl<'a> Parser<'a> {
             let alternate = self.parse_assignment_expression()?;
 
             return Ok(Expression::Conditional(ConditionalExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.cursor.current_token),
                 test: Box::new(short_circuit_expression),
                 consequent: Box::new(consequent),
                 alternate: Box::new(alternate),
@@ -884,13 +885,13 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-AssignmentExpression
     fn parse_assignment_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
-        if self.current_token_kind() == TokenKind::Keyword(KeywordKind::Yield) {
+        if self.cursor.current_token_kind() == TokenKind::Keyword(KeywordKind::Yield) {
             return self.parse_yield_expression();
         }
 
-        if self.current_token_kind() == TokenKind::Identifier {
+        if self.cursor.current_token_kind() == TokenKind::Identifier {
             // TODO Handle CoverParenthesizedExpressionAndArrowParameterList.
-            if self.peek_token_kind() == TokenKind::ArrowFunction {
+            if self.cursor.peek_token_kind() == TokenKind::ArrowFunction {
                 return self.parse_arrow_function();
             }
         }
@@ -901,39 +902,40 @@ impl<'a> Parser<'a> {
 
         let left_expression = self.parse_left_hand_side_expression()?;
 
-        match self.current_token_kind() {
-            TokenKind::Assignment => {
-                self.advance(); // Eat the assignment operator token.
+        match self.cursor.current_token_kind() {
+            // TokenKind::Assignment => {
+            //     self.cursor.advance(); // Eat the assignment operator token.
 
-                let right = self.parse_assignment_expression()?;
+            //     let right = self.parse_assignment_expression()?;
 
-                // TODO Handle ArrayAssignmentPattern and ObjectAssignmentPattern similar to ArrayLiteral and ObjectLiteral binding patterns:
+            //     // TODO Handle ArrayAssignmentPattern and ObjectAssignmentPattern similar to ArrayLiteral and ObjectLiteral binding patterns:
 
-                // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
-                let left_array_or_object_pattern = match &left_expression {
-                    // Expression::Array(array_expression) => array_expression.to_pattern(),
-                    // Expression::Object(object_expression) => object_expression.to_pattern(),
-                    _ => None,
-                }
-                .unwrap();
+            //     // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
+            //     let left_array_or_object_pattern = match &left_expression {
+            //         // Expression::Array(array_expression) => array_expression.to_pattern(),
+            //         // Expression::Object(object_expression) => object_expression.to_pattern(),
+            //         _ => None,
+            //     }
+            //     .unwrap();
 
-                return Ok(Expression::Assignment(AssignmentExpression {
-                    node: self.create_node(&start_token, &self.previous_token),
-                    operator: AssignmentOperator::Assignment,
-                    left: Box::new(left_array_or_object_pattern),
-                    right: Box::new(right),
-                }));
-            }
+            //     return Ok(Expression::Assignment(AssignmentExpression {
+            //         node: self.create_node(&start_token, &self.cursor.previous_token),
+            //         operator: AssignmentOperator::Assignment,
+            //         left: Box::new(left_array_or_object_pattern),
+            //         right: Box::new(right),
+            //     }));
+            // }
             current_token_kind if current_token_kind.is_assignment_operator() => {
                 let operator =
-                    match_token_kind_to_assignment_operator(&self.current_token_kind()).unwrap();
+                    match_token_kind_to_assignment_operator(&self.cursor.current_token_kind())
+                        .unwrap();
 
-                self.advance(); // Eat the assignment operator token.
+                self.cursor.advance(); // Eat the assignment operator token.
 
                 let right = self.parse_assignment_expression()?;
 
                 return Ok(Expression::Assignment(AssignmentExpression {
-                    node: self.create_node(&start_token, &self.previous_token),
+                    node: self.create_node(&start_token, &self.cursor.previous_token),
                     operator,
                     left: Box::new(AssignmentExpressionLeft::Expression(left_expression)),
                     right: Box::new(right),

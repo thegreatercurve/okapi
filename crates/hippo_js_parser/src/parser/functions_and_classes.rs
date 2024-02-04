@@ -21,7 +21,7 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
 
-        if self.peek_token_kind() == TokenKind::Identifier {
+        if self.cursor.peek_token_kind() == TokenKind::Identifier {
             let _identifier = self.parse_binding_identifier()?;
         }
 
@@ -38,7 +38,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Expression::Function(FunctionExpression {
-            node: self.create_node(&start_token, &self.previous_token),
+            node: self.create_node(&start_token, &self.cursor.previous_token),
         }))
     }
 
