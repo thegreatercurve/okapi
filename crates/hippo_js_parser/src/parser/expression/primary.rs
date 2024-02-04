@@ -139,10 +139,12 @@ impl<'a> Parser<'a> {
 
         let element_list = self.parse_element_list()?;
 
+        let node = self.end_node()?;
+
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 
         Ok(Expression::Array(ArrayExpression {
-            node: self.end_node()?,
+            node,
             elements: element_list,
         }))
     }
@@ -165,17 +167,19 @@ impl<'a> Parser<'a> {
 
                     self.cursor.advance(); // Eat the ... token.
 
-                    let assigment_expression: Expression = self.parse_assignment_expression()?;
+                    let node = self.end_node()?;
+
+                    let assigment_expression = self.parse_assignment_expression()?;
 
                     elements.push(Some(MemberExpressionElements::SpreadElement(
                         SpreadElement {
-                            node: self.end_node()?,
+                            node,
                             argument: assigment_expression,
                         },
                     )));
                 }
                 _ => {
-                    let assigment_expression: Expression = self.parse_assignment_expression()?;
+                    let assigment_expression = self.parse_assignment_expression()?;
 
                     elements.push(Some(MemberExpressionElements::Expression(
                         assigment_expression,

@@ -102,14 +102,17 @@ impl<'a> Parser<'a> {
         &mut self,
         precedence: u8,
     ) -> Result<Expression, ParserError> {
+        let start_token = self.cursor.current_token.clone();
+
         let unary_expression = self.parse_unary_expression()?;
 
-        self.parse_binary_expression_recursive_impl(unary_expression, precedence)
+        self.parse_binary_expression_recursive_impl(unary_expression, &start_token, precedence)
     }
 
     fn parse_binary_expression_recursive_impl(
         &mut self,
         mut left_expression: Expression,
+        left_start_token: &Token,
         minimum_precedence: u8,
     ) -> Result<Expression, ParserError> {
         while self.cursor.current_token_kind() != TokenKind::EOF {
@@ -129,7 +132,7 @@ impl<'a> Parser<'a> {
 
             let right_expression = self.parse_binary_expression(right_precedence)?;
 
-            let node = self.end_node()?;
+            let node = Node::new(left_start_token.start, self.cursor.current_token.start);
 
             if current_token_kind.is_logical_operator() {
                 let Some(operator) = match_token_kind_to_logical_operator(&current_token_kind)

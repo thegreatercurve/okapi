@@ -101,8 +101,6 @@ impl<'a> Parser<'a> {
 
         let consequent = self.parse_statement()?;
 
-        let node = self.end_node()?;
-
         let alternate = if self.cursor.current_token_kind() == TokenKind::Keyword(KeywordKind::Else)
         {
             self.expect_and_advance(TokenKind::Keyword(KeywordKind::Else))?;
@@ -113,7 +111,7 @@ impl<'a> Parser<'a> {
         };
 
         Ok(Statement::If(IfStatement {
-            node,
+            node: self.end_node()?,
             test: test,
             consequent: Box::new(consequent),
             alternate,
@@ -122,8 +120,6 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-ForStatement
     fn parse_for_or_for_of_in_statement(&mut self) -> Result<Statement, ParserError> {
-        let _node = self.start_node();
-
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::For))?;
 
         todo!()

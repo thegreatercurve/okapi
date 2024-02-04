@@ -39,6 +39,8 @@ impl<'a> Parser<'a> {
         current_token_kind = self.cursor.current_token_kind();
 
         if !&current_token_kind.is_unary_operator() {
+            self.end_node()?;
+
             return Ok(left_hand_side_expression);
         }
 
