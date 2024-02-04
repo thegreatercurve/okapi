@@ -1,5 +1,3 @@
-use std::array;
-
 use crate::{KeywordKind, Parser, ParserError, Token, TokenKind, TokenValue};
 use hippo_estree::*;
 
@@ -319,9 +317,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-ElementList
-    fn parse_element_list(
-        &mut self,
-    ) -> Result<Vec<Option<Box<MemberExpressionElements>>>, ParserError> {
+    fn parse_element_list(&mut self) -> Result<Vec<Option<MemberExpressionElements>>, ParserError> {
         let mut elements = vec![];
 
         while self.current_token_kind() != TokenKind::RightSquareBracket {
@@ -340,19 +336,19 @@ impl<'a> Parser<'a> {
 
                     let assigment_expression: Expression = self.parse_assignment_expression()?;
 
-                    elements.push(Some(Box::new(MemberExpressionElements::SpreadElement(
+                    elements.push(Some(MemberExpressionElements::SpreadElement(
                         SpreadElement {
                             node: self.create_node(&start_token, &self.previous_token),
                             argument: assigment_expression,
                         },
-                    ))));
+                    )));
                 }
                 _ => {
                     let assigment_expression: Expression = self.parse_assignment_expression()?;
 
-                    elements.push(Some(Box::new(MemberExpressionElements::Expression(
+                    elements.push(Some(MemberExpressionElements::Expression(
                         assigment_expression,
-                    ))));
+                    )));
                 }
             };
 
@@ -911,10 +907,12 @@ impl<'a> Parser<'a> {
 
                 let right = self.parse_assignment_expression()?;
 
+                // TODO Handle ArrayAssignmentPattern and ObjectAssignmentPattern similar to ArrayLiteral and ObjectLiteral binding patterns:
+
                 // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
                 let left_array_or_object_pattern = match &left_expression {
-                    Expression::Array(array_expression) => array_expression.to_pattern(),
-                    Expression::Object(object_expression) => object_expression.to_pattern(),
+                    // Expression::Array(array_expression) => array_expression.to_pattern(),
+                    // Expression::Object(object_expression) => object_expression.to_pattern(),
                     _ => None,
                 }
                 .unwrap();

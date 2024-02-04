@@ -36,13 +36,7 @@ pub enum ObjectPatternProperties {
 pub struct ArrayPattern {
     #[serde(flatten)]
     pub node: Node,
-    pub elements: Vec<Option<ArrayPatternElements>>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-pub enum ArrayPatternElements {
-    ObjectPattern(ObjectPattern),
-    ArrayPattern(ArrayPattern),
+    pub elements: Vec<Option<Pattern>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

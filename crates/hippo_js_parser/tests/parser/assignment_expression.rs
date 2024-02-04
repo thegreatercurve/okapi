@@ -2,22 +2,22 @@ use crate::parser::common::assert_parse_module_eq;
 
 #[test]
 fn assignment_expression() {
-    // assert_parse_module_eq!(
-    //     r#"foo -= bar;"#,
-    //     r#"{"type":"Program","start":0,"end":11,"body":[{"type":"ExpressionStatement","start":0,"end":11,"expression":{"type":"AssignmentExpression","start":0,"end":10,"operator":"-=","left":{"type":"Identifier","start":0,"end":3,"name":"foo"},"right":{"type":"Identifier","start":7,"end":10,"name":"bar"}}}],"sourceType":"module"}"#
-    // );
-    // assert_parse_module_eq!(
-    //     r#"foo += bar = b ??= 3;"#,
-    //     r#"{"type":"Program","start":0,"end":21,"body":[{"type":"ExpressionStatement","start":0,"end":21,"expression":{"type":"AssignmentExpression","start":0,"end":20,"operator":"+=","left":{"type":"Identifier","start":0,"end":3,"name":"foo"},"right":{"type":"AssignmentExpression","start":7,"end":20,"operator":"=","left":{"type":"Identifier","start":7,"end":10,"name":"bar"},"right":{"type":"AssignmentExpression","start":13,"end":20,"operator":"??=","left":{"type":"Identifier","start":13,"end":14,"name":"b"},"right":{"type":"Literal","start":19,"end":20,"value":3.0,"raw":"3"}}}}}],"sourceType":"module"}"#
-    // );
-    // assert_parse_module_eq!(
-    //     r#"(foo = bar);"#,
-    //     r#"{"type":"Program","start":0,"end":12,"body":[{"type":"ExpressionStatement","start":0,"end":12,"expression":{"type":"AssignmentExpression","start":1,"end":10,"operator":"=","left":{"type":"Identifier","start":1,"end":4,"name":"foo"},"right":{"type":"Identifier","start":7,"end":10,"name":"bar"}}}],"sourceType":"module"}"#
-    // );
     assert_parse_module_eq!(
-        r#"[foo, bar] = baz;"#,
-        r#"{"type":"Program","start":0,"end":17,"body":[{"type":"ExpressionStatement","start":0,"end":17,"expression":{"type":"AssignmentExpression","start":0,"end":16,"operator":"=","left":{"type":"ArrayPattern","start":0,"end":10,"elements":[{"type":"Identifier","start":1,"end":4,"name":"foo"},{"type":"Identifier","start":6,"end":9,"name":"bar"}]},"right":{"type":"Identifier","start":13,"end":16,"name":"baz"}}}],"sourceType":"module"}"#
+        r#"foo -= bar;"#,
+        r#"{"type":"Program","start":0,"end":11,"body":[{"type":"ExpressionStatement","start":0,"end":11,"expression":{"type":"AssignmentExpression","start":0,"end":10,"operator":"-=","left":{"type":"Identifier","start":0,"end":3,"name":"foo"},"right":{"type":"Identifier","start":7,"end":10,"name":"bar"}}}],"sourceType":"module"}"#
     );
+    assert_parse_module_eq!(
+        r#"foo += bar = b ??= 3;"#,
+        r#"{"type":"Program","start":0,"end":21,"body":[{"type":"ExpressionStatement","start":0,"end":21,"expression":{"type":"AssignmentExpression","start":0,"end":20,"operator":"+=","left":{"type":"Identifier","start":0,"end":3,"name":"foo"},"right":{"type":"AssignmentExpression","start":7,"end":20,"operator":"=","left":{"type":"Identifier","start":7,"end":10,"name":"bar"},"right":{"type":"AssignmentExpression","start":13,"end":20,"operator":"??=","left":{"type":"Identifier","start":13,"end":14,"name":"b"},"right":{"type":"Literal","start":19,"end":20,"value":3.0,"raw":"3"}}}}}],"sourceType":"module"}"#
+    );
+    assert_parse_module_eq!(
+        r#"(foo = bar);"#,
+        r#"{"type":"Program","start":0,"end":12,"body":[{"type":"ExpressionStatement","start":0,"end":12,"expression":{"type":"AssignmentExpression","start":1,"end":10,"operator":"=","left":{"type":"Identifier","start":1,"end":4,"name":"foo"},"right":{"type":"Identifier","start":7,"end":10,"name":"bar"}}}],"sourceType":"module"}"#
+    );
+    // assert_parse_module_eq!(
+    //     r#"[foo, bar] = baz;"#,
+    //     r#"{"type":"Program","start":0,"end":17,"body":[{"type":"ExpressionStatement","start":0,"end":17,"expression":{"type":"AssignmentExpression","start":0,"end":16,"operator":"=","left":{"type":"ArrayPattern","start":0,"end":10,"elements":[{"type":"Identifier","start":1,"end":4,"name":"foo"},{"type":"Identifier","start":6,"end":9,"name":"bar"}]},"right":{"type":"Identifier","start":13,"end":16,"name":"baz"}}}],"sourceType":"module"}"#
+    // );
     // assert_parse_module_eq!(
     //     r#"[foo, bar = "default", ...rest] = baz;"#,
     //     r#"{"type":"Program","start":0,"end":38,"body":[{"type":"ExpressionStatement","start":0,"end":38,"expression":{"type":"AssignmentExpression","start":0,"end":37,"operator":"=","left":{"type":"ArrayPattern","start":0,"end":31,"elements":[{"type":"Identifier","start":1,"end":4,"name":"foo"},{"type":"AssignmentPattern","start":6,"end":21,"left":{"type":"Identifier","start":6,"end":9,"name":"bar"},"right":{"type":"Literal","start":12,"end":21,"value":"default","raw":"\"default\""}},{"type":"RestElement","start":23,"end":30,"argument":{"type":"Identifier","start":26,"end":30,"name":"rest"}}]},"right":{"type":"Identifier","start":34,"end":37,"name":"baz"}}}],"sourceType":"module"}"#
