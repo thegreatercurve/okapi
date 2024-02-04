@@ -36,8 +36,10 @@ impl<'a> Parser<'a> {
                 node: self.end_node()?,
                 expressions: vec![assignment_expression, right],
             }));
-        } else {
-            Ok(assignment_expression)
         }
+
+        self.end_node()?;
+
+        Ok(assignment_expression)
     }
 }

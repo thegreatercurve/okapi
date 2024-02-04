@@ -190,8 +190,6 @@ impl<'a> Parser<'a> {
 
         let current_token_kind = self.cursor.current_token_kind();
 
-        let node = self.end_node()?;
-
         let binding_identifier = match current_token_kind {
             TokenKind::Identifier => self.parse_binding_identifier(),
             TokenKind::LeftCurlyBrace => self.parse_object_binding_pattern(),
@@ -206,6 +204,8 @@ impl<'a> Parser<'a> {
         } else {
             None
         };
+
+        let node = self.end_node()?;
 
         Ok(VariableDeclarator {
             node,

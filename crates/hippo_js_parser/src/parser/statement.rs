@@ -44,12 +44,11 @@ impl<'a> Parser<'a> {
             body.push(self.parse_statement()?);
         }
 
+        let node = self.end_node()?;
+
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
-        Ok(Statement::Block(BlockStatement {
-            node: self.end_node()?,
-            body,
-        }))
+        Ok(Statement::Block(BlockStatement { node, body }))
     }
 
     // https://tc39.es/ecma262/#prod-EmptyStatement
@@ -73,12 +72,16 @@ impl<'a> Parser<'a> {
         let expression = self.parse_expression()?;
 
         if self.cursor.current_token_kind() == TokenKind::Colon {
+            self.end_node()?;
+
             todo!("parse_labelled_statement")
         } else {
+            let node = self.end_node()?;
+
             self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
             Ok(Statement::Expression(ExpressionStatement {
-                node: self.end_node()?,
+                node,
                 expression: expression,
             }))
         }
@@ -98,6 +101,8 @@ impl<'a> Parser<'a> {
 
         let consequent = self.parse_statement()?;
 
+        let node = self.end_node()?;
+
         let alternate = if self.cursor.current_token_kind() == TokenKind::Keyword(KeywordKind::Else)
         {
             self.expect_and_advance(TokenKind::Keyword(KeywordKind::Else))?;
@@ -108,7 +113,7 @@ impl<'a> Parser<'a> {
         };
 
         Ok(Statement::If(IfStatement {
-            node: self.end_node()?,
+            node,
             test: test,
             consequent: Box::new(consequent),
             alternate,

@@ -93,6 +93,8 @@ impl<'a> Parser<'a> {
             _ => {}
         }
 
+        self.end_node()?;
+
         Ok(left_expression)
     }
 }

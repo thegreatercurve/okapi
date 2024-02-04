@@ -13,6 +13,8 @@ impl<'a> Parser<'a> {
 
         let token_value = self.cursor.current_token_value();
 
+        let node = self.end_node()?;
+
         self.expect_one_of_and_advance(vec![
             TokenKind::Identifier,
             TokenKind::Keyword(KeywordKind::Await),
@@ -20,10 +22,7 @@ impl<'a> Parser<'a> {
         ])?;
 
         match token_value {
-            TokenValue::String(name) => Ok(Expression::Identifier(Identifier {
-                node: self.end_node()?,
-                name,
-            })),
+            TokenValue::String(name) => Ok(Expression::Identifier(Identifier { node, name })),
             _ => Err(ParserError::UnexpectedTokenValue),
         }
     }

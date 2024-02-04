@@ -22,8 +22,6 @@ impl<'a> Parser<'a> {
     // 13.5 Unary Operators
     // https://tc39.es/ecma262/#prod-UnaryExpression
     pub(crate) fn parse_unary_expression(&mut self) -> Result<Expression, ParserError> {
-        self.start_node();
-
         let current_token_kind = self.cursor.current_token_kind();
 
         match current_token_kind {
@@ -34,6 +32,8 @@ impl<'a> Parser<'a> {
             | TokenKind::Subtraction
             | TokenKind::BitwiseNot
             | TokenKind::LogicalNot => {
+                self.start_node();
+
                 self.cursor.advance(); // Eat the delete or void or typeof or + or - or ~ or ! token.
 
                 let unary_argument = self.parse_unary_expression()?;
@@ -51,6 +51,8 @@ impl<'a> Parser<'a> {
                 }))
             }
             TokenKind::Keyword(KeywordKind::Await) => {
+                self.start_node();
+
                 let unary_expression = self.parse_unary_expression()?;
 
                 // TODO check if is supported by ECMA script version.

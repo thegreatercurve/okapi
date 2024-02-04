@@ -28,6 +28,8 @@ impl<'a> Parser<'a> {
             }));
         }
 
+        self.end_node()?;
+
         Ok(short_circuit_expression)
     }
 }

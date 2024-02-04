@@ -26,29 +26,29 @@ impl<'a> Parser<'a> {
 
             let operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
 
-            Ok(Expression::Update(UpdateExpression {
+            return Ok(Expression::Update(UpdateExpression {
                 node: self.end_node()?,
                 operator,
                 argument: Box::new(unary_expression),
                 prefix: true,
-            }))
-        } else {
-            let left_hand_side_expression = self.parse_left_hand_side_expression()?;
-
-            current_token_kind = self.cursor.current_token_kind();
-
-            if !&current_token_kind.is_unary_operator() {
-                return Ok(left_hand_side_expression);
-            }
-
-            let update_operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
-
-            Ok(Expression::Update(UpdateExpression {
-                node: self.end_node()?,
-                operator: update_operator,
-                argument: Box::new(left_hand_side_expression),
-                prefix: false,
-            }))
+            }));
         }
+
+        let left_hand_side_expression = self.parse_left_hand_side_expression()?;
+
+        current_token_kind = self.cursor.current_token_kind();
+
+        if !&current_token_kind.is_unary_operator() {
+            return Ok(left_hand_side_expression);
+        }
+
+        let update_operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
+
+        Ok(Expression::Update(UpdateExpression {
+            node: self.end_node()?,
+            operator: update_operator,
+            argument: Box::new(left_hand_side_expression),
+            prefix: false,
+        }))
     }
 }
