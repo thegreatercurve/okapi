@@ -179,6 +179,10 @@ impl TokenKind {
         )
     }
 
+    pub(crate) fn is_unary_operator(&self) -> bool {
+        matches!(self, TokenKind::Increment | TokenKind::Decrement)
+    }
+
     // https://tc39.es/ecma262/#prod-AssignmentOperator
     pub(crate) fn is_assignment_operator(&self) -> bool {
         matches!(

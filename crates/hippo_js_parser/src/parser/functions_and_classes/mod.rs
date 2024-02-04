@@ -1,3 +1,5 @@
+mod generator;
+
 use crate::{KeywordKind, Parser, ParserError, TokenKind};
 use hippo_estree::*;
 
@@ -52,17 +54,6 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#sec-method-definitions
     pub(crate) fn parse_method_definition(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_method_definition")
-    }
-
-    // 15.5 Generator Function Definitions
-    // https://tc39.es/ecma262/#prod-GeneratorExpression
-    pub(crate) fn parse_generator_expression(&mut self) -> Result<Expression, ParserError> {
-        todo!("parse_generator_expression")
-    }
-
-    // https://tc39.es/ecma262/#prod-YieldExpression
-    pub(crate) fn parse_yield_expression(&mut self) -> Result<Expression, ParserError> {
-        todo!("parse_yield_expression")
     }
 
     // 15.6 Async Generator Function Definitions

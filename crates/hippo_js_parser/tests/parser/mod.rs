@@ -1,7 +1,6 @@
 mod array_expression;
-// mod assignment_expression;
-mod binary_expression;
 mod assignment_expression;
+mod binary_expression;
 mod common;
 mod conditional_expression;
 mod debugger_statement;
