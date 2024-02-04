@@ -99,20 +99,26 @@ fn match_token_kind_to_logical_operator(token_kind: &TokenKind) -> Option<Logica
 
 fn match_token_kind_to_assignment_operator(token_kind: &TokenKind) -> Option<AssignmentOperator> {
     match token_kind {
-        TokenKind::MultiplyAssignment => Some(AssignmentOperator::StarEqual),
-        TokenKind::DivisionAssignment => Some(AssignmentOperator::SlashEqual),
-        TokenKind::ModulusAssignment => Some(AssignmentOperator::PercentEqual),
-        TokenKind::AdditionAssignment => Some(AssignmentOperator::PlusEqual),
-        TokenKind::MinusAssignment => Some(AssignmentOperator::MinusEqual),
-        TokenKind::LeftShiftAssignment => Some(AssignmentOperator::LessThanLessThanEqual),
-        TokenKind::RightShiftAssignment => Some(AssignmentOperator::GreaterThanGreaterThanEqual),
+        TokenKind::Assignment => Some(AssignmentOperator::Assignment),
+        TokenKind::MultiplyAssignment => Some(AssignmentOperator::MultiplyAssignment),
+        TokenKind::DivisionAssignment => Some(AssignmentOperator::DivisionAssignment),
+        TokenKind::ModulusAssignment => Some(AssignmentOperator::ModulusAssignment),
+        TokenKind::AdditionAssignment => Some(AssignmentOperator::AdditionAssignment),
+        TokenKind::MinusAssignment => Some(AssignmentOperator::MinusAssignment),
+        TokenKind::LeftShiftAssignment => Some(AssignmentOperator::LeftShiftAssignment),
+        TokenKind::RightShiftAssignment => Some(AssignmentOperator::RightShiftAssignment),
         TokenKind::UnsignedRightShiftAssignment => {
-            Some(AssignmentOperator::GreaterThanGreaterThanGreaterThanEqual)
+            Some(AssignmentOperator::UnsignedRightShiftAssignment)
         }
-        TokenKind::BitwiseAndAssignment => Some(AssignmentOperator::AmpersandEqual),
-        TokenKind::BitwiseOrAssignment => Some(AssignmentOperator::BarEqual),
-        TokenKind::BitwiseXorAssignment => Some(AssignmentOperator::CaretEqual),
-        TokenKind::ExponentiationAssignment => Some(AssignmentOperator::StarStarEqual),
+        TokenKind::BitwiseAndAssignment => Some(AssignmentOperator::BitwiseAndAssignment),
+        TokenKind::BitwiseOrAssignment => Some(AssignmentOperator::BitwiseOrAssignment),
+        TokenKind::BitwiseXorAssignment => Some(AssignmentOperator::BitwiseXorAssignment),
+        TokenKind::ExponentiationAssignment => Some(AssignmentOperator::ExponentiationAssignment),
+        TokenKind::LogicalOrAssignment => Some(AssignmentOperator::LogicalOrAssignment),
+        TokenKind::LogicalAndAssignment => Some(AssignmentOperator::LogicalAndAssignment),
+        TokenKind::NullishCoalescingAssignment => {
+            Some(AssignmentOperator::NullishCoalescingAssignment)
+        }
         _ => None,
     }
 }
@@ -881,14 +887,11 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-AssignmentExpression
     fn parse_assignment_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
-
-        let mut current_token_kind = self.current_token_kind();
-
-        if current_token_kind == TokenKind::Keyword(KeywordKind::Yield) {
+        if self.current_token_kind() == TokenKind::Keyword(KeywordKind::Yield) {
             return self.parse_yield_expression();
         }
 
-        if current_token_kind == TokenKind::Identifier {
+        if self.current_token_kind() == TokenKind::Identifier {
             // TODO Handle CoverParenthesizedExpressionAndArrowParameterList.
             if self.peek_token_kind() == TokenKind::ArrowFunction {
                 return self.parse_arrow_function();
@@ -901,15 +904,18 @@ impl<'a> Parser<'a> {
 
         let left = self.parse_left_hand_side_expression()?;
 
-        current_token_kind = self.current_token_kind();
+        println!("current_token_kind: {:?}", self.current_token_kind());
 
-        if current_token_kind.is_assignment_operator() {
-            let operator = match_token_kind_to_assignment_operator(&current_token_kind).unwrap();
+        if self.current_token_kind().is_assignment_operator() {
+            let operator =
+                match_token_kind_to_assignment_operator(&self.current_token_kind()).unwrap();
+
+            self.advance(); // Eat the assignment operator token.
 
             let right = self.parse_assignment_expression()?;
 
             return Ok(Expression::Assignment(AssignmentExpression {
-                node: self.create_node(&start_token, &self.current_token),
+                node: self.create_node(&start_token, &self.previous_token),
                 operator,
                 left: Box::new(AssignmentExpressionLeft::Expression(left)),
                 right: Box::new(right),

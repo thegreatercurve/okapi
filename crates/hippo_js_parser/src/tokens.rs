@@ -184,17 +184,21 @@ impl TokenKind {
         matches!(
             self,
             |TokenKind::MultiplyAssignment| TokenKind::DivisionAssignment
-                | TokenKind::ModulusAssignment
-                | TokenKind::AdditionAssignment
-                | TokenKind::MinusAssignment
-                | TokenKind::LeftShiftAssignment
-                | TokenKind::RightShiftAssignment
-                | TokenKind::UnsignedRightShiftAssignment
-                | TokenKind::BitwiseAndAssignment
-                | TokenKind::BitwiseOrAssignment
-                | TokenKind::BitwiseXorAssignment
-                | TokenKind::ExponentiationAssignment
-            
+            | TokenKind::ModulusAssignment
+            | TokenKind::AdditionAssignment
+            | TokenKind::MinusAssignment
+            | TokenKind::LeftShiftAssignment
+            | TokenKind::RightShiftAssignment
+            | TokenKind::UnsignedRightShiftAssignment
+            | TokenKind::BitwiseAndAssignment
+            | TokenKind::BitwiseOrAssignment
+            | TokenKind::BitwiseXorAssignment
+            | TokenKind::ExponentiationAssignment
+            | TokenKind::Assignment
+            // ES2021
+            | TokenKind::LogicalAndAssignment
+            | TokenKind::LogicalOrAssignment
+            | TokenKind::NullishCoalescingAssignment
         )
     }
 

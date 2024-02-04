@@ -22,18 +22,18 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
 
         if self.peek_token_kind() == TokenKind::Identifier {
-            let identifier = self.parse_binding_identifier()?;
+            let _identifier = self.parse_binding_identifier()?;
         }
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let formal_paramaters = self.parse_formal_parameters()?;
+        let _formal_paramaters = self.parse_formal_parameters()?;
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
 
-        let body = self.parse_function_body()?;
+        let _body = self.parse_function_body()?;
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 

@@ -1,5 +1,6 @@
 use crate::{
-    FunctionBody, Identifier, Literal, MetaProperty, Node, Pattern, TaggedTemplateExpression, TemplateLiteral
+    FunctionBody, Identifier, Literal, MetaProperty, Node, TaggedTemplateExpression,
+    TemplateLiteral,
 };
 use serde::Serialize;
 
@@ -218,26 +219,48 @@ pub struct AssignmentExpression {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum AssignmentExpressionLeft {
-    Pattern(Pattern),
+    Pattern(Expression),
     Expression(Expression),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum AssignmentOperator {
-    Equal,
-    PlusEqual,
-    MinusEqual,
-    StarEqual,
-    SlashEqual,
-    PercentEqual,
-    LessThanLessThanEqual,
-    GreaterThanGreaterThanEqual,
-    GreaterThanGreaterThanGreaterThanEqual,
-    BarEqual,
-    CaretEqual,
-    AmpersandEqual,
-    StarStarEqual,
+    #[serde(rename = "=")]
+    Assignment,
+    #[serde(rename = "+=")]
+    AdditionAssignment,
+    #[serde(rename = "-=")]
+    MinusAssignment,
+    #[serde(rename = "*=")]
+    MultiplyAssignment,
+    #[serde(rename = "/=")]
+    DivisionAssignment,
+    #[serde(rename = "%=")]
+    ModulusAssignment,
+    #[serde(rename = "<<=")]
+    LeftShiftAssignment,
+    #[serde(rename = ">>=")]
+    RightShiftAssignment,
+    #[serde(rename = ">>>=")]
+    UnsignedRightShiftAssignment,
+    #[serde(rename = "|=")]
+    BitwiseAndAssignment,
+    #[serde(rename = "^=")]
+    BitwiseOrAssignment,
+    #[serde(rename = "&=")]
+    BitwiseXorAssignment,
+    // ES2016
+    #[serde(rename = "**=")]
+    ExponentiationAssignment,
+    // ES2021
+    #[serde(rename = "||=")]
+    LogicalOrAssignment,
+    #[serde(rename = "&&=")]
+    LogicalAndAssignment,
+    #[serde(rename = "??=")]
+    NullishCoalescingAssignment,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
