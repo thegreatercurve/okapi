@@ -140,13 +140,15 @@ pub struct UpdateExpression {
     #[serde(flatten)]
     pub node: Node,
     pub operator: UpdateOperator,
-    pub argument: Box<Expression>,
     pub prefix: bool,
+    pub argument: Box<Expression>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum UpdateOperator {
+    #[serde(rename = "++")]
     PlusPlus,
+    #[serde(rename = "--")]
     MinusMinus,
 }
 

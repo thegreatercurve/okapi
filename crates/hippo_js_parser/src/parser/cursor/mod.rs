@@ -3,19 +3,19 @@ use crate::{Lexer, Token, TokenKind, TokenValue};
 #[derive(Clone)]
 pub struct Cursor<'a> {
     pub(crate) current_token: Token,
+    pub(crate) lexer: Lexer<'a>,
     next_token: Token,
-    pub(crate) previous_token: Token,
     source_str: &'a str,
-    pub lexer: Lexer<'a>,
+    pub(crate) token_stack: Vec<Token>,
 }
 
 impl<'a> Cursor<'a> {
     pub fn new(input: &'a str, lexer: Lexer<'a>, current_token: Token, next_token: Token) -> Self {
         Self {
-            previous_token: current_token.clone(),
             next_token,
             current_token,
             source_str: input,
+            token_stack: Vec::new(),
             lexer,
         }
     }
@@ -37,7 +37,6 @@ impl<'a> Cursor<'a> {
     }
 
     pub(crate) fn advance(&mut self) {
-        self.previous_token = self.current_token.clone();
         self.current_token = self.next_token.clone();
         self.next_token = self.lexer.next_token();
     }

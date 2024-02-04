@@ -9,7 +9,7 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_left_hand_side_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
 
-        let _node = self.start_token();
+        let _node = self.start_node();
 
         let current_token_kind = self.cursor.current_token_kind();
 
@@ -35,14 +35,14 @@ impl<'a> Parser<'a> {
     fn parse_new_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
 
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::New))?;
 
         let callee = self.parse_member_expression()?;
 
         Ok(Expression::New(NewExpression {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
             callee: Box::new(callee),
             arguments: vec![],
         }))
@@ -52,7 +52,7 @@ impl<'a> Parser<'a> {
     fn parse_call_expression(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete.
 
-        let start_token = self.start_token();
+        self.start_node();
 
         let current_token_kind = self.cursor.current_token_kind();
 
@@ -63,9 +63,9 @@ impl<'a> Parser<'a> {
                 let arguments = self.parse_arguments()?;
 
                 return Ok(Expression::Call(CallExpression {
-                    node: self.create_node(&start_token, &self.cursor.current_token),
+                    node: self.end_node()?,
                     callee: Box::new(CallExpressionCallee::Super(Super {
-                        node: self.create_node(&start_token, &self.cursor.current_token),
+                        node: self.end_node()?,
                     })),
                     arguments,
                 }));
@@ -81,7 +81,7 @@ impl<'a> Parser<'a> {
                 let call_expression = self.parse_call_expression()?;
 
                 return Ok(Expression::Call(CallExpression {
-                    node: self.create_node(&start_token, &self.cursor.current_token),
+                    node: self.end_node()?,
                     callee: Box::new(CallExpressionCallee::Expression(call_expression)),
                     arguments,
                 }));
@@ -97,7 +97,7 @@ impl<'a> Parser<'a> {
         let mut arguments_list = vec![];
 
         while self.cursor.current_token_kind() != TokenKind::RightParenthesis {
-            let start_token = self.start_token();
+            self.start_node();
 
             let is_spread = if self.cursor.current_token_kind() == TokenKind::Ellipsis {
                 self.cursor.advance(); // Eat the ... token.
@@ -111,7 +111,7 @@ impl<'a> Parser<'a> {
 
             if is_spread {
                 arguments_list.push(CallExpressionArguments::SpreadElement(SpreadElement {
-                    node: self.create_node(&start_token, &self.cursor.current_token),
+                    node: self.end_node()?,
                     argument,
                 }));
             } else {

@@ -45,12 +45,12 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_this_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::This))?;
 
         Ok(Expression::This(ThisExpression {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
         }))
     }
 
@@ -71,11 +71,11 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-Literal
     fn parse_literal(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         let token_value = self.cursor.current_token_value();
 
-        let node = self.create_node(&start_token, &self.cursor.current_token);
+        let node = self.end_node()?;
 
         let literal = match self.cursor.current_token_kind() {
             TokenKind::StringLiteral => {
@@ -133,7 +133,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-ArrayLiteral
     fn parse_array_literal(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::LeftSquareBracket)?;
 
@@ -142,7 +142,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 
         Ok(Expression::Array(ArrayExpression {
-            node: self.create_node(&start_token, &self.cursor.previous_token),
+            node: self.end_node()?,
             elements: element_list,
         }))
     }
@@ -161,7 +161,7 @@ impl<'a> Parser<'a> {
                     continue;
                 }
                 TokenKind::Ellipsis => {
-                    let start_token = self.start_token();
+                    self.start_node();
 
                     self.cursor.advance(); // Eat the ... token.
 
@@ -169,7 +169,7 @@ impl<'a> Parser<'a> {
 
                     elements.push(Some(MemberExpressionElements::SpreadElement(
                         SpreadElement {
-                            node: self.create_node(&start_token, &self.cursor.previous_token),
+                            node: self.end_node()?,
                             argument: assigment_expression,
                         },
                     )));
@@ -195,7 +195,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-ObjectLiteral
     fn parse_object_literal(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
 
@@ -204,7 +204,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Expression::Object(ObjectExpression {
-            node: self.create_node(&start_token, &self.cursor.previous_token),
+            node: self.end_node()?,
             properties,
         }))
     }
@@ -232,7 +232,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-PropertyDefinition
     fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperties, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         match self.cursor.current_token_kind() {
             TokenKind::Identifier
@@ -296,7 +296,7 @@ impl<'a> Parser<'a> {
                     shorthand,
                     computed,
                     key: property_key,
-                    node: self.create_node(&start_token, &self.cursor.previous_token),
+                    node: self.end_node()?,
                     value,
                     kind,
                 }))
@@ -307,7 +307,7 @@ impl<'a> Parser<'a> {
                 let assigment_expression: Expression = self.parse_assignment_expression()?;
 
                 Ok(ObjectExpressionProperties::SpreadElement(SpreadElement {
-                    node: self.create_node(&start_token, &self.cursor.previous_token),
+                    node: self.end_node()?,
                     argument: assigment_expression,
                 }))
             }
@@ -317,7 +317,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-PropertyName
     fn parse_property_name(&mut self) -> Result<PropertyKey, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         let token_value = self.cursor.current_token_value();
 
@@ -331,7 +331,7 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(PropertyKey::Identifier(Identifier {
-                    node: self.create_node(&start_token, &self.cursor.previous_token),
+                    node: self.end_node()?,
                     name,
                 }))
             }
@@ -344,7 +344,7 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(PropertyKey::Literal(Literal {
-                    node: self.create_node(&start_token, &self.cursor.previous_token),
+                    node: self.end_node()?,
                     value: LiteralValue::String(raw_value.clone()),
                     raw: format!("\"{}\"", raw_value.to_string()),
                 }))
@@ -358,7 +358,7 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(PropertyKey::Literal(Literal {
-                    node: self.create_node(&start_token, &self.cursor.previous_token),
+                    node: self.end_node()?,
                     value: LiteralValue::Number(value.clone()),
                     raw,
                 }))

@@ -19,7 +19,7 @@ impl<'a> Parser<'a> {
     // 15.2 Function Definitions
     // https://tc39.es/ecma262/#prod-FunctionExpression
     pub(crate) fn parse_function_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
 
@@ -40,7 +40,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Expression::Function(FunctionExpression {
-            node: self.create_node(&start_token, &self.cursor.previous_token),
+            node: self.end_node()?,
         }))
     }
 

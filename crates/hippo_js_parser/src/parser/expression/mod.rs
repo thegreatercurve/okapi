@@ -23,7 +23,7 @@ fn march_token_kind_to_update_operator(token_kind: &TokenKind) -> Option<UpdateO
 impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-Expression
     pub(crate) fn parse_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         let assignment_expression = self.parse_assignment_expression()?;
 
@@ -33,7 +33,7 @@ impl<'a> Parser<'a> {
             let right = self.parse_expression()?;
 
             return Ok(Expression::Sequence(SequenceExpression {
-                node: self.create_node(&start_token, &self.cursor.current_token),
+                node: self.end_node()?,
                 expressions: vec![assignment_expression, right],
             }));
         } else {

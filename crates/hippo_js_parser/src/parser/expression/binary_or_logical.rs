@@ -102,9 +102,11 @@ impl<'a> Parser<'a> {
         &mut self,
         precedence: u8,
     ) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         let unary_expression = self.parse_unary_expression()?;
+
+        let start_token = self.cursor.current_token.clone();
 
         self.parse_binary_expression_recursive_impl(unary_expression, &start_token, precedence)
     }
@@ -132,7 +134,7 @@ impl<'a> Parser<'a> {
 
             let right_expression = self.parse_binary_expression(right_precedence)?;
 
-            let node = self.create_node(&left_start_token, &self.cursor.previous_token);
+            let node = self.end_node()?;
 
             if current_token_kind.is_logical_operator() {
                 let Some(operator) = match_token_kind_to_logical_operator(&current_token_kind)

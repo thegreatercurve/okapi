@@ -9,7 +9,7 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_identifier_reference(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete. Nede to handle yield and await.
 
-        let start_token = self.start_token();
+        self.start_node();
 
         let token_value = self.cursor.current_token_value();
 
@@ -21,7 +21,7 @@ impl<'a> Parser<'a> {
 
         match token_value {
             TokenValue::String(name) => Ok(Expression::Identifier(Identifier {
-                node: self.create_node(&start_token, &self.cursor.previous_token),
+                node: self.end_node()?,
                 name,
             })),
             _ => Err(ParserError::UnexpectedTokenValue),

@@ -7,7 +7,7 @@ impl<'a> Parser<'a> {
     // 13.14 Conditional Operator ( ? : )
     // https://tc39.es/ecma262/#prod-ConditionalExpression
     pub(crate) fn parse_conditional_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         let short_circuit_expression = self.parse_binary_expression(0)?;
 
@@ -21,7 +21,7 @@ impl<'a> Parser<'a> {
             let alternate = self.parse_assignment_expression()?;
 
             return Ok(Expression::Conditional(ConditionalExpression {
-                node: self.create_node(&start_token, &self.cursor.current_token),
+                node: self.end_node()?,
                 test: Box::new(short_circuit_expression),
                 consequent: Box::new(consequent),
                 alternate: Box::new(alternate),

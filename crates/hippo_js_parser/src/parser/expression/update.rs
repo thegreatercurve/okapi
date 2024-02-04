@@ -15,7 +15,7 @@ impl<'a> Parser<'a> {
     // 13.4 Update Expressions
     // https://tc39.es/ecma262/#prod-UpdateExpression
     pub(crate) fn parse_update_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         let mut current_token_kind = self.cursor.current_token_kind();
 
@@ -27,7 +27,7 @@ impl<'a> Parser<'a> {
             let operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
 
             Ok(Expression::Update(UpdateExpression {
-                node: self.create_node(&start_token, &self.cursor.current_token),
+                node: self.end_node()?,
                 operator,
                 argument: Box::new(unary_expression),
                 prefix: true,
@@ -44,7 +44,7 @@ impl<'a> Parser<'a> {
             let update_operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
 
             Ok(Expression::Update(UpdateExpression {
-                node: self.create_node(&start_token, &self.cursor.current_token),
+                node: self.end_node()?,
                 operator: update_operator,
                 argument: Box::new(left_hand_side_expression),
                 prefix: false,

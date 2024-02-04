@@ -47,9 +47,9 @@ impl<'a> Parser<'a> {
 
         // TODO Handle async arrow functions.
 
-        let start_token = self.start_token();
+        self.start_node();
 
-        let left_expression = self.parse_left_hand_side_expression()?;
+        let left_expression = self.parse_conditional_expression()?;
 
         match self.cursor.current_token_kind() {
             // TokenKind::Assignment => {
@@ -68,7 +68,7 @@ impl<'a> Parser<'a> {
             //     .unwrap();
 
             //     return Ok(Expression::Assignment(AssignmentExpression {
-            //         node: self.create_node(&start_token, &self.cursor.previous_token),
+            //         node: self.end_node()?,
             //         operator: AssignmentOperator::Assignment,
             //         left: Box::new(left_array_or_object_pattern),
             //         right: Box::new(right),
@@ -84,7 +84,7 @@ impl<'a> Parser<'a> {
                 let right = self.parse_assignment_expression()?;
 
                 return Ok(Expression::Assignment(AssignmentExpression {
-                    node: self.create_node(&start_token, &self.cursor.previous_token),
+                    node: self.end_node()?,
                     operator,
                     left: Box::new(AssignmentExpressionLeft::Expression(left_expression)),
                     right: Box::new(right),

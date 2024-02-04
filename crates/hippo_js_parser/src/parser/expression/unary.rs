@@ -22,7 +22,7 @@ impl<'a> Parser<'a> {
     // 13.5 Unary Operators
     // https://tc39.es/ecma262/#prod-UnaryExpression
     pub(crate) fn parse_unary_expression(&mut self) -> Result<Expression, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         let current_token_kind = self.cursor.current_token_kind();
 
@@ -44,7 +44,7 @@ impl<'a> Parser<'a> {
                 self.cursor.advance();
 
                 Ok(Expression::Unary(UnaryExpression {
-                    node: self.create_node(&start_token, &self.cursor.current_token),
+                    node: self.end_node()?,
                     operator,
                     prefix: true,
                     argument: Box::new(unary_argument),
@@ -55,7 +55,7 @@ impl<'a> Parser<'a> {
 
                 // TODO check if is supported by ECMA script version.
                 Ok(Expression::Await(AwaitExpression {
-                    node: self.create_node(&start_token, &self.cursor.current_token),
+                    node: self.end_node()?,
                     argument: Box::new(unary_expression),
                 }))
             }

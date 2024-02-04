@@ -33,7 +33,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-BlockStatement
     fn parse_block_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
 
@@ -46,19 +46,19 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Statement::Block(BlockStatement {
-            node: self.create_node(&start_token, &self.cursor.previous_token),
+            node: self.end_node()?,
             body,
         }))
     }
 
     // https://tc39.es/ecma262/#prod-EmptyStatement
     fn parse_empty_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Empty(EmptyStatement {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
         }))
     }
 
@@ -67,7 +67,7 @@ impl<'a> Parser<'a> {
     fn parse_expression_statement_or_labelled_statement(
         &mut self,
     ) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         let expression = self.parse_expression()?;
 
@@ -76,10 +76,8 @@ impl<'a> Parser<'a> {
         } else {
             self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
-            let node: Node = self.create_node(&start_token, &self.cursor.current_token);
-
             Ok(Statement::Expression(ExpressionStatement {
-                node,
+                node: self.end_node()?,
                 expression: expression,
             }))
         }
@@ -87,7 +85,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-IfStatement
     fn parse_if_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::If))?;
 
@@ -109,7 +107,7 @@ impl<'a> Parser<'a> {
         };
 
         Ok(Statement::If(IfStatement {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
             test: test,
             consequent: Box::new(consequent),
             alternate,
@@ -118,7 +116,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-ForStatement
     fn parse_for_or_for_of_in_statement(&mut self) -> Result<Statement, ParserError> {
-        let _node = self.start_token();
+        let _node = self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::For))?;
 
@@ -127,7 +125,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-DoWhileStatement
     fn parse_do_while_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Do))?;
 
@@ -142,7 +140,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
         Ok(Statement::DoWhile(DoWhileStatement {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
             test: test,
             body: Box::new(body),
         }))
@@ -150,7 +148,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-WhileStatement
     fn parse_while_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::While))?;
 
@@ -163,7 +161,7 @@ impl<'a> Parser<'a> {
         let body = self.parse_statement()?;
 
         Ok(Statement::While(WhileStatement {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
             test,
             body: Box::new(body),
         }))
@@ -171,7 +169,7 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-ContinueStatement
     fn parse_continue_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Continue))?;
 
@@ -184,14 +182,14 @@ impl<'a> Parser<'a> {
         self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Continue(ContinueStatement {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
             label,
         }))
     }
 
     // https://tc39.es/ecma262/#prod-BreakStatement
     fn parse_break_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Break))?;
 
@@ -202,14 +200,14 @@ impl<'a> Parser<'a> {
         };
 
         Ok(Statement::Break(BreakStatement {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
             label,
         }))
     }
 
     // https://tc39.es/ecma262/#prod-ReturnStatement
     fn parse_return_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Return))?;
 
@@ -222,14 +220,14 @@ impl<'a> Parser<'a> {
         self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Return(ReturnStatement {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
             argument,
         }))
     }
 
     // https://tc39.es/ecma262/#prod-ThrowStatement
     fn parse_throw_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Throw))?;
 
@@ -238,7 +236,7 @@ impl<'a> Parser<'a> {
         self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Throw(ThrowStatement {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
             argument,
         }))
     }
@@ -255,12 +253,14 @@ impl<'a> Parser<'a> {
 
     // https://tc39.github.io/ecma262/#sec-debugger-statement
     fn parse_debugger_statement(&mut self) -> Result<Statement, ParserError> {
-        let start_token = self.start_token();
+        self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Debugger))?;
 
+        self.expect_optional_and_advance(TokenKind::Semicolon)?;
+
         Ok(Statement::Debugger(DebuggerStatement {
-            node: self.create_node(&start_token, &self.cursor.current_token),
+            node: self.end_node()?,
         }))
     }
 }
