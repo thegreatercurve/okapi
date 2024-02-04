@@ -1,3 +1,5 @@
+use std::array;
+
 use crate::{KeywordKind, Parser, ParserError, Token, TokenKind, TokenValue};
 use hippo_estree::*;
 
@@ -99,7 +101,6 @@ fn match_token_kind_to_logical_operator(token_kind: &TokenKind) -> Option<Logica
 
 fn match_token_kind_to_assignment_operator(token_kind: &TokenKind) -> Option<AssignmentOperator> {
     match token_kind {
-        TokenKind::Assignment => Some(AssignmentOperator::Assignment),
         TokenKind::MultiplyAssignment => Some(AssignmentOperator::MultiplyAssignment),
         TokenKind::DivisionAssignment => Some(AssignmentOperator::DivisionAssignment),
         TokenKind::ModulusAssignment => Some(AssignmentOperator::ModulusAssignment),
@@ -902,26 +903,47 @@ impl<'a> Parser<'a> {
 
         let start_token = self.start_token();
 
-        let left = self.parse_left_hand_side_expression()?;
+        let left_expression = self.parse_left_hand_side_expression()?;
 
-        println!("current_token_kind: {:?}", self.current_token_kind());
+        match self.current_token_kind() {
+            TokenKind::Assignment => {
+                self.advance(); // Eat the assignment operator token.
 
-        if self.current_token_kind().is_assignment_operator() {
-            let operator =
-                match_token_kind_to_assignment_operator(&self.current_token_kind()).unwrap();
+                let right = self.parse_assignment_expression()?;
 
-            self.advance(); // Eat the assignment operator token.
+                // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
+                let left_array_or_object_pattern = match &left_expression {
+                    Expression::Array(array_expression) => array_expression.to_pattern(),
+                    Expression::Object(object_expression) => object_expression.to_pattern(),
+                    _ => None,
+                }
+                .unwrap();
 
-            let right = self.parse_assignment_expression()?;
+                return Ok(Expression::Assignment(AssignmentExpression {
+                    node: self.create_node(&start_token, &self.previous_token),
+                    operator: AssignmentOperator::Assignment,
+                    left: Box::new(left_array_or_object_pattern),
+                    right: Box::new(right),
+                }));
+            }
+            current_token_kind if current_token_kind.is_assignment_operator() => {
+                let operator =
+                    match_token_kind_to_assignment_operator(&self.current_token_kind()).unwrap();
 
-            return Ok(Expression::Assignment(AssignmentExpression {
-                node: self.create_node(&start_token, &self.previous_token),
-                operator,
-                left: Box::new(AssignmentExpressionLeft::Expression(left)),
-                right: Box::new(right),
-            }));
+                self.advance(); // Eat the assignment operator token.
+
+                let right = self.parse_assignment_expression()?;
+
+                return Ok(Expression::Assignment(AssignmentExpression {
+                    node: self.create_node(&start_token, &self.previous_token),
+                    operator,
+                    left: Box::new(AssignmentExpressionLeft::Expression(left_expression)),
+                    right: Box::new(right),
+                }));
+            }
+            _ => {}
         }
 
-        Ok(left)
+        Ok(left_expression)
     }
 }

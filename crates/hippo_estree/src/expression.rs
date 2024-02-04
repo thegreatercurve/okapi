@@ -1,5 +1,6 @@
 use crate::{
-    FunctionBody, Identifier, Literal, MetaProperty, Node, TaggedTemplateExpression,
+    ArrayPattern, ArrayPatternElements, AssignmentProperty, FunctionBody, Identifier, Literal,
+    MetaProperty, Node, ObjectPattern, ObjectPatternProperties, TaggedTemplateExpression,
     TemplateLiteral,
 };
 use serde::Serialize;
@@ -50,7 +51,7 @@ pub struct ThisExpression {
 pub struct ArrayExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub elements: Vec<Option<Box<MemberExpressionElements>>>,
+    pub elements: Vec<Option<MemberExpressionElements>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -59,6 +60,40 @@ pub struct ArrayExpression {
 pub enum MemberExpressionElements {
     Expression(Expression),
     SpreadElement(SpreadElement),
+}
+
+impl ArrayExpression {
+    pub fn to_pattern(&self) -> ArrayPattern {
+        let mut pattern_elements = vec![];
+
+        for element in self.elements.iter() {
+            match element.unwrap() {
+                MemberExpressionElements::Expression(expression) => match expression {
+                    Expression::Identifier(identifier) => {
+                        pattern_elements.push(ArrayPatternElements::ArrayPattern(ArrayPattern {
+                            node: identifier.node,
+                            elements: todo!(),
+                        }));
+                    }
+
+                    Expression::Array(array) => {
+                        pattern_elements
+                            .push(ArrayPatternElements::ArrayPattern(array.to_pattern()));
+                    }
+                    _ => {}
+                },
+                MemberExpressionElements::SpreadElement(SpreadElement { node, argument }) => {
+                    pattern_elements.push(ArrayPatternElements::ObjectPattern(()));
+                }
+                _ => {}
+            }
+        }
+
+        ArrayPattern {
+            node: self.node,
+            elements: pattern_elements,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -75,6 +110,35 @@ pub struct ObjectExpression {
 pub enum ObjectExpressionProperties {
     Property(Property),
     SpreadElement(SpreadElement),
+}
+
+impl ObjectExpression {
+    pub fn to_pattern(&self) -> ObjectPattern {
+        let mut pattern_properies = vec![];
+
+        for property in self.properties.iter() {
+            match property {
+                ObjectExpressionProperties::Property(property) => {
+                    pattern_properies.push(ObjectPatternProperties::AssignmentProperty(
+                        AssignmentProperty {
+                            node: property.node.clone(),
+                            kind: PropertyKind::Init,
+                            method: false,
+                            value: todo!(),
+                        },
+                    ));
+                }
+                ObjectExpressionProperties::SpreadElement(_) => {
+                    panic!("SpreadElement is not supported in ObjectPattern");
+                }
+            }
+        }
+
+        ObjectPattern {
+            node: self.node,
+            properties: pattern_properies,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -221,9 +285,14 @@ pub struct AssignmentExpression {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum AssignmentExpressionLeft {
-    Pattern(Expression),
+    ArrayPattern(ArrayPattern),
+    ObjectPattern(ObjectPattern),
     Expression(Expression),
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum AssignExpressionLeftPattern {}
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum AssignmentOperator {

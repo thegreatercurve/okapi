@@ -1,4 +1,4 @@
-use crate::{BindingKind, Expression, Node};
+use crate::{BindingKind, Expression, Node, PropertyKind};
 use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -7,15 +7,17 @@ pub struct Pattern {
     pub node: Node,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type", rename = "Property")]
 pub struct AssignmentProperty {
     #[serde(flatten)]
     pub node: Node,
     pub value: Pattern,
+    pub kind: PropertyKind,
+    pub method: bool,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ObjectPattern {
     #[serde(flatten)]
@@ -23,21 +25,27 @@ pub struct ObjectPattern {
     pub properties: Vec<ObjectPatternProperties>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum ObjectPatternProperties {
     AssignmentProperty(AssignmentProperty),
     RestElement(RestElement),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ArrayPattern {
     #[serde(flatten)]
     pub node: Node,
-    pub elements: Vec<Option<Pattern>>,
+    pub elements: Vec<Option<ArrayPatternElements>>,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub enum ArrayPatternElements {
+    ObjectPattern(ObjectPattern),
+    ArrayPattern(ArrayPattern),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct RestElement {
     #[serde(flatten)]

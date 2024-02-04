@@ -33,7 +33,7 @@ pub struct VariableDeclaration {
     pub kind: VariableKind,
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum BindingKind {
     Identifier(Identifier),
