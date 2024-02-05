@@ -46,12 +46,14 @@ impl<'a> Parser<'a> {
 
     pub fn parse_script(&mut self) -> Program {
         // TODO Parse parser statement of declaration.
+        self.start_node();
+
         let program_body = self.parse_statement().unwrap();
 
         Program {
             body: vec![ProgramBody::Statement(program_body)],
             source_type: ProgramSourceTypes::Script,
-            node: Node::new(0, self.cursor.lexer.len()),
+            node: self.end_node().unwrap(),
         }
     }
 
@@ -120,17 +122,6 @@ impl<'a> Parser<'a> {
         Err(self.unexpected_current_token_kind())
     }
 
-    pub(crate) fn expect_optional_and_advance(
-        &mut self,
-        token_kind: TokenKind,
-    ) -> Result<(), ParserError> {
-        if self.cursor.current_token_kind() == token_kind {
-            self.cursor.advance();
-        }
-
-        return Ok(());
-    }
-
     // https://tc39.es/ecma262/#sec-let-and-const-declarations
     pub(crate) fn parse_lexical_declaration(&mut self) -> Result<Statement, ParserError> {
         self.start_node();
@@ -156,13 +147,9 @@ impl<'a> Parser<'a> {
             // TODO Check const declarations have a valid identifier.
         }
 
-        let node = self.end_node()?;
-
-        self.expect_optional_and_advance(TokenKind::Semicolon)?; // Eat `;` token.
-
         Ok(Statement::Declaration(Declaration::Variable(
             VariableDeclaration {
-                node,
+                node: self.end_node()?,
                 declarations,
                 kind,
             },
@@ -205,10 +192,8 @@ impl<'a> Parser<'a> {
             None
         };
 
-        let node = self.end_node()?;
-
         Ok(VariableDeclarator {
-            node,
+            node: self.end_node()?,
             id: binding_identifier,
             init: initializer,
         })
@@ -225,8 +210,6 @@ impl<'a> Parser<'a> {
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
-        let node = self.end_node()?;
-
         self.expect_one_of_and_advance(vec![
             TokenKind::Identifier,
             TokenKind::Keyword(KeywordKind::Await),
@@ -234,7 +217,10 @@ impl<'a> Parser<'a> {
         ])?; // Eat identifier token.
 
         match token_value {
-            TokenValue::String(name) => Ok(BindingKind::Identifier(Identifier { node, name })),
+            TokenValue::String(name) => Ok(BindingKind::Identifier(Identifier {
+                node: self.end_node()?,
+                name,
+            })),
             _ => Err(ParserError::UnexpectedTokenValue),
         }
     }

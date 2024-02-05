@@ -75,8 +75,6 @@ impl<'a> Parser<'a> {
 
         let token_value = self.cursor.current_token_value();
 
-        let node = self.end_node()?;
-
         let literal = match self.cursor.current_token_kind() {
             TokenKind::StringLiteral => {
                 let raw_value = match token_value {
@@ -85,7 +83,7 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(Expression::Literal(Literal {
-                    node,
+                    node: self.end_node()?,
                     value: LiteralValue::String(raw_value.clone()),
                     raw: raw_value,
                 }))
@@ -97,23 +95,23 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(Expression::Literal(Literal {
-                    node,
+                    node: self.end_node()?,
                     value: LiteralValue::Number(value),
                     raw: raw,
                 }))
             }
             TokenKind::Keyword(KeywordKind::Null) => Ok(Expression::Literal(Literal {
-                node,
+                node: self.end_node()?,
                 value: LiteralValue::Null,
                 raw: "null".to_string(),
             })),
             TokenKind::Keyword(KeywordKind::True) => Ok(Expression::Literal(Literal {
-                node,
+                node: self.end_node()?,
                 value: LiteralValue::Boolean(true),
                 raw: "true".to_string(),
             })),
             TokenKind::Keyword(KeywordKind::False) => Ok(Expression::Literal(Literal {
-                node,
+                node: self.end_node()?,
                 value: LiteralValue::Boolean(false),
                 raw: "false".to_string(),
             })),
@@ -139,12 +137,10 @@ impl<'a> Parser<'a> {
 
         let element_list = self.parse_element_list()?;
 
-        let node = self.end_node()?;
-
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 
         Ok(Expression::Array(ArrayExpression {
-            node,
+            node: self.end_node()?,
             elements: element_list,
         }))
     }
@@ -167,13 +163,11 @@ impl<'a> Parser<'a> {
 
                     self.cursor.advance(); // Eat the ... token.
 
-                    let node = self.end_node()?;
-
                     let assigment_expression = self.parse_assignment_expression()?;
 
                     elements.push(Some(MemberExpressionElements::SpreadElement(
                         SpreadElement {
-                            node,
+                            node: self.end_node()?,
                             argument: assigment_expression,
                         },
                     )));
@@ -205,11 +199,12 @@ impl<'a> Parser<'a> {
 
         let properties = self.parse_property_definition_list()?;
 
-        let node = self.end_node()?;
-
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
-        Ok(Expression::Object(ObjectExpression { node, properties }))
+        Ok(Expression::Object(ObjectExpression {
+            node: self.end_node()?,
+            properties,
+        }))
     }
 
     // https://tc39.es/ecma262/#prod-PropertyDefinitionList

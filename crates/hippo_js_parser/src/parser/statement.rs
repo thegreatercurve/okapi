@@ -44,18 +44,17 @@ impl<'a> Parser<'a> {
             body.push(self.parse_statement()?);
         }
 
-        let node = self.end_node()?;
-
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
-        Ok(Statement::Block(BlockStatement { node, body }))
+        Ok(Statement::Block(BlockStatement {
+            node: self.end_node()?,
+            body,
+        }))
     }
 
     // https://tc39.es/ecma262/#prod-EmptyStatement
     fn parse_empty_statement(&mut self) -> Result<Statement, ParserError> {
         self.start_node();
-
-        self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Empty(EmptyStatement {
             node: self.end_node()?,
@@ -76,12 +75,8 @@ impl<'a> Parser<'a> {
 
             todo!("parse_labelled_statement")
         } else {
-            let node = self.end_node()?;
-
-            self.expect_optional_and_advance(TokenKind::Semicolon)?;
-
             Ok(Statement::Expression(ExpressionStatement {
-                node,
+                node: self.end_node()?,
                 expression: expression,
             }))
         }
@@ -181,8 +176,6 @@ impl<'a> Parser<'a> {
             Some(self.parse_label_identifier()?)
         };
 
-        self.expect_optional_and_advance(TokenKind::Semicolon)?;
-
         Ok(Statement::Continue(ContinueStatement {
             node: self.end_node()?,
             label,
@@ -219,8 +212,6 @@ impl<'a> Parser<'a> {
             Some(self.parse_expression()?)
         };
 
-        self.expect_optional_and_advance(TokenKind::Semicolon)?;
-
         Ok(Statement::Return(ReturnStatement {
             node: self.end_node()?,
             argument,
@@ -234,8 +225,6 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Throw))?;
 
         let argument = self.parse_expression()?;
-
-        self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Throw(ThrowStatement {
             node: self.end_node()?,
@@ -258,8 +247,6 @@ impl<'a> Parser<'a> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Debugger))?;
-
-        self.expect_optional_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Debugger(DebuggerStatement {
             node: self.end_node()?,
