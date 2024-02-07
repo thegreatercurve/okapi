@@ -75,6 +75,8 @@ impl<'a> Parser<'a> {
 
             todo!("parse_labelled_statement")
         } else {
+            self.expect_optional_semicolon_and_advance();
+
             Ok(Statement::Expression(ExpressionStatement {
                 node: self.end_node()?,
                 expression: expression,
@@ -247,6 +249,8 @@ impl<'a> Parser<'a> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Debugger))?;
+
+        self.expect_and_advance(TokenKind::Semicolon)?;
 
         Ok(Statement::Debugger(DebuggerStatement {
             node: self.end_node()?,

@@ -92,7 +92,7 @@ impl<'a> Parser<'a> {
         }
 
         let start = self.cursor.token_stack.pop().unwrap().start;
-        let end: usize = self.cursor.current_token.end;
+        let end: usize = self.cursor.previous_token.end;
 
         Ok(Node::new(start, end))
     }
@@ -122,6 +122,12 @@ impl<'a> Parser<'a> {
         Err(self.unexpected_current_token_kind())
     }
 
+    pub(crate) fn expect_optional_semicolon_and_advance(&mut self) {
+        if self.cursor.current_token_kind() == TokenKind::Semicolon {
+            self.cursor.advance();
+        }
+    }
+
     // https://tc39.es/ecma262/#sec-let-and-const-declarations
     pub(crate) fn parse_lexical_declaration(&mut self) -> Result<Statement, ParserError> {
         self.start_node();
@@ -146,6 +152,8 @@ impl<'a> Parser<'a> {
         if kind == VariableKind::Const {
             // TODO Check const declarations have a valid identifier.
         }
+
+        self.expect_optional_semicolon_and_advance();
 
         Ok(Statement::Declaration(Declaration::Variable(
             VariableDeclaration {
@@ -210,19 +218,21 @@ impl<'a> Parser<'a> {
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
+        let identifier_name = match token_value {
+            TokenValue::String(name) => name,
+            _ => return Err(ParserError::UnexpectedTokenValue),
+        };
+
         self.expect_one_of_and_advance(vec![
             TokenKind::Identifier,
             TokenKind::Keyword(KeywordKind::Await),
             TokenKind::Keyword(KeywordKind::Yield),
         ])?; // Eat identifier token.
 
-        match token_value {
-            TokenValue::String(name) => Ok(BindingKind::Identifier(Identifier {
-                node: self.end_node()?,
-                name,
-            })),
-            _ => Err(ParserError::UnexpectedTokenValue),
-        }
+        Ok(BindingKind::Identifier(Identifier {
+            node: self.end_node()?,
+            name: identifier_name,
+        }))
     }
 
     // https://tc39.es/ecma262/#prod-ObjectBindingPattern

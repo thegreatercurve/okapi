@@ -8,12 +8,14 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-IdentifierReference
     pub(crate) fn parse_identifier_reference(&mut self) -> Result<Expression, ParserError> {
         // TODO This is currently incomplete. Nede to handle yield and await.
-
         self.start_node();
 
         let token_value = self.cursor.current_token_value();
 
-        let node = self.end_node()?;
+        let identifier_name = match token_value {
+            TokenValue::String(name) => name,
+            _ => return Err(ParserError::UnexpectedTokenValue),
+        };
 
         self.expect_one_of_and_advance(vec![
             TokenKind::Identifier,
@@ -21,10 +23,10 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Yield),
         ])?;
 
-        match token_value {
-            TokenValue::String(name) => Ok(Expression::Identifier(Identifier { node, name })),
-            _ => Err(ParserError::UnexpectedTokenValue),
-        }
+        Ok(Expression::Identifier(Identifier {
+            node: self.end_node()?,
+            name: identifier_name,
+        }))
     }
 
     pub(crate) fn parse_label_identifier(&mut self) -> Result<Identifier, ParserError> {

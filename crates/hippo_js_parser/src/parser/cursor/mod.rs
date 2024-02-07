@@ -4,7 +4,8 @@ use crate::{Lexer, Token, TokenKind, TokenValue};
 pub struct Cursor<'a> {
     pub(crate) current_token: Token,
     pub(crate) lexer: Lexer<'a>,
-    next_token: Token,
+    pub(crate) next_token: Token,
+    pub(crate) previous_token: Token,
     source_str: &'a str,
     pub(crate) token_stack: Vec<Token>,
 }
@@ -12,11 +13,12 @@ pub struct Cursor<'a> {
 impl<'a> Cursor<'a> {
     pub fn new(input: &'a str, lexer: Lexer<'a>, current_token: Token, next_token: Token) -> Self {
         Self {
+            current_token: current_token.clone(),
+            lexer,
             next_token,
-            current_token,
+            previous_token: current_token.clone(),
             source_str: input,
             token_stack: Vec::new(),
-            lexer,
         }
     }
 
@@ -37,6 +39,7 @@ impl<'a> Cursor<'a> {
     }
 
     pub(crate) fn advance(&mut self) {
+        self.previous_token = self.current_token.clone();
         self.current_token = self.next_token.clone();
         self.next_token = self.lexer.next_token();
     }

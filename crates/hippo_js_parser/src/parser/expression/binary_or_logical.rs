@@ -132,7 +132,7 @@ impl<'a> Parser<'a> {
 
             let right_expression = self.parse_binary_expression(right_precedence)?;
 
-            let node = Node::new(left_start_token.start, self.cursor.current_token.start);
+            let node = Node::new(left_start_token.start, self.cursor.previous_token.end);
 
             if current_token_kind.is_logical_operator() {
                 let Some(operator) = match_token_kind_to_logical_operator(&current_token_kind)

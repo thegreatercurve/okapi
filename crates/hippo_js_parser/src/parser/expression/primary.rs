@@ -75,7 +75,19 @@ impl<'a> Parser<'a> {
 
         let token_value = self.cursor.current_token_value();
 
-        let literal = match self.cursor.current_token_kind() {
+        let current_token_kind = self.cursor.current_token_kind();
+
+        self.expect_one_of_and_advance(vec![
+            TokenKind::StringLiteral,
+            TokenKind::NumberLiteral,
+            TokenKind::Keyword(KeywordKind::Null),
+            TokenKind::Keyword(KeywordKind::True),
+            TokenKind::Keyword(KeywordKind::False),
+        ])?;
+
+        let node = self.end_node()?;
+
+        let literal = match current_token_kind {
             TokenKind::StringLiteral => {
                 let raw_value = match token_value {
                     TokenValue::String(value) => value,
@@ -83,7 +95,7 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(Expression::Literal(Literal {
-                    node: self.end_node()?,
+                    node,
                     value: LiteralValue::String(raw_value.clone()),
                     raw: raw_value,
                 }))
@@ -95,36 +107,28 @@ impl<'a> Parser<'a> {
                 };
 
                 Ok(Expression::Literal(Literal {
-                    node: self.end_node()?,
+                    node,
                     value: LiteralValue::Number(value),
                     raw: raw,
                 }))
             }
             TokenKind::Keyword(KeywordKind::Null) => Ok(Expression::Literal(Literal {
-                node: self.end_node()?,
+                node,
                 value: LiteralValue::Null,
                 raw: "null".to_string(),
             })),
             TokenKind::Keyword(KeywordKind::True) => Ok(Expression::Literal(Literal {
-                node: self.end_node()?,
+                node,
                 value: LiteralValue::Boolean(true),
                 raw: "true".to_string(),
             })),
             TokenKind::Keyword(KeywordKind::False) => Ok(Expression::Literal(Literal {
-                node: self.end_node()?,
+                node,
                 value: LiteralValue::Boolean(false),
                 raw: "false".to_string(),
             })),
             _ => Err(self.unexpected_current_token_kind()),
         };
-
-        self.expect_one_of_and_advance(vec![
-            TokenKind::StringLiteral,
-            TokenKind::NumberLiteral,
-            TokenKind::Keyword(KeywordKind::Null),
-            TokenKind::Keyword(KeywordKind::True),
-            TokenKind::Keyword(KeywordKind::False),
-        ])?;
 
         literal
     }

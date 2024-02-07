@@ -17,14 +17,13 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_update_expression(&mut self) -> Result<Expression, ParserError> {
         self.start_node();
 
-        let mut current_token_kind = self.cursor.current_token_kind();
-
-        if current_token_kind.is_unary_operator() {
+        if self.cursor.current_token_kind().is_unary_operator() {
             self.cursor.advance(); // Eat the ++ or -- token.
 
             let unary_expression = self.parse_unary_expression()?;
 
-            let operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
+            let operator =
+                march_token_kind_to_update_operator(&self.cursor.current_token_kind()).unwrap();
 
             return Ok(Expression::Update(UpdateExpression {
                 node: self.end_node()?,
@@ -36,15 +35,14 @@ impl<'a> Parser<'a> {
 
         let left_hand_side_expression = self.parse_left_hand_side_expression()?;
 
-        current_token_kind = self.cursor.current_token_kind();
-
-        if !&current_token_kind.is_unary_operator() {
+        if !&self.cursor.current_token_kind().is_unary_operator() {
             self.end_node()?;
 
             return Ok(left_hand_side_expression);
         }
 
-        let update_operator = march_token_kind_to_update_operator(&current_token_kind).unwrap();
+        let update_operator =
+            march_token_kind_to_update_operator(&self.cursor.current_token_kind()).unwrap();
 
         Ok(Expression::Update(UpdateExpression {
             node: self.end_node()?,
