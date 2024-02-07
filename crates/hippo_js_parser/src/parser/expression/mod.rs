@@ -23,11 +23,11 @@ fn march_token_kind_to_update_operator(token_kind: &TokenKind) -> Option<UpdateO
 impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-Expression
     pub(crate) fn parse_expression(&mut self) -> Result<Expression, ParserError> {
-        self.start_node();
-
         let assignment_expression = self.parse_assignment_expression()?;
 
         if self.cursor.current_token_kind() == TokenKind::Comma {
+            self.start_node();
+
             self.expect_and_advance(TokenKind::Comma)?;
 
             let right = self.parse_expression()?;
@@ -37,8 +37,6 @@ impl<'a> Parser<'a> {
                 expressions: vec![assignment_expression, right],
             }));
         }
-
-        self.end_node()?;
 
         Ok(assignment_expression)
     }

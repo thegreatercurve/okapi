@@ -2,6 +2,7 @@ use crate::{Parser, ParserError, TokenKind};
 use hippo_estree::*;
 
 fn march_token_kind_to_update_operator(token_kind: &TokenKind) -> Option<UpdateOperator> {
+    println!("march_token_kind_to_update_operator: {:?}", token_kind);
     match token_kind {
         TokenKind::Increment => Some(UpdateOperator::PlusPlus),
         TokenKind::Decrement => Some(UpdateOperator::MinusMinus),
@@ -17,13 +18,14 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_update_expression(&mut self) -> Result<Expression, ParserError> {
         self.start_node();
 
-        if self.cursor.current_token_kind().is_unary_operator() {
+        let mut operator_token_kind = self.cursor.current_token_kind();
+
+        if operator_token_kind.is_unary_operator() {
             self.cursor.advance(); // Eat the ++ or -- token.
 
-            let unary_expression = self.parse_unary_expression()?;
+            let operator = march_token_kind_to_update_operator(&operator_token_kind).unwrap();
 
-            let operator =
-                march_token_kind_to_update_operator(&self.cursor.current_token_kind()).unwrap();
+            let unary_expression = self.parse_unary_expression()?;
 
             return Ok(Expression::Update(UpdateExpression {
                 node: self.end_node()?,
@@ -41,8 +43,11 @@ impl<'a> Parser<'a> {
             return Ok(left_hand_side_expression);
         }
 
-        let update_operator =
-            march_token_kind_to_update_operator(&self.cursor.current_token_kind()).unwrap();
+        operator_token_kind = self.cursor.current_token_kind();
+
+        self.expect_one_of_and_advance(vec![TokenKind::Increment, TokenKind::Decrement])?;
+
+        let update_operator = march_token_kind_to_update_operator(&operator_token_kind).unwrap();
 
         Ok(Expression::Update(UpdateExpression {
             node: self.end_node()?,

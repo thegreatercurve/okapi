@@ -234,23 +234,25 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-PropertyDefinition
     fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperties, ParserError> {
-        self.start_node();
-
         match self.cursor.current_token_kind() {
             TokenKind::Identifier
             | TokenKind::StringLiteral
             | TokenKind::NumberLiteral
             | TokenKind::LeftSquareBracket => {
+                self.start_node();
+
                 let property_key = self.parse_property_name()?;
 
                 let mut shorthand = match property_key {
                     PropertyKey::Identifier(_) => true,
                     _ => false,
                 };
+
                 let computed = match property_key {
                     PropertyKey::Expression(_) => true,
                     _ => false,
                 };
+
                 let mut method = false;
                 // TODO Add support for `get` and `set`.
                 let kind = PropertyKind::Init;
@@ -304,6 +306,8 @@ impl<'a> Parser<'a> {
                 }))
             }
             TokenKind::Ellipsis => {
+                self.start_node();
+
                 self.cursor.advance(); // Eat the ... token.
 
                 let assigment_expression: Expression = self.parse_assignment_expression()?;
@@ -319,12 +323,12 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-PropertyName
     fn parse_property_name(&mut self) -> Result<PropertyKey, ParserError> {
-        self.start_node();
-
         let token_value = self.cursor.current_token_value();
 
         match self.cursor.current_token_kind() {
             TokenKind::Identifier => {
+                self.start_node();
+
                 self.cursor.advance(); // Eat the identifier token.
 
                 let name = match token_value {
@@ -338,6 +342,8 @@ impl<'a> Parser<'a> {
                 }))
             }
             TokenKind::StringLiteral => {
+                self.start_node();
+
                 self.cursor.advance(); // Eat the string literal token.
 
                 let raw_value = match token_value {
@@ -352,6 +358,8 @@ impl<'a> Parser<'a> {
                 }))
             }
             TokenKind::NumberLiteral => {
+                self.start_node();
+
                 self.cursor.advance(); // Eat the number literal token.
 
                 let (raw, value) = match token_value {

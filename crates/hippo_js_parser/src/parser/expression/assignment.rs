@@ -45,9 +45,9 @@ impl<'a> Parser<'a> {
             }
         }
 
-        // TODO Handle async arrow functions.
-
         self.start_node();
+
+        // TODO Handle async arrow functions.
 
         let left_expression = self.parse_conditional_expression()?;
 
