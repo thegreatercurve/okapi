@@ -17,3 +17,4 @@ mod prefix_expression;
 mod return_statement;
 mod this_expression;
 mod yield_expression;
+mod yield_in_generator_function;

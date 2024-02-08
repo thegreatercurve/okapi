@@ -6,8 +6,8 @@ use crate::{Declaration, Expression, Identifier, Literal, Node, Pattern};
 #[serde(untagged)]
 pub enum Statement {
     Expression(ExpressionStatement),
-    Directive(Directive),
     Block(BlockStatement),
+    StaticBlock(StaticBlockStatement),
     Empty(EmptyStatement),
     Debugger(DebuggerStatement),
     With(WithStatement),
@@ -17,16 +17,13 @@ pub enum Statement {
     Continue(ContinueStatement),
     If(IfStatement),
     Switch(SwitchStatement),
-    SwitchCase(SwitchCase),
     Throw(ThrowStatement),
     Try(TryStatement),
-    CatchClause(CatchClause),
     While(WhileStatement),
     DoWhile(DoWhileStatement),
     For(ForStatement),
     ForIn(ForInStatement),
     ForOf(ForOfStatement),
-
     Declaration(Declaration),
 }
 

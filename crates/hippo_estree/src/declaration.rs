@@ -1,4 +1,4 @@
-use crate::{ArrayPattern, Expression, Identifier, Node, ObjectPattern};
+use crate::{ArrayPattern, Expression, FunctionBody, Identifier, Node, ObjectPattern, Pattern};
 use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -14,6 +14,8 @@ pub struct FunctionDeclaration {
     #[serde(flatten)]
     pub node: Node,
     pub id: Identifier,
+    pub params: Vec<Pattern>,
+    pub body: FunctionBody,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
