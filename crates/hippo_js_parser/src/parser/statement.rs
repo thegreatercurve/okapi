@@ -41,7 +41,9 @@ impl<'a> Parser<'a> {
         let mut body = vec![];
 
         while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {
-            body.push(self.parse_statement()?);
+            body.push(Box::new(StatementListItem::Statement(
+                self.parse_statement()?,
+            )));
         }
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
@@ -80,6 +82,7 @@ impl<'a> Parser<'a> {
             Ok(Statement::Expression(ExpressionStatement {
                 node: self.end_node()?,
                 expression: expression,
+                directive: None,
             }))
         }
     }

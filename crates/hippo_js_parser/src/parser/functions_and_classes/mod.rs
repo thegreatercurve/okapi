@@ -8,11 +8,11 @@ use hippo_estree::*;
 impl<'a> Parser<'a> {
     // 15.1 Parameter Lists
     // https://tc39.es/ecma262/#sec-parameter-lists
-    fn parse_formal_parameters(&mut self) -> Result<Statement, ParserError> {
+    fn parse_formal_parameters(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_formal_parameters")
     }
 
-    fn parse_function_body(&mut self) -> Result<Statement, ParserError> {
+    fn parse_function_body(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_function_body")
     }
 
@@ -35,12 +35,13 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
 
-        let _body = self.parse_function_body()?;
+        let body = self.parse_function_body()?;
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Expression::Function(FunctionExpression {
             node: self.end_node()?,
+            body: Box::new(body),
         }))
     }
 

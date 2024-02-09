@@ -14,8 +14,8 @@ mod statement_and_declarations;
 pub struct Program {
     #[serde(flatten)]
     pub node: Node,
-    pub body: Vec<StatementListemItem>,
-    pub source_type: Vec<ProgramSourceTypes>,
+    pub body: Vec<StatementListItem>,
+    pub source_type: ProgramSourceTypes,
 }
 
 #[derive(Debug, PartialEq, Serialize)]

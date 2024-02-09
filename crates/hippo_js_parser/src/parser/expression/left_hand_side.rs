@@ -60,9 +60,11 @@ impl<'a> Parser<'a> {
 
                 return Ok(Expression::Call(CallExpression {
                     node: self.end_node()?,
-                    callee: Box::new(CallExpressionCallee::Super(Super {
-                        node: self.end_node()?,
-                    })),
+                    callee: Box::new(CallExpressionCallee::Expression(Expression::Super(
+                        SuperExpression {
+                            node: self.end_node()?,
+                        },
+                    ))),
                     arguments,
                 }));
             }

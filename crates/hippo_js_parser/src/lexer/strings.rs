@@ -9,18 +9,12 @@ enum SurrogatePair {
     AstralCodePoint(u32),
 }
 
-fn is_leading_surrogate(c: u32) -> bool {
-    match c {
-        55296..=56319 => true, // 0xD800..=0xDBFF as u32
-        _ => false,
-    }
+fn is_leading_surrogate(ch: u32) -> bool {
+    matches!(ch, 55296..=56319) // 0xD800..=0xDBFF as u32
 }
 
-fn is_trailing_surrogate(c: u32) -> bool {
-    match c {
-        56320..=57343 => true, // 0xDC00..=0xDFFF as u32,
-        _ => false,
-    }
+fn is_trailing_surrogate(ch: u32) -> bool {
+    matches!(ch, 56320..=57343) // 0xDC00..=0xDFFF as u32
 }
 
 fn format_invalid_code_point_string(code_point_u32: u32) -> String {

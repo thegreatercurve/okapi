@@ -150,7 +150,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-ElementList
-    fn parse_element_list(&mut self) -> Result<Vec<Option<MemberExpressionElements>>, ParserError> {
+    fn parse_element_list(&mut self) -> Result<Vec<Option<ArrayExpressionElement>>, ParserError> {
         let mut elements = vec![];
 
         while self.cursor.current_token_kind() != TokenKind::RightSquareBracket {
@@ -169,17 +169,15 @@ impl<'a> Parser<'a> {
 
                     let assigment_expression = self.parse_assignment_expression()?;
 
-                    elements.push(Some(MemberExpressionElements::SpreadElement(
-                        SpreadElement {
-                            node: self.end_node()?,
-                            argument: assigment_expression,
-                        },
-                    )));
+                    elements.push(Some(ArrayExpressionElement::SpreadElement(SpreadElement {
+                        node: self.end_node()?,
+                        argument: assigment_expression,
+                    })));
                 }
                 _ => {
                     let assigment_expression = self.parse_assignment_expression()?;
 
-                    elements.push(Some(MemberExpressionElements::Expression(
+                    elements.push(Some(ArrayExpressionElement::Expression(
                         assigment_expression,
                     )));
                 }
@@ -241,17 +239,14 @@ impl<'a> Parser<'a> {
             | TokenKind::LeftSquareBracket => {
                 self.start_node();
 
-                let property_key = self.parse_property_name()?;
+                let property_name = self.parse_property_name()?;
 
-                let mut shorthand = match property_key {
-                    PropertyKey::Identifier(_) => true,
-                    _ => false,
-                };
+                let mut shorthand = matches!(property_name, Expression::Identifier(_));
 
-                let computed = match property_key {
-                    PropertyKey::Expression(_) => true,
-                    _ => false,
-                };
+                let computed = !matches!(
+                    property_name,
+                    Expression::Identifier(_) | Expression::Literal(_)
+                );
 
                 let mut method = false;
                 // TODO Add support for `get` and `set`.
@@ -286,8 +281,8 @@ impl<'a> Parser<'a> {
                     _ => {
                         shorthand = true;
 
-                        match &property_key {
-                            PropertyKey::Identifier(identifier) => {
+                        match &property_name {
+                            Expression::Identifier(identifier) => {
                                 value = Box::new(Expression::Identifier(identifier.clone()));
                             }
                             _ => return Err(ParserError::InvalidPropertyKey),
@@ -299,7 +294,7 @@ impl<'a> Parser<'a> {
                     method,
                     shorthand,
                     computed,
-                    key: property_key,
+                    key: property_name,
                     node: self.end_node()?,
                     value,
                     kind,
@@ -322,7 +317,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-PropertyName
-    fn parse_property_name(&mut self) -> Result<PropertyKey, ParserError> {
+    fn parse_property_name(&mut self) -> Result<Expression, ParserError> {
         let token_value = self.cursor.current_token_value();
 
         match self.cursor.current_token_kind() {
@@ -336,7 +331,7 @@ impl<'a> Parser<'a> {
                     _ => return Err(ParserError::UnexpectedTokenValue),
                 };
 
-                Ok(PropertyKey::Identifier(Identifier {
+                Ok(Expression::Identifier(Identifier {
                     node: self.end_node()?,
                     name,
                 }))
@@ -351,7 +346,7 @@ impl<'a> Parser<'a> {
                     _ => return Err(ParserError::UnexpectedTokenValue),
                 };
 
-                Ok(PropertyKey::Literal(Literal {
+                Ok(Expression::Literal(Literal {
                     node: self.end_node()?,
                     value: LiteralValue::String(raw_value.clone()),
                     raw: format!("\"{}\"", raw_value.to_string()),
@@ -367,7 +362,7 @@ impl<'a> Parser<'a> {
                     _ => return Err(ParserError::UnexpectedTokenValue),
                 };
 
-                Ok(PropertyKey::Literal(Literal {
+                Ok(Expression::Literal(Literal {
                     node: self.end_node()?,
                     value: LiteralValue::Number(value.clone()),
                     raw,
@@ -379,13 +374,13 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-PropertyName
-    fn parse_computed_property_name(&mut self) -> Result<PropertyKey, ParserError> {
+    fn parse_computed_property_name(&mut self) -> Result<Expression, ParserError> {
         self.expect_and_advance(TokenKind::LeftSquareBracket)?;
 
         let assignment_expression = self.parse_assignment_expression()?;
 
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 
-        Ok(PropertyKey::Expression(assignment_expression))
+        Ok(assignment_expression)
     }
 }

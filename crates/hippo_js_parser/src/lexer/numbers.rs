@@ -20,18 +20,14 @@ enum NumKind {
 }
 
 fn is_decimal_literal_char(ch: char) -> bool {
-    match ch {
-        '0'..='9' | DECIMAL | NUMERIC_LITERAL_SEPARATOR | 'e' | 'E' => true,
-        _ => false,
-    }
+    matches!(
+        ch,
+        '0'..='9' | DECIMAL | NUMERIC_LITERAL_SEPARATOR | 'e' | 'E'
+    )
 }
 
 fn is_non_decimal_literal_char(ch: char, radix: u32) -> bool {
-    match ch {
-        NUMERIC_LITERAL_SEPARATOR => true,
-        _ if ch.is_digit(radix) => true,
-        _ => false,
-    }
+    matches!(ch, NUMERIC_LITERAL_SEPARATOR | _ if ch.is_digit(radix))
 }
 
 fn match_num_kind_to_start_index_offset(num_kind: &NumKind) -> usize {

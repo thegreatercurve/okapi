@@ -2,10 +2,10 @@ use crate::{Cursor, KeywordKind, Lexer, ParserError, TokenKind, TokenValue};
 use hippo_estree::*;
 
 fn is_lexical_declaration(token: &TokenKind) -> bool {
-    match token {
-        TokenKind::Keyword(KeywordKind::Const) | TokenKind::Keyword(KeywordKind::Let) => true,
-        _ => false,
-    }
+    matches!(
+        token,
+        TokenKind::Keyword(KeywordKind::Const) | TokenKind::Keyword(KeywordKind::Let)
+    )
 }
 
 #[derive(Clone, Debug)]
@@ -51,7 +51,7 @@ impl<'a> Parser<'a> {
         let program_body = self.parse_statement().unwrap();
 
         Program {
-            body: vec![ProgramBody::Statement(program_body)],
+            body: vec![StatementListItem::Statement(program_body)],
             source_type: ProgramSourceTypes::Script,
             node: self.end_node().unwrap(),
         }
@@ -68,7 +68,7 @@ impl<'a> Parser<'a> {
         let program_body = self.parse_statement().unwrap();
 
         Program {
-            body: vec![ProgramBody::Statement(program_body)],
+            body: vec![StatementListItem::Statement(program_body)],
             source_type: ProgramSourceTypes::Module,
             node: Node::new(0, self.cursor.lexer.len()),
         }
@@ -208,7 +208,9 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
-    pub(crate) fn parse_binding_identifier(&mut self) -> Result<BindingKind, ParserError> {
+    pub(crate) fn parse_binding_identifier(
+        &mut self,
+    ) -> Result<VariableDeclaratorBindingKind, ParserError> {
         self.start_node();
 
         let token_value = match self.cursor.current_token_kind() {
@@ -229,14 +231,16 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Yield),
         ])?; // Eat identifier token.
 
-        Ok(BindingKind::Identifier(Identifier {
+        Ok(VariableDeclaratorBindingKind::Identifier(Identifier {
             node: self.end_node()?,
             name: identifier_name,
         }))
     }
 
     // https://tc39.es/ecma262/#prod-ObjectBindingPattern
-    fn parse_object_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
+    fn parse_object_binding_pattern(
+        &mut self,
+    ) -> Result<VariableDeclaratorBindingKind, ParserError> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?; // Eat `{` token.
@@ -257,21 +261,25 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
-        Ok(BindingKind::ObjectPattern(ObjectPattern {
-            node: self.end_node()?,
-            properties,
-        }))
+        Ok(VariableDeclaratorBindingKind::ObjectPattern(
+            ObjectPattern {
+                node: self.end_node()?,
+                properties,
+            },
+        ))
     }
 
     // https://tc39.es/ecma262/#prod-ArrayBindingPattern
-    fn parse_array_binding_pattern(&mut self) -> Result<BindingKind, ParserError> {
+    fn parse_array_binding_pattern(
+        &mut self,
+    ) -> Result<VariableDeclaratorBindingKind, ParserError> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::LeftSquareBracket)?; // Eat `[` token.
 
         let elements = vec![];
 
-        Ok(BindingKind::ArrayPattern(ArrayPattern {
+        Ok(VariableDeclaratorBindingKind::ArrayPattern(ArrayPattern {
             node: self.end_node()?,
             elements,
         }))
@@ -283,7 +291,12 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::Ellipsis)?; // Eat `...` token.
 
-        let argument = self.parse_binding_identifier()?;
+        let argument = match self.parse_binding_identifier()? {
+            VariableDeclaratorBindingKind::Identifier(identifier) => {
+                RestElementArgument::Identifier(identifier)
+            }
+            _ => return Err(self.unexpected_current_token_kind()),
+        };
 
         Ok(RestElement {
             node: self.end_node()?,
@@ -292,14 +305,14 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingPropertyList
-    fn parse_binding_property_list(&mut self) -> Result<BindingKind, ParserError> {
+    fn parse_binding_property_list(&mut self) -> Result<BindingPattern, ParserError> {
         self.parse_binding_property()?;
 
         todo!()
     }
 
     // https://tc39.es/ecma262/#prod-BindingProperty
-    fn parse_binding_property(&mut self) -> Result<BindingKind, ParserError> {
+    fn parse_binding_property(&mut self) -> Result<BindingPattern, ParserError> {
         todo!()
     }
 

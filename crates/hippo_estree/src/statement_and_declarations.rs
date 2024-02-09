@@ -12,7 +12,7 @@ pub enum Statement {
     Break(BreakStatement),
     Continue(ContinueStatement),
     Debugger(DebuggerStatement),
-    Declaration(Box<Declaration>),
+    Declaration(Declaration),
     DoWhile(DoWhileStatement),
     Empty(EmptyStatement),
     Expression(ExpressionStatement),
@@ -40,7 +40,7 @@ pub enum Declaration {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
-pub enum StatementListemItem {
+pub enum StatementListItem {
     Declaration(Declaration),
     Statement(Statement),
 }
@@ -50,7 +50,7 @@ pub enum StatementListemItem {
 pub struct BlockStatement {
     #[serde(flatten)]
     pub node: Node,
-    pub body: Vec<Box<StatementListemItem>>,
+    pub body: Vec<Box<StatementListItem>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -109,6 +109,7 @@ pub struct ExpressionStatement {
     #[serde(flatten)]
     pub node: Node,
     pub expression: Expression,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub directive: Option<String>,
 }
 
@@ -117,7 +118,7 @@ pub struct ExpressionStatement {
 pub struct ForStatement {
     #[serde(flatten)]
     pub node: Node,
-    pub init: ForStatementInit,
+    pub init: Option<ForStatementInit>,
     pub test: Option<Expression>,
     pub update: Option<Expression>,
     pub body: Box<Statement>,
@@ -204,7 +205,7 @@ pub struct ReturnStatement {
 pub struct StaticBlockStatement {
     #[serde(flatten)]
     pub node: Node,
-    pub body: Vec<Box<StatementListemItem>>,
+    pub body: Vec<Box<StatementListItem>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

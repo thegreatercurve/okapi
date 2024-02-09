@@ -6,7 +6,7 @@ use hippo_estree::*;
 impl<'a> Parser<'a> {
     // 15.5 Generator Function Definitions
     // https://tc39.es/ecma262/#prod-GeneratorExpression
-    pub(crate) fn parse_generator_expression(&mut self) -> Result<Declaration, ParserError> {
+    pub(crate) fn parse_generator_expression(&mut self) -> Result<Expression, ParserError> {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
 
         self.expect_and_advance(TokenKind::Multiplication)?;
@@ -15,7 +15,7 @@ impl<'a> Parser<'a> {
 
         // Handle function expression generators.
         let identifier = match binding_identifier {
-            BindingKind::Identifier(identifier) => identifier,
+            VariableDeclaratorBindingKind::Identifier(identifier) => identifier,
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
@@ -27,21 +27,19 @@ impl<'a> Parser<'a> {
 
         let body = self.parse_generator_body()?;
 
-        Ok(Declaration::Function(FunctionDeclaration {
+        Ok(Expression::Function(FunctionExpression {
             node: self.end_node()?,
-            params: todo!(),
-            id: identifier,
-            body,
+            body: Box::new(body),
         }))
     }
 
     // https://tc39.es/ecma262/#prod-GeneratorMethod
-    fn parse_generator_method(&mut self) -> Result<Function, ParserError> {
+    fn parse_generator_method(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_generator_method")
     }
 
     // https://tc39.es/ecma262/#prod-GeneratorBody
-    fn parse_generator_body(&mut self) -> Result<FunctionBody, ParserError> {
+    fn parse_generator_body(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_generator_declaration")
     }
 

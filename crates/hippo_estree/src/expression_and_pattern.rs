@@ -29,8 +29,8 @@ pub enum Expression {
     Object(ObjectExpression),
     Sequence(SequenceExpression),
     Super(SuperExpression),
-    // TaggedTemplate(TaggedTemplateExpression),
-    // TemplateLiteral(TemplateLiteral),
+    TaggedTemplate(String),
+    TemplateLiteral(String),
     This(ThisExpression),
     Unary(UnaryExpression),
     Update(UpdateExpression),
@@ -145,39 +145,39 @@ pub struct AssignmentExpression {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum AssignmentOperator {
-    #[serde(alias = "=")]
+    #[serde(rename = "=")]
     Assignment,
-    #[serde(alias = "+=")]
+    #[serde(rename = "+=")]
     AdditionAssignment,
-    #[serde(alias = "-=")]
+    #[serde(rename = "-=")]
     MinusAssignment,
-    #[serde(alias = "*=")]
+    #[serde(rename = "*=")]
     MultiplyAssignment,
-    #[serde(alias = "/=")]
+    #[serde(rename = "/=")]
     DivisionAssignment,
-    #[serde(alias = "%=")]
+    #[serde(rename = "%=")]
     ModulusAssignment,
-    #[serde(alias = "<<=")]
+    #[serde(rename = "<<=")]
     LeftShiftAssignment,
-    #[serde(alias = ">>=")]
+    #[serde(rename = ">>=")]
     RightShiftAssignment,
-    #[serde(alias = ">>>=")]
+    #[serde(rename = ">>>=")]
     UnsignedRightShiftAssignment,
-    #[serde(alias = "|=")]
+    #[serde(rename = "|=")]
     BitwiseAndAssignment,
-    #[serde(alias = "^=")]
+    #[serde(rename = "^=")]
     BitwiseOrAssignment,
-    #[serde(alias = "&=")]
+    #[serde(rename = "&=")]
     BitwiseXorAssignment,
     // ES2016
-    #[serde(alias = "**=")]
+    #[serde(rename = "**=")]
     ExponentiationAssignment,
     // ES2021
-    #[serde(alias = "||=")]
+    #[serde(rename = "||=")]
     LogicalOrAssignment,
-    #[serde(alias = "&&=")]
+    #[serde(rename = "&&=")]
     LogicalAndAssignment,
-    #[serde(alias = "??=")]
+    #[serde(rename = "??=")]
     NullishCoalescingAssignment,
 }
 
@@ -201,49 +201,49 @@ pub struct BinaryExpression {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum BinaryOperator {
-    #[serde(alias = "==")]
+    #[serde(rename = "==")]
     EqualEqual,
-    #[serde(alias = "!=")]
+    #[serde(rename = "!=")]
     NotEqual,
-    #[serde(alias = "===")]
+    #[serde(rename = "===")]
     EqualEqualEqual,
-    #[serde(alias = "!==")]
+    #[serde(rename = "!==")]
     NotEqualEqual,
-    #[serde(alias = "<")]
+    #[serde(rename = "<")]
     LessThan,
-    #[serde(alias = "<=")]
+    #[serde(rename = "<=")]
     LessThanEqual,
-    #[serde(alias = ">")]
+    #[serde(rename = ">")]
     GreaterThan,
-    #[serde(alias = ">=")]
+    #[serde(rename = ">=")]
     GreaterThanEqual,
-    #[serde(alias = "<<")]
+    #[serde(rename = "<<")]
     LessThanLessThan,
-    #[serde(alias = ">>")]
+    #[serde(rename = ">>")]
     GreaterThanGreaterThan,
-    #[serde(alias = ">>>")]
+    #[serde(rename = ">>>")]
     GreaterThanGreaterThanGreaterThan,
-    #[serde(alias = "+")]
+    #[serde(rename = "+")]
     Plus,
-    #[serde(alias = "-")]
+    #[serde(rename = "-")]
     Minus,
-    #[serde(alias = "*")]
+    #[serde(rename = "*")]
     Star,
-    #[serde(alias = "/")]
+    #[serde(rename = "/")]
     Slash,
-    #[serde(alias = "%")]
+    #[serde(rename = "%")]
     Percent,
-    #[serde(alias = "|")]
+    #[serde(rename = "|")]
     Bar,
-    #[serde(alias = "^")]
+    #[serde(rename = "^")]
     Caret,
-    #[serde(alias = "&")]
+    #[serde(rename = "&")]
     Ampersand,
-    #[serde(alias = "in")]
+    #[serde(rename = "in")]
     In,
-    #[serde(alias = "instanceof")]
+    #[serde(rename = "instanceof")]
     Instanceof,
-    #[serde(alias = "**")]
+    #[serde(rename = "**")]
     StarStar,
 }
 
@@ -333,6 +333,7 @@ pub struct ConditionalExpression {
 pub struct FunctionExpression {
     #[serde(flatten)]
     pub node: Node,
+    pub body: Box<Expression>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -389,11 +390,11 @@ pub struct LogicalExpression {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum LogicalOperator {
-    #[serde(alias = "??")]
+    #[serde(rename = "??")]
     NullishCoalescing,
-    #[serde(alias = "||")]
+    #[serde(rename = "||")]
     Or,
-    #[serde(alias = "&&")]
+    #[serde(rename = "&&")]
     And,
 }
 
@@ -526,9 +527,9 @@ pub struct UpdateExpression {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum UpdateOperator {
-    #[serde(alias = "++")]
+    #[serde(rename = "++")]
     PlusPlus,
-    #[serde(alias = "--")]
+    #[serde(rename = "--")]
     MinusMinus,
 }
 

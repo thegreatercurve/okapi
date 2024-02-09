@@ -15,10 +15,7 @@ const SP: char = '\u{0020}';
 const NBSP: char = '\u{00A0}';
 
 pub fn is_whitespace(ch: char) -> bool {
-    match ch {
-        TAB | VT | FF | SP | NBSP | ZWNBSP => true,
-        _ => false,
-    }
+    matches!(ch, TAB | VT | FF | SP | NBSP | ZWNBSP)
 }
 
 // 12.3 Line Terminators
@@ -29,10 +26,7 @@ const LS: char = '\u{2028}';
 const PS: char = '\u{2029}';
 
 pub fn is_line_terminator(ch: char) -> bool {
-    match ch {
-        LF | CR | LS | PS => true,
-        _ => false,
-    }
+    matches!(ch, LF | CR | LS | PS)
 }
 
 pub fn is_identifier_start(ch: char) -> bool {
@@ -52,16 +46,34 @@ pub fn is_identifier_part(ch: char) -> bool {
 }
 
 pub fn is_punctuator_start(ch: char) -> bool {
-    match ch {
-        '{' | '(' | ')' | '[' | ']' | '.' | ';' | ',' | '<' | '>' | '=' | '!' | '+' | '-' | '*'
-        | '%' | '&' | '|' | '^' | '~' | '?' | ':' | '/' | '}' => true,
-        _ => false,
-    }
+    matches!(
+        ch,
+        '{' | '('
+            | ')'
+            | '['
+            | ']'
+            | '.'
+            | ';'
+            | ','
+            | '<'
+            | '>'
+            | '='
+            | '!'
+            | '+'
+            | '-'
+            | '*'
+            | '%'
+            | '&'
+            | '|'
+            | '^'
+            | '~'
+            | '?'
+            | ':'
+            | '/'
+            | '}'
+    )
 }
 
 pub fn is_ascii_octaldigit(ch: char) -> bool {
-    match ch {
-        '0'..='7' => true,
-        _ => false,
-    }
+    matches!(ch, '0'..='7')
 }
