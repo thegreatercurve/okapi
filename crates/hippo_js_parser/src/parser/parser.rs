@@ -44,40 +44,16 @@ impl<'a> Parser<'a> {
         ParserError::UnexpectedToken(self.cursor.current_token_kind())
     }
 
-    pub fn parse_script(&mut self) -> Program {
-        // TODO Parse parser statement of declaration.
-        self.start_node();
-
-        let program_body = self.parse_statement().unwrap();
-
-        Program {
-            body: vec![StatementListItem::Statement(program_body)],
-            source_type: ProgramSourceTypes::Script,
-            node: self.end_node().unwrap(),
-        }
-    }
-
     pub fn parse_script_json(&mut self) -> Result<String, serde_json::Error> {
         let program = self.parse_script();
 
-        serde_json::to_string(&program)
-    }
-
-    pub fn parse_module(&mut self) -> Program {
-        // TODO Parse parser statement of declaration.
-        let program_body = self.parse_statement().unwrap();
-
-        Program {
-            body: vec![StatementListItem::Statement(program_body)],
-            source_type: ProgramSourceTypes::Module,
-            node: Node::new(0, self.cursor.lexer.len()),
-        }
+        serde_json::to_string(&program.unwrap())
     }
 
     pub fn parse_module_json(&mut self) -> Result<String, serde_json::Error> {
         let program = self.parse_module();
 
-        serde_json::to_string(&program)
+        serde_json::to_string(&program.unwrap())
     }
 
     pub(crate) fn start_node(&mut self) {

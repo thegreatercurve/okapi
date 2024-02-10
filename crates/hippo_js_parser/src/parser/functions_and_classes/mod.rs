@@ -8,7 +8,7 @@ use hippo_estree::*;
 impl<'a> Parser<'a> {
     // 15.1 Parameter Lists
     // https://tc39.es/ecma262/#sec-parameter-lists
-    fn parse_formal_parameters(&mut self) -> Result<Expression, ParserError> {
+    fn parse_formal_parameters(&mut self) -> Result<Vec<FunctionParameter>, ParserError> {
         todo!("parse_formal_parameters")
     }
 

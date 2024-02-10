@@ -160,7 +160,7 @@ pub struct FunctionDeclaration {
     pub id: Option<Identifier>,
     pub params: Vec<FunctionParameter>,
     pub body: BlockStatement,
-    pub generate: bool,
+    pub generator: bool,
     #[serde(alias = "async")]
     pub asynchronous: bool,
     pub expression: bool,

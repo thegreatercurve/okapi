@@ -1,26 +1,9 @@
-use serde::Serialize;
-
 pub use expression_and_pattern::*;
 pub use node::*;
+pub use scripts_and_modules::*;
 pub use statement_and_declarations::*;
 
 mod expression_and_pattern;
 mod node;
+mod scripts_and_modules;
 mod statement_and_declarations;
-
-#[derive(Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-#[serde(rename_all = "camelCase")]
-pub struct Program {
-    #[serde(flatten)]
-    pub node: Node,
-    pub body: Vec<StatementListItem>,
-    pub source_type: ProgramSourceTypes,
-}
-
-#[derive(Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum ProgramSourceTypes {
-    Script,
-    Module,
-}

@@ -11,9 +11,7 @@ enum GeneratorDeclarationOrExpression {
 impl<'a> Parser<'a> {
     // 15.5 Generator Function Definitions
     // https://tc39.es/ecma262/#prod-GeneratorExpression
-    pub(crate) fn parse_generator_expression(
-        &mut self,
-    ) -> Result<GeneratorDeclarationOrExpression, ParserError> {
+    pub(crate) fn parse_generator_expression(&mut self) -> Result<Expression, ParserError> {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
 
         self.expect_and_advance(TokenKind::Multiplication)?;
@@ -21,30 +19,33 @@ impl<'a> Parser<'a> {
         let binding_identifier = self.parse_binding_identifier()?;
 
         // Handle function expression generators.
-        let identifier = match binding_identifier {
+        let _identifier = match binding_identifier {
             VariableDeclaratorBindingKind::Identifier(identifier) => identifier,
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let parameters = self.parse_formal_parameters()?;
+        let _parameterss = self.parse_formal_parameters()?;
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
-        let body = self.parse_generator_body()?;
+        let _body = self.parse_generator_body()?;
 
-        Ok(GeneratorDeclarationOrExpression::Declaration(
-            Declaration::Function(FunctionDeclaration {
-                node: self.end_node()?,
-                id: todo!(),
-                params: todo!(),
-                body: todo!(),
-                generate: todo!(),
-                asynchronous: todo!(),
-                expression: todo!(),
-            }),
-        ))
+        todo!("parse_generator_expression")
+
+        // TODO: Implement the following code once the types are better.
+        // Ok(GeneratorDeclarationOrExpression::Declaration(
+        //     Declaration::Function(FunctionDeclaration {
+        //         node: self.end_node()?,
+        //         id: Some(identifier),
+        //         params: parameters,
+        //         body,
+        //         generator: true,
+        //         asynchronous: false,
+        //         expression: false,
+        //     }),
+        // ))
     }
 
     // https://tc39.es/ecma262/#prod-GeneratorMethod
@@ -53,7 +54,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-GeneratorBody
-    fn parse_generator_body(&mut self) -> Result<Expression, ParserError> {
+    fn parse_generator_body(&mut self) -> Result<BlockStatement, ParserError> {
         todo!("parse_generator_declaration")
     }
 
