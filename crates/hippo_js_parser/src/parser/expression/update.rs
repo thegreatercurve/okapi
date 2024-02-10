@@ -2,7 +2,6 @@ use crate::{Parser, ParserError, TokenKind};
 use hippo_estree::*;
 
 fn march_token_kind_to_update_operator(token_kind: &TokenKind) -> Option<UpdateOperator> {
-    println!("march_token_kind_to_update_operator: {:?}", token_kind);
     match token_kind {
         TokenKind::Increment => Some(UpdateOperator::PlusPlus),
         TokenKind::Decrement => Some(UpdateOperator::MinusMinus),

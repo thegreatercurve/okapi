@@ -1,12 +1,19 @@
 use crate::{KeywordKind, Parser, ParserError, TokenKind};
 use hippo_estree::*;
 
+enum GeneratorDeclarationOrExpression {
+    Declaration(Declaration),
+    Expression(Expression),
+}
+
 // 13 ECMAScript Language: Expressions
 // https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 impl<'a> Parser<'a> {
     // 15.5 Generator Function Definitions
     // https://tc39.es/ecma262/#prod-GeneratorExpression
-    pub(crate) fn parse_generator_expression(&mut self) -> Result<Expression, ParserError> {
+    pub(crate) fn parse_generator_expression(
+        &mut self,
+    ) -> Result<GeneratorDeclarationOrExpression, ParserError> {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
 
         self.expect_and_advance(TokenKind::Multiplication)?;
@@ -27,10 +34,17 @@ impl<'a> Parser<'a> {
 
         let body = self.parse_generator_body()?;
 
-        Ok(Expression::Function(FunctionExpression {
-            node: self.end_node()?,
-            body: Box::new(body),
-        }))
+        Ok(GeneratorDeclarationOrExpression::Declaration(
+            Declaration::Function(FunctionDeclaration {
+                node: self.end_node()?,
+                id: todo!(),
+                params: todo!(),
+                body: todo!(),
+                generate: todo!(),
+                asynchronous: todo!(),
+                expression: todo!(),
+            }),
+        ))
     }
 
     // https://tc39.es/ecma262/#prod-GeneratorMethod
