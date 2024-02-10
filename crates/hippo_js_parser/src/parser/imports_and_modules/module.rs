@@ -6,7 +6,12 @@ use hippo_estree::*;
 impl<'a> Parser<'a> {
     // 16.2 Module
     // https://tc39.es/ecma262/#prod-ModuleBody
-    pub(crate) fn parse_module_body(&mut self) -> Result<Vec<StatementListItem>, ParserError> {
-        todo!("parse_module_body")
+    pub(crate) fn parse_module_body(&mut self) -> Result<ProgramBody, ParserError> {
+        // TODO Parse parser statement of declaration.
+        let statement_list_item: Statement = self.parse_statement()?;
+
+        Ok(ProgramBody::Module(vec![ModuleItem::StatementListItem(
+            StatementListItem::Statement(statement_list_item),
+        )]))
     }
 }

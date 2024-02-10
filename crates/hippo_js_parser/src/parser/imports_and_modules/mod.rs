@@ -10,13 +10,10 @@ impl<'a> Parser<'a> {
     // 16.1 Scripts
     // https://tc39.es/ecma262/#prod-Script
     pub(crate) fn parse_script(&mut self) -> Result<Program, ParserError> {
-        // TODO Parse parser statement of declaration.
-        self.start_node();
-
-        let program_body = self.parse_statement().unwrap();
+        let program_body = self.parse_script_body()?;
 
         Ok(Program {
-            body: vec![StatementListItem::Statement(program_body)],
+            body: program_body,
             source_type: ProgramSourceTypes::Script,
             node: Node::new(0, self.cursor.lexer.len()),
         })
@@ -25,13 +22,10 @@ impl<'a> Parser<'a> {
     // 16.2 Modules
     // https://tc39.es/ecma262/#prod-Module
     pub(crate) fn parse_module(&mut self) -> Result<Program, ParserError> {
-        // TODO Parse parser statement of declaration.
-        let program_body = self.parse_statement()?;
-
-        let _body = self.parse_module_body();
+        let program_body = self.parse_module_body()?;
 
         Ok(Program {
-            body: vec![StatementListItem::Statement(program_body)],
+            body: program_body,
             source_type: ProgramSourceTypes::Module,
             node: Node::new(0, self.cursor.lexer.len()),
         })

@@ -10,23 +10,26 @@ use serde::Serialize;
 pub struct Program {
     #[serde(flatten)]
     pub node: Node,
-    pub body: Vec<ProgramBody>,
+    pub body: ProgramBody,
     pub source_type: ProgramSourceTypes,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum ProgramBody {
-    StatementListItem(StatementListItem),
-    Module(ModuleItem),
+    StatementList(Vec<StatementListItem>),
+    Module(Vec<ModuleItem>),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum ProgramSourceTypes {
     Script,
     Module,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum ModuleItem {
     ImportDeclaration(ImportDeclaration),
     ExportDeclaration(ExportDeclaration),

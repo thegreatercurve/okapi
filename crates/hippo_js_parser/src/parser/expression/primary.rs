@@ -97,7 +97,7 @@ impl<'a> Parser<'a> {
                 Ok(Expression::Literal(Literal {
                     node,
                     value: LiteralValue::String(raw_value.clone()),
-                    raw: raw_value,
+                    raw: format!(r#""{:}""#, raw_value),
                 }))
             }
             TokenKind::NumberLiteral => {

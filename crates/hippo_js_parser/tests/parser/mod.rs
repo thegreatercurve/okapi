@@ -16,4 +16,5 @@ mod object_expression;
 mod postfix_expression;
 mod prefix_expression;
 mod return_statement;
+mod script;
 mod this_expression;
