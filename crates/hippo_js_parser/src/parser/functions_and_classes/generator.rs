@@ -16,13 +16,9 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::Multiplication)?;
 
-        let binding_identifier = self.parse_binding_identifier()?;
+        let _binding_identifier = self.parse_binding_identifier()?;
 
-        // Handle function expression generators.
-        let _identifier = match binding_identifier {
-            VariableDeclaratorBindingKind::Identifier(identifier) => identifier,
-            _ => return Err(self.unexpected_current_token_kind()),
-        };
+        //  TODO Handle function expression generators.
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 

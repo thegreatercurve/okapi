@@ -162,11 +162,17 @@ impl<'a> Parser<'a> {
         let current_token_kind = self.cursor.current_token_kind();
 
         let binding_identifier = match current_token_kind {
-            TokenKind::Identifier => self.parse_binding_identifier(),
-            TokenKind::LeftCurlyBrace => self.parse_object_binding_pattern(),
-            TokenKind::LeftSquareBracket => self.parse_array_binding_pattern(),
+            TokenKind::Identifier => {
+                VariableDeclaratorBindingKind::Identifier(self.parse_binding_identifier()?)
+            }
+            TokenKind::LeftCurlyBrace => {
+                VariableDeclaratorBindingKind::ObjectPattern(self.parse_object_binding_pattern()?)
+            }
+            TokenKind::LeftSquareBracket => {
+                VariableDeclaratorBindingKind::ArrayPattern(self.parse_array_binding_pattern()?)
+            }
             _ => return Err(self.unexpected_current_token_kind()),
-        }?;
+        };
 
         let initializer = if self.cursor.current_token_kind() == TokenKind::Assignment {
             self.expect_and_advance(TokenKind::Assignment)?; // Eat `=` token.
@@ -184,9 +190,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
-    pub(crate) fn parse_binding_identifier(
-        &mut self,
-    ) -> Result<VariableDeclaratorBindingKind, ParserError> {
+    pub(crate) fn parse_binding_identifier(&mut self) -> Result<Identifier, ParserError> {
         self.start_node();
 
         let token_value = match self.cursor.current_token_kind() {
@@ -207,16 +211,14 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Yield),
         ])?; // Eat identifier token.
 
-        Ok(VariableDeclaratorBindingKind::Identifier(Identifier {
+        Ok(Identifier {
             node: self.end_node()?,
             name: identifier_name,
-        }))
+        })
     }
 
     // https://tc39.es/ecma262/#prod-ObjectBindingPattern
-    fn parse_object_binding_pattern(
-        &mut self,
-    ) -> Result<VariableDeclaratorBindingKind, ParserError> {
+    fn parse_object_binding_pattern(&mut self) -> Result<ObjectPattern, ParserError> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?; // Eat `{` token.
@@ -237,28 +239,24 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
-        Ok(VariableDeclaratorBindingKind::ObjectPattern(
-            ObjectPattern {
-                node: self.end_node()?,
-                properties,
-            },
-        ))
+        Ok(ObjectPattern {
+            node: self.end_node()?,
+            properties,
+        })
     }
 
     // https://tc39.es/ecma262/#prod-ArrayBindingPattern
-    fn parse_array_binding_pattern(
-        &mut self,
-    ) -> Result<VariableDeclaratorBindingKind, ParserError> {
+    fn parse_array_binding_pattern(&mut self) -> Result<ArrayPattern, ParserError> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::LeftSquareBracket)?; // Eat `[` token.
 
         let elements = vec![];
 
-        Ok(VariableDeclaratorBindingKind::ArrayPattern(ArrayPattern {
+        Ok(ArrayPattern {
             node: self.end_node()?,
             elements,
-        }))
+        })
     }
 
     // https://tc39.es/ecma262/#prod-BindingRestProperty
@@ -267,16 +265,12 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::Ellipsis)?; // Eat `...` token.
 
-        let argument = match self.parse_binding_identifier()? {
-            VariableDeclaratorBindingKind::Identifier(identifier) => {
-                RestElementArgument::Identifier(identifier)
-            }
-            _ => return Err(self.unexpected_current_token_kind()),
-        };
+        //
+        let argument = self.parse_binding_identifier()?;
 
         Ok(RestElement {
             node: self.end_node()?,
-            argument,
+            argument: RestElementArgument::Identifier(argument),
         })
     }
 

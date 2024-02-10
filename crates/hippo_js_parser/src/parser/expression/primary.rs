@@ -70,7 +70,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-Literal
-    fn parse_literal(&mut self) -> Result<Expression, ParserError> {
+    pub(crate) fn parse_literal(&mut self) -> Result<Expression, ParserError> {
         self.start_node();
 
         let token_value = self.cursor.current_token_value();
@@ -88,30 +88,12 @@ impl<'a> Parser<'a> {
         let node = self.end_node()?;
 
         let literal = match current_token_kind {
-            TokenKind::StringLiteral => {
-                let raw_value = match token_value {
-                    TokenValue::String(value) => value,
-                    _ => return Err(ParserError::UnexpectedTokenValue),
-                };
-
-                Ok(Expression::Literal(Literal {
-                    node,
-                    value: LiteralValue::String(raw_value.clone()),
-                    raw: format!(r#""{:}""#, raw_value),
-                }))
-            }
-            TokenKind::NumberLiteral => {
-                let (raw, value) = match token_value {
-                    TokenValue::Number { raw, value } => (raw, value),
-                    _ => return Err(ParserError::UnexpectedTokenValue),
-                };
-
-                Ok(Expression::Literal(Literal {
-                    node,
-                    value: LiteralValue::Number(value),
-                    raw: raw,
-                }))
-            }
+            TokenKind::StringLiteral => Ok(Expression::Literal(
+                self.parse_string_literal(token_value, node)?,
+            )),
+            TokenKind::NumberLiteral => Ok(Expression::Literal(
+                self.parse_number_literal(token_value, node)?,
+            )),
             TokenKind::Keyword(KeywordKind::Null) => Ok(Expression::Literal(Literal {
                 node,
                 value: LiteralValue::Null,
@@ -131,6 +113,42 @@ impl<'a> Parser<'a> {
         };
 
         literal
+    }
+
+    // https://tc39.es/ecma262/#prod-StringLiteral
+    pub(crate) fn parse_string_literal(
+        &mut self,
+        token_value: TokenValue,
+        node: Node,
+    ) -> Result<Literal, ParserError> {
+        let raw_value = match token_value {
+            TokenValue::String(value) => value,
+            _ => return Err(ParserError::UnexpectedTokenValue),
+        };
+
+        Ok(Literal {
+            node,
+            value: LiteralValue::String(raw_value.clone()),
+            raw: format!(r#""{:}""#, raw_value),
+        })
+    }
+
+    // https://tc39.es/ecma262/#prod-NumberLiteral
+    pub(crate) fn parse_number_literal(
+        &mut self,
+        token_value: TokenValue,
+        node: Node,
+    ) -> Result<Literal, ParserError> {
+        let (raw, value) = match token_value {
+            TokenValue::Number { raw, value } => (raw, value),
+            _ => return Err(ParserError::UnexpectedTokenValue),
+        };
+
+        Ok(Literal {
+            node,
+            value: LiteralValue::Number(value),
+            raw: raw,
+        })
     }
 
     // https://tc39.es/ecma262/#prod-ArrayLiteral

@@ -58,6 +58,8 @@ impl<'a> Parser<'a> {
     fn parse_empty_statement(&mut self) -> Result<Statement, ParserError> {
         self.start_node();
 
+        self.expect_optional_semicolon_and_advance();
+
         Ok(Statement::Empty(EmptyStatement {
             node: self.end_node()?,
         }))

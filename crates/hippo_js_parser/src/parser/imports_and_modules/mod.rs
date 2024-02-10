@@ -1,3 +1,5 @@
+mod exports;
+mod imports;
 mod module;
 mod script;
 

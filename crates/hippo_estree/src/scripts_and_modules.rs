@@ -37,49 +37,68 @@ pub enum ModuleItem {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(tag = "type")]
 pub struct ImportDeclaration {
-    #[serde(rename = "type")]
-    pub kind: ImportDeclarationKind,
     #[serde(flatten)]
     pub node: Node,
-    pub body: Vec<ImportSpecifier>,
+    pub specifiers: Vec<ImportSpecifier>,
     pub source: Literal,
 }
 
+#[derive(Debug, PartialEq, Serialize)]
+pub struct ImportSpecifier {
+    #[serde(rename = "type")]
+    pub kind: ImportSpecifierKind,
+    #[serde(flatten)]
+    pub node: Node,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub imported: Option<ImportSpecifierImported>,
+    pub local: Identifier,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum ImportDeclarationKind {
+pub enum ImportSpecifierKind {
     ImportSpecifier,
     ImportDefaultSpecifier,
     ImportNamespaceSpecifier,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum ImportSpecifierImported {
+    Identifier(Identifier),
+    Literal(Literal),
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum ExportDeclaration {
+    ExportAllDeclaration(ExportAllDeclaration),
+    ExportDefaultDeclaration(ExportDefaultDeclaration),
+    ExportNamedDeclaration(ExportNamedDeclaration),
+}
+
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
-pub struct ImportSpecifier {
+pub struct ExportAllDeclaration {
     #[serde(flatten)]
     pub node: Node,
-    pub local: Identifier,
-    pub imported: Option<Identifier>,
-}
-
-#[derive(Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum ExportDeclaration {
-    ExportAllDeclaration,
-    ExportDefaultDeclaration,
-    ExportNamedDeclaration,
-}
-
-#[derive(Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-struct ExportAllDeclaration {
+    pub exported: Option<ExportAllDeclarationExported>,
     pub source: Literal,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ExportAllDeclarationExported {
+    Identifier(Identifier),
+    Literal(Literal),
+}
+
+#[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
-struct ExportDefaultDeclaration {
+pub struct ExportDefaultDeclaration {
+    #[serde(flatten)]
+    pub node: Node,
     pub declaration: ExportDefaultDeclarationDeclaration,
 }
 
@@ -95,7 +114,9 @@ pub enum ExportDefaultDeclarationDeclaration {
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
-struct ExportNamedDeclaration {
+pub struct ExportNamedDeclaration {
+    #[serde(flatten)]
+    pub node: Node,
     pub declaration: ExportNamedDeclarationDeclaration,
     pub specifiers: Vec<ExportSpecifier>,
     pub source: Literal,
@@ -111,7 +132,23 @@ pub enum ExportNamedDeclarationDeclaration {
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
-struct ExportSpecifier {
-    pub exported: Identifier,
-    pub local: Identifier,
+pub struct ExportSpecifier {
+    #[serde(flatten)]
+    pub node: Node,
+    pub exported: Box<ExportSpecifierExported>,
+    pub local: Box<ExportSpecifierLocal>,
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ExportSpecifierExported {
+    Identifier(Identifier),
+    Literal(Literal),
+}
+
+#[derive(Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ExportSpecifierLocal {
+    Identifier(Identifier),
+    Literal(Literal),
 }
