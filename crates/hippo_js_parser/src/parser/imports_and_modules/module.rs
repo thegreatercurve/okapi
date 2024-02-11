@@ -28,9 +28,7 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Export) => {
                 ModuleItem::ExportDeclaration(self.parse_export_declaration()?)
             }
-            _ => {
-                ModuleItem::StatementListItem(StatementListItem::Statement(self.parse_statement()?))
-            }
+            _ => ModuleItem::StatementListItem(self.parse_statement_list_item()?),
         };
 
         Ok(module_item)

@@ -30,11 +30,7 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
-        self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
-
         let body = self.parse_function_body()?;
-
-        self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(FunctionDeclaration {
             node: self.end_node()?,
@@ -62,11 +58,7 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
-        self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
-
         let body = self.parse_function_body()?;
-
-        self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
         Ok(Expression::Function(FunctionExpression {
             node: self.end_node()?,
@@ -76,5 +68,25 @@ impl<'a> Parser<'a> {
             generator: false,
             asynchronous: false,
         }))
+    }
+
+    // https://tc39.es/ecma262/#prod-FunctionBody
+    fn parse_function_body(&mut self) -> Result<BlockStatement, ParserError> {
+        self.start_node();
+
+        self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
+
+        let mut body = vec![];
+
+        while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {
+            body.push(self.parse_statement_list_item()?);
+        }
+
+        self.expect_and_advance(TokenKind::RightCurlyBrace)?;
+
+        Ok(BlockStatement {
+            node: self.end_node()?,
+            body,
+        })
     }
 }

@@ -9,10 +9,8 @@ impl<'a> Parser<'a> {
     pub(crate) fn parse_formal_parameters(
         &mut self,
     ) -> Result<Vec<FunctionParameter>, ParserError> {
-        todo!("parse_formal_parameters")
-    }
+        // todo!("parse_formal_parameters");
 
-    pub(crate) fn parse_function_body(&mut self) -> Result<BlockStatement, ParserError> {
-        todo!("parse_function_body")
+        Ok(vec![])
     }
 }

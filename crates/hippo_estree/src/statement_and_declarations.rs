@@ -158,12 +158,12 @@ pub struct FunctionDeclaration {
     #[serde(flatten)]
     pub node: Node,
     pub id: Option<Identifier>,
+    pub expression: bool,
+    pub generator: bool,
+    #[serde(rename = "async")]
+    pub asynchronous: bool,
     pub params: Vec<FunctionParameter>,
     pub body: BlockStatement,
-    pub generator: bool,
-    #[serde(alias = "async")]
-    pub asynchronous: bool,
-    pub expression: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
