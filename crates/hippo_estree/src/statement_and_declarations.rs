@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::{
     ArrayPattern, AssignmentPattern, BindingPattern, ClassBody, Expression, Identifier, Node,
-    ObjectPattern,
+    ObjectPattern, RestElement,
 };
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -172,6 +172,7 @@ pub enum FunctionParameter {
     Assignment(AssignmentPattern),
     Binding(BindingPattern),
     Identifier(Identifier),
+    Rest(RestElement),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

@@ -184,6 +184,8 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-BindingElement
     pub(crate) fn parse_binding_rest_element(&mut self) -> Result<FunctionParameter, ParserError> {
+        self.start_node();
+
         self.expect_and_advance(TokenKind::Ellipsis)?;
 
         if self
@@ -191,11 +193,19 @@ impl<'a> Parser<'a> {
             .current_token_kind()
             .is_binding_identifier_keyword()
         {
-            return Ok(FunctionParameter::Identifier(
-                self.parse_binding_identifier()?,
-            ));
+            let binding_identifier = self.parse_binding_identifier()?;
+
+            return Ok(FunctionParameter::Rest(RestElement {
+                node: self.end_node()?,
+                argument: RestElementArgument::Identifier(binding_identifier),
+            }));
         }
 
-        Ok(FunctionParameter::Binding(self.parse_binding_pattern()?))
+        let binding_pattern = self.parse_binding_pattern()?;
+
+        Ok(FunctionParameter::Rest(RestElement {
+            node: self.end_node()?,
+            argument: RestElementArgument::BindingPattern(binding_pattern),
+        }))
     }
 }
