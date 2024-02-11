@@ -52,6 +52,53 @@ impl<'a> Parser<'a> {
                     },
                 ))
             }
+            TokenKind::Keyword(KeywordKind::Var)
+            | TokenKind::Keyword(KeywordKind::Let)
+            | TokenKind::Keyword(KeywordKind::Const) => {
+                let variable_declaration = self.parse_lexical_declaration()?;
+
+                Ok(ExportDeclaration::ExportNamedDeclaration(
+                    ExportNamedDeclaration {
+                        node: self.end_node()?,
+                        declaration: Some(ExportNamedDeclarationDeclaration::Variable(
+                            variable_declaration,
+                        )),
+                        specifiers: vec![],
+                        source: None,
+                    },
+                ))
+            }
+            TokenKind::Keyword(KeywordKind::Function) => {
+                let function_declaration = self.parse_function_declaration()?;
+
+                self.expect_optional_semicolon_and_advance();
+
+                Ok(ExportDeclaration::ExportNamedDeclaration(
+                    ExportNamedDeclaration {
+                        node: self.end_node()?,
+                        declaration: Some(ExportNamedDeclarationDeclaration::Function(
+                            function_declaration,
+                        )),
+                        specifiers: vec![],
+                        source: None,
+                    },
+                ))
+            }
+            TokenKind::Keyword(KeywordKind::Class) => {
+                let class_declaration = self.parse_class_declaration()?;
+
+                Ok(ExportDeclaration::ExportNamedDeclaration(
+                    ExportNamedDeclaration {
+                        node: self.end_node()?,
+                        declaration: Some(ExportNamedDeclarationDeclaration::Class(
+                            class_declaration,
+                        )),
+                        specifiers: vec![],
+                        source: None,
+                    },
+                ))
+            }
+            // TODO Handle default exports properly.
             _ => Err(self.unexpected_current_token_kind()),
         }
     }

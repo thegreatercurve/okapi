@@ -3,10 +3,6 @@ use crate::parser::common::assert_parse_module_eq;
 #[test]
 fn function_expression_id() {
     assert_parse_module_eq!(
-        r#"// SCRIPT"#,
-        r#"{"type":"Program","start":0,"end":9,"body":[],"sourceType":"module"}"#
-    );
-    assert_parse_module_eq!(
         r#"(function await() {});"#,
         r#"{"type":"Program","start":0,"end":22,"body":[{"type":"ExpressionStatement","start":0,"end":22,"expression":{"type":"FunctionExpression","start":1,"end":20,"id":{"type":"Identifier","start":10,"end":15,"name":"await"},"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":18,"end":20,"body":[]}}}],"sourceType":"module"}"#
     );

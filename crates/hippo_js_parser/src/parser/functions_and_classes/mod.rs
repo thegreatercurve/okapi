@@ -1,50 +1,13 @@
+mod function;
 mod generator;
+mod parameter_lists;
 
-use crate::{KeywordKind, Parser, ParserError, TokenKind};
+use crate::{Parser, ParserError};
 use hippo_estree::*;
 
 // 15 ECMAScript Language: Functions and Classes
 // https://tc39.es/ecma262/#sec-ecmascript-language-functions-and-classes
 impl<'a> Parser<'a> {
-    // 15.1 Parameter Lists
-    // https://tc39.es/ecma262/#sec-parameter-lists
-    fn parse_formal_parameters(&mut self) -> Result<Vec<FunctionParameter>, ParserError> {
-        todo!("parse_formal_parameters")
-    }
-
-    fn parse_function_body(&mut self) -> Result<Expression, ParserError> {
-        todo!("parse_function_body")
-    }
-
-    // 15.2 Function Definitions
-    // https://tc39.es/ecma262/#prod-FunctionExpression
-    pub(crate) fn parse_function_expression(&mut self) -> Result<Expression, ParserError> {
-        self.start_node();
-
-        self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
-
-        if self.cursor.peek_token_kind() == TokenKind::Identifier {
-            let _identifier = self.parse_binding_identifier()?;
-        }
-
-        self.expect_and_advance(TokenKind::LeftParenthesis)?;
-
-        let _formal_paramaters = self.parse_formal_parameters()?;
-
-        self.expect_and_advance(TokenKind::RightParenthesis)?;
-
-        self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
-
-        let body = self.parse_function_body()?;
-
-        self.expect_and_advance(TokenKind::RightCurlyBrace)?;
-
-        Ok(Expression::Function(FunctionExpression {
-            node: self.end_node()?,
-            body: Box::new(body),
-        }))
-    }
-
     // 15.3 Arrow Function Definitions
     // https://tc39.es/ecma262/#sec-arrow-function-definitions
     pub(crate) fn parse_arrow_function(&mut self) -> Result<Expression, ParserError> {
@@ -65,6 +28,10 @@ impl<'a> Parser<'a> {
 
     // 15.7 Class Definitions
     // https://tc39.es/ecma262/#prod-ClassExpression
+    pub(crate) fn parse_class_declaration(&mut self) -> Result<ClassDeclaration, ParserError> {
+        todo!("parse_class_declaration")
+    }
+
     pub(crate) fn parse_class_expression(&mut self) -> Result<Expression, ParserError> {
         todo!("parse_class_expression")
     }

@@ -123,11 +123,11 @@ pub struct ExportNamedDeclaration {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(untagged)]
 pub enum ExportNamedDeclarationDeclaration {
-    ClassDeclaration(ClassDeclaration),
-    FunctionDeclaration(FunctionDeclaration),
-    VariableDeclaration(VariableDeclaration),
+    Class(ClassDeclaration),
+    Function(FunctionDeclaration),
+    Variable(VariableDeclaration),
 }
 
 #[derive(Debug, PartialEq, Serialize)]

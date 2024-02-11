@@ -9,7 +9,9 @@ impl<'a> Parser<'a> {
         match self.cursor.current_token_kind() {
             TokenKind::Keyword(keyword) => match keyword {
                 KeywordKind::Let | KeywordKind::Const | KeywordKind::Var => {
-                    self.parse_lexical_declaration()
+                    Ok(Statement::Declaration(Declaration::Variable(
+                        self.parse_lexical_declaration()?,
+                    )))
                 }
                 KeywordKind::If => self.parse_if_statement(),
                 KeywordKind::For => self.parse_for_or_for_of_in_statement(),

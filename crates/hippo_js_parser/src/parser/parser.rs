@@ -105,7 +105,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#sec-let-and-const-declarations
-    pub(crate) fn parse_lexical_declaration(&mut self) -> Result<Statement, ParserError> {
+    pub(crate) fn parse_lexical_declaration(&mut self) -> Result<VariableDeclaration, ParserError> {
         self.start_node();
 
         let kind = match self.cursor.current_token_kind() {
@@ -131,13 +131,11 @@ impl<'a> Parser<'a> {
 
         self.expect_optional_semicolon_and_advance();
 
-        Ok(Statement::Declaration(Declaration::Variable(
-            VariableDeclaration {
-                node: self.end_node()?,
-                declarations,
-                kind,
-            },
-        )))
+        Ok(VariableDeclaration {
+            node: self.end_node()?,
+            declarations,
+            kind,
+        })
     }
 
     // https://tc39.es/ecma262/#prod-BindingList
