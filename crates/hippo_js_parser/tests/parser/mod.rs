@@ -5,6 +5,7 @@ mod common;
 mod conditional_expression;
 mod debugger_statement;
 mod empty_statement;
+mod function_declaration;
 mod grouping_expression;
 mod identifier;
 mod if_statement;

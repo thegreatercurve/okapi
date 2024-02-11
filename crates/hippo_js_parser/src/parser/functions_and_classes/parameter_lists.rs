@@ -12,7 +12,7 @@ impl<'a> Parser<'a> {
         todo!("parse_formal_parameters")
     }
 
-    pub(crate) fn parse_function_body(&mut self) -> Result<Expression, ParserError> {
+    pub(crate) fn parse_function_body(&mut self) -> Result<BlockStatement, ParserError> {
         todo!("parse_function_body")
     }
 }

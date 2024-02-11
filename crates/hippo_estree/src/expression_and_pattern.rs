@@ -333,7 +333,12 @@ pub struct ConditionalExpression {
 pub struct FunctionExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub body: Box<Expression>,
+    pub params: Vec<FunctionParameter>,
+    pub body: BlockStatement,
+    pub expression: bool,
+    pub generator: bool,
+    #[serde(alias = "async")]
+    pub asynchronous: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

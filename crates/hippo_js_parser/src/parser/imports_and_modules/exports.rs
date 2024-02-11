@@ -52,9 +52,7 @@ impl<'a> Parser<'a> {
                     },
                 ))
             }
-            TokenKind::Keyword(KeywordKind::Var)
-            | TokenKind::Keyword(KeywordKind::Let)
-            | TokenKind::Keyword(KeywordKind::Const) => {
+            current_token_kind if current_token_kind.is_declaration_keyword() => {
                 let variable_declaration = self.parse_lexical_declaration()?;
 
                 Ok(ExportDeclaration::ExportNamedDeclaration(

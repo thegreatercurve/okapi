@@ -10,11 +10,41 @@ enum GeneratorDeclarationOrExpression {
 // https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 impl<'a> Parser<'a> {
     // 15.2 Function Definitions
-    // https://tc39.es/ecma262/#prod-FunctionExpression
+    // https://tc39.es/ecma262/#prod-FunctionDeclaration
     pub(crate) fn parse_function_declaration(
         &mut self,
     ) -> Result<FunctionDeclaration, ParserError> {
-        todo!("parse_function_declaration")
+        self.start_node();
+
+        self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
+
+        let identifier = if self.cursor.current_token_kind() == TokenKind::Identifier {
+            Some(self.parse_binding_identifier()?)
+        } else {
+            None
+        };
+
+        self.expect_and_advance(TokenKind::LeftParenthesis)?;
+
+        let formal_paramaters = self.parse_formal_parameters()?;
+
+        self.expect_and_advance(TokenKind::RightParenthesis)?;
+
+        self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
+
+        let body = self.parse_function_body()?;
+
+        self.expect_and_advance(TokenKind::RightCurlyBrace)?;
+
+        Ok(FunctionDeclaration {
+            node: self.end_node()?,
+            id: identifier,
+            params: formal_paramaters,
+            body,
+            generator: false,
+            asynchronous: false,
+            expression: false,
+        })
     }
 
     pub(crate) fn parse_function_expression(&mut self) -> Result<Expression, ParserError> {
@@ -28,7 +58,7 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let _formal_paramaters = self.parse_formal_parameters()?;
+        let formal_paramaters = self.parse_formal_parameters()?;
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
@@ -40,7 +70,11 @@ impl<'a> Parser<'a> {
 
         Ok(Expression::Function(FunctionExpression {
             node: self.end_node()?,
-            body: Box::new(body),
+            body,
+            params: formal_paramaters,
+            expression: false,
+            generator: false,
+            asynchronous: false,
         }))
     }
 }

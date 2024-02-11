@@ -50,7 +50,7 @@ pub enum StatementListItem {
 pub struct BlockStatement {
     #[serde(flatten)]
     pub node: Node,
-    pub body: Vec<Box<StatementListItem>>,
+    pub body: Vec<StatementListItem>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

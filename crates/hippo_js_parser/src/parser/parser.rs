@@ -1,13 +1,6 @@
 use crate::{Cursor, KeywordKind, Lexer, ParserError, TokenKind, TokenValue};
 use hippo_estree::*;
 
-fn is_lexical_declaration(token: &TokenKind) -> bool {
-    matches!(
-        token,
-        TokenKind::Keyword(KeywordKind::Const) | TokenKind::Keyword(KeywordKind::Let)
-    )
-}
-
 #[derive(Clone, Debug)]
 pub struct Config {
     pub strict_mode: bool,

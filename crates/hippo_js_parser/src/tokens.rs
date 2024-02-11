@@ -229,6 +229,22 @@ impl TokenKind {
             | TokenKind::Modulus
             | TokenKind::Exponentiation)
     }
+
+    pub(crate) fn is_lexical_declaration_keyword(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::Keyword(KeywordKind::Let)
+                | TokenKind::Keyword(KeywordKind::Const)
+                | TokenKind::Keyword(KeywordKind::Var)
+        )
+    }
+
+    pub(crate) fn is_declaration_keyword(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::Keyword(KeywordKind::Function) | TokenKind::Keyword(KeywordKind::Class)
+        ) | self.is_lexical_declaration_keyword()
+    }
 }
 
 impl std::fmt::Display for TokenKind {
