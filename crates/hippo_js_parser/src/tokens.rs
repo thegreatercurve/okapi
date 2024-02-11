@@ -252,6 +252,16 @@ impl TokenKind {
             | TokenKind::Modulus
             | TokenKind::Exponentiation)
     }
+
+    // https://tc39.es/ecma262/#prod-BindingIdentifier
+    pub(crate) fn is_binding_identifier_keyword(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::Identifier
+                | TokenKind::Keyword(KeywordKind::Await)
+                | TokenKind::Keyword(KeywordKind::Yield)
+        )
+    }
 }
 
 impl std::fmt::Display for TokenKind {

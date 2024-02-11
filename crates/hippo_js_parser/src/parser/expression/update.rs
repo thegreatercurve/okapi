@@ -20,7 +20,7 @@ impl<'a> Parser<'a> {
         let mut operator_token_kind = self.cursor.current_token_kind();
 
         if operator_token_kind.is_unary_operator() {
-            self.cursor.advance(); // Eat the ++ or -- token.
+            self.cursor.advance(); // Eat '++' or '--' token.
 
             let operator = march_token_kind_to_update_operator(&operator_token_kind).unwrap();
 

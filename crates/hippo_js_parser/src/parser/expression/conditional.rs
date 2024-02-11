@@ -12,7 +12,7 @@ impl<'a> Parser<'a> {
         let short_circuit_expression = self.parse_binary_expression(0)?;
 
         if self.cursor.current_token_kind() == TokenKind::QuestionMark {
-            self.cursor.advance(); // Eat the ? token.
+            self.cursor.advance(); // Eat '?' token.
 
             let consequent = self.parse_assignment_expression()?;
 

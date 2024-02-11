@@ -110,7 +110,7 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::Multiplication)?;
 
         if self.cursor.current_token_kind() == TokenKind::Keyword(KeywordKind::As) {
-            self.cursor.advance(); // Eat `*` token.
+            self.cursor.advance(); // Eat '*' token.
 
             let module_export_name = self.parse_module_export_name()?;
 

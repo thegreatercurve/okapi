@@ -53,7 +53,7 @@ impl<'a> Parser<'a> {
 
         match self.cursor.current_token_kind() {
             // TokenKind::Assignment => {
-            //     self.cursor.advance(); // Eat the assignment operator token.
+            //     self.cursor.advance(); // Eat assignment operator token.
 
             //     let right = self.parse_assignment_expression()?;
 
@@ -79,7 +79,7 @@ impl<'a> Parser<'a> {
                     match_token_kind_to_assignment_operator(&self.cursor.current_token_kind())
                         .unwrap();
 
-                self.cursor.advance(); // Eat the assignment operator token.
+                self.cursor.advance(); // Eat assignment operator token.
 
                 let right = self.parse_assignment_expression()?;
 

@@ -34,7 +34,7 @@ impl<'a> Parser<'a> {
             | TokenKind::LogicalNot => {
                 self.start_node();
 
-                self.cursor.advance(); // Eat the delete or void or typeof or + or - or ~ or ! token.
+                self.cursor.advance(); // Eat delete or void or typeof or + or - or ~ or ! token.
 
                 let unary_argument = self.parse_unary_expression()?;
 

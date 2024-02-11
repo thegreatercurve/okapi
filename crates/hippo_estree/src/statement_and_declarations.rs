@@ -167,9 +167,10 @@ pub struct FunctionDeclaration {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum FunctionParameter {
-    AssignmentPattern(AssignmentPattern),
-    BindingPattern(BindingPattern),
+    Assignment(AssignmentPattern),
+    Binding(BindingPattern),
     Identifier(Identifier),
 }
 
@@ -254,6 +255,7 @@ pub struct CatchClause {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum CatchClauseParameter {
     BindingPattern(BindingPattern),
     Identifier(Identifier),

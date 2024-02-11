@@ -54,7 +54,7 @@ impl<'a> Parser<'a> {
 
         match current_token_kind {
             TokenKind::Keyword(KeywordKind::Super) => {
-                self.cursor.advance(); // Eat the super token.
+                self.cursor.advance(); // Eat 'super' token.
 
                 let arguments = self.parse_arguments()?;
 
@@ -69,7 +69,7 @@ impl<'a> Parser<'a> {
                 }));
             }
             TokenKind::Keyword(KeywordKind::Import) => {
-                self.cursor.advance(); // Eat the import token.
+                self.cursor.advance(); // Eat 'import' token.
 
                 todo!()
             }
@@ -98,7 +98,7 @@ impl<'a> Parser<'a> {
             self.start_node();
 
             let is_spread = if self.cursor.current_token_kind() == TokenKind::Ellipsis {
-                self.cursor.advance(); // Eat the ... token.
+                self.cursor.advance(); // Eat '...' token.
 
                 true
             } else {

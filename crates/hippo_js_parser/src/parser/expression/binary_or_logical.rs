@@ -128,7 +128,7 @@ impl<'a> Parser<'a> {
                 break;
             }
 
-            self.cursor.advance(); // Eat the operator token.
+            self.cursor.advance(); // Eat operator token.
 
             let right_expression = self.parse_binary_expression(right_precedence)?;
 

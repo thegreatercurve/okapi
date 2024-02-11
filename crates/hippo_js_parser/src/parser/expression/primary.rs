@@ -174,7 +174,7 @@ impl<'a> Parser<'a> {
         while self.cursor.current_token_kind() != TokenKind::RightSquareBracket {
             match self.cursor.current_token_kind() {
                 TokenKind::Comma => {
-                    self.cursor.advance(); // Eat the , token.
+                    self.cursor.advance(); // Eat ',' token.
 
                     elements.push(None);
 
@@ -183,7 +183,7 @@ impl<'a> Parser<'a> {
                 TokenKind::Ellipsis => {
                     self.start_node();
 
-                    self.cursor.advance(); // Eat the ... token.
+                    self.cursor.advance(); // Eat '...' token.
 
                     let assigment_expression = self.parse_assignment_expression()?;
 
@@ -321,7 +321,7 @@ impl<'a> Parser<'a> {
             TokenKind::Ellipsis => {
                 self.start_node();
 
-                self.cursor.advance(); // Eat the ... token.
+                self.cursor.advance(); // Eat '..'. token.
 
                 let assigment_expression: Expression = self.parse_assignment_expression()?;
 
@@ -342,7 +342,7 @@ impl<'a> Parser<'a> {
             TokenKind::Identifier => {
                 self.start_node();
 
-                self.cursor.advance(); // Eat the identifier token.
+                self.cursor.advance(); // Eat identifier token.
 
                 let name = match token_value {
                     TokenValue::String(value) => value,
@@ -357,7 +357,7 @@ impl<'a> Parser<'a> {
             TokenKind::StringLiteral => {
                 self.start_node();
 
-                self.cursor.advance(); // Eat the string literal token.
+                self.cursor.advance(); // Eat string literal token.
 
                 let raw_value = match token_value {
                     TokenValue::String(value) => value,
@@ -373,7 +373,7 @@ impl<'a> Parser<'a> {
             TokenKind::NumberLiteral => {
                 self.start_node();
 
-                self.cursor.advance(); // Eat the number literal token.
+                self.cursor.advance(); // Eat number literal token.
 
                 let (raw, value) = match token_value {
                     TokenValue::Number { raw, value } => (raw, value),

@@ -1,4 +1,5 @@
 mod block;
+mod declarations_and_variable;
 mod empty;
 mod if_statement;
 mod iteration;

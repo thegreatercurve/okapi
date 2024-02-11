@@ -42,7 +42,7 @@ impl<'a> Lexer<'a> {
             match current_char {
                 _ if current_char == start_quote_character => break,
                 '\\' => {
-                    self.read_char(); // Eat \ char.
+                    self.read_char(); // Eat '\' char.
 
                     current_char = self.current_char();
 
@@ -51,7 +51,7 @@ impl<'a> Lexer<'a> {
                             string_literal.push_str(format!("\\{}", current_char).as_str());
                         }
                         'x' => {
-                            self.read_char(); // Eat x char.
+                            self.read_char(); // Eat 'x' char.
 
                             let escape_sequence_u32 =
                                 self.read_hexadecimal_escape_sequence_u32().unwrap();
@@ -73,7 +73,7 @@ impl<'a> Lexer<'a> {
                         }
 
                         'u' => {
-                            self.read_char(); // Eat u char.
+                            self.read_char(); // Eat 'u' char.
 
                             let escape_sequence_u32 =
                                 self.read_potential_unicode_or_code_point_surrogate_pairs();
@@ -211,8 +211,8 @@ impl<'a> Lexer<'a> {
                 return SurrogatePair::LeadingValidMissingTrailing(leading_surrogate);
             }
 
-            self.read_char(); // Eat \ char.
-            self.read_char(); // Eat u char.
+            self.read_char(); // Eat '\' char.
+            self.read_char(); // Eat 'u' char.
 
             let trailing_surrogate = if self.current_char() == '{' {
                 self.read_code_point_escape_sequence()
@@ -267,7 +267,7 @@ impl<'a> Lexer<'a> {
 
     // https://tc39.es/ecma262/#prod-UnicodeEscapeSequence
     fn read_code_point_escape_sequence(&mut self) -> Result<u32, ParserError> {
-        self.read_char(); // Eat { char.
+        self.read_char(); // Eat '{' char.
 
         let start_index = self.read_index;
 
@@ -291,7 +291,7 @@ impl<'a> Lexer<'a> {
 
         if let Ok(code_point_value_u32) = u32::from_str_radix(code_point_str, 16) {
             if code_point_value_u32 < 0x10FFFF && self.current_char() == '}' {
-                self.read_char(); // Eat } char.
+                self.read_char(); // Eat '}' char.
 
                 return Ok(code_point_value_u32);
             }
