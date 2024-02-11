@@ -172,6 +172,29 @@ pub enum TokenKind {
 }
 
 impl TokenKind {
+    pub(crate) fn is_lexical_declaration_keyword(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::Keyword(KeywordKind::Let)
+                | TokenKind::Keyword(KeywordKind::Const)
+                | TokenKind::Keyword(KeywordKind::Var)
+        )
+    }
+
+    pub(crate) fn is_declaration_keyword(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::Keyword(KeywordKind::Function) | TokenKind::Keyword(KeywordKind::Class)
+        ) | self.is_lexical_declaration_keyword()
+    }
+
+    pub(crate) fn is_hoistable_declaration_keyword(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::Keyword(KeywordKind::Function) | TokenKind::Keyword(KeywordKind::Async)
+        )
+    }
+
     pub(crate) fn is_logical_operator(&self) -> bool {
         matches!(
             self,
@@ -228,22 +251,6 @@ impl TokenKind {
             | TokenKind::Division
             | TokenKind::Modulus
             | TokenKind::Exponentiation)
-    }
-
-    pub(crate) fn is_lexical_declaration_keyword(&self) -> bool {
-        matches!(
-            self,
-            TokenKind::Keyword(KeywordKind::Let)
-                | TokenKind::Keyword(KeywordKind::Const)
-                | TokenKind::Keyword(KeywordKind::Var)
-        )
-    }
-
-    pub(crate) fn is_declaration_keyword(&self) -> bool {
-        matches!(
-            self,
-            TokenKind::Keyword(KeywordKind::Function) | TokenKind::Keyword(KeywordKind::Class)
-        ) | self.is_lexical_declaration_keyword()
     }
 }
 

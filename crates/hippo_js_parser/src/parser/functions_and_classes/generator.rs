@@ -11,6 +11,42 @@ enum GeneratorDeclarationOrExpression {
 impl<'a> Parser<'a> {
     // 15.5 Generator Function Definitions
     // https://tc39.es/ecma262/#prod-GeneratorExpression
+    pub(crate) fn parse_generator_declaration(
+        &mut self,
+    ) -> Result<FunctionDeclaration, ParserError> {
+        todo!("parse_generator_declaration");
+
+        // self.start_node();
+
+        // self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
+
+        // self.expect_and_advance(TokenKind::Multiplication)?;
+
+        // let identifier = self.parse_binding_identifier()?;
+
+        // self.expect_and_advance(TokenKind::LeftParenthesis)?;
+
+        // let formal_paramaters = self.parse_formal_parameters()?;
+
+        // self.expect_and_advance(TokenKind::RightParenthesis)?;
+
+        // self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
+
+        // let body = self.parse_generator_body()?;
+
+        // self.expect_and_advance(TokenKind::RightCurlyBrace)?;
+
+        // Ok(FunctionDeclaration {
+        //     node: self.end_node()?,
+        //     id: Some(identifier),
+        //     params: formal_paramaters,
+        //     body,
+        //     generator: true,
+        //     asynchronous: false,
+        //     expression: false,
+        // })
+    }
+
     pub(crate) fn parse_generator_expression(&mut self) -> Result<Expression, ParserError> {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Function))?;
 

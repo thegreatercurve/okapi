@@ -36,6 +36,47 @@ impl<'a> Parser<'a> {
         }
     }
 
+    // https://tc39.es/ecma262/#prod-Declaration
+    fn parse_declaration(&mut self) -> Result<Declaration, ParserError> {
+        match self.cursor.current_token_kind() {
+            current_token_kind if current_token_kind.is_hoistable_declaration_keyword() => {
+                self.parse_hoistable_declaration()
+            }
+            TokenKind::Keyword(KeywordKind::Class) => {
+                Ok(Declaration::Class(self.parse_class_declaration()?))
+            }
+            current_token_kind if current_token_kind.is_lexical_declaration_keyword() => {
+                Ok(Declaration::Variable(self.parse_lexical_declaration()?))
+            }
+
+            _ => Err(self.unexpected_current_token_kind()),
+        }
+    }
+
+    // https://tc39.es/ecma262/#prod-HoistableDeclaration
+    fn parse_hoistable_declaration(&mut self) -> Result<Declaration, ParserError> {
+        match self.cursor.current_token_kind() {
+            TokenKind::Keyword(KeywordKind::Function) => match self.cursor.peek_token_kind() {
+                TokenKind::Multiplication => {
+                    Ok(Declaration::Function(self.parse_generator_declaration()?))
+                }
+                _ => Ok(Declaration::Function(self.parse_function_declaration()?)),
+            },
+            TokenKind::Keyword(KeywordKind::Async) => match self.cursor.peek_token_kind() {
+                TokenKind::Keyword(KeywordKind::Function) => match self.cursor.peek_token_kind() {
+                    TokenKind::Multiplication => Ok(Declaration::Function(
+                        self.parse_async_generator_declaration()?,
+                    )),
+                    _ => Ok(Declaration::Function(
+                        self.parse_async_function_declaration()?,
+                    )),
+                },
+                _ => Err(self.unexpected_current_token_kind()),
+            },
+            _ => Err(self.unexpected_current_token_kind()),
+        }
+    }
+
     // https://tc39.es/ecma262/#prod-ExpressionStatement
     // https://tc39.es/ecma262/#prod-LabelledStatement
     fn parse_expression_statement_or_labelled_statement(
