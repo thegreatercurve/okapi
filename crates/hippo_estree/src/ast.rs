@@ -1,4 +1,7 @@
-use crate::{ExportAllDeclarationExported, Identifier, ImportSpecifierImported, Literal};
+use crate::{
+    ExportAllDeclarationExported, ExportSpecifierExported, ExportSpecifierLocal, Identifier,
+    ImportSpecifierImported, Literal,
+};
 use serde::Serialize;
 
 // https://tc39.es/ecma262/#prod-ModuleExportName
@@ -25,6 +28,24 @@ impl ModuleExportName {
                 ExportAllDeclarationExported::Identifier(identifier)
             }
             ModuleExportName::Literal(literal) => ExportAllDeclarationExported::Literal(literal),
+        }
+    }
+
+    pub fn to_export_specifier_local(self) -> ExportSpecifierLocal {
+        match self {
+            ModuleExportName::Identifier(identifier) => {
+                ExportSpecifierLocal::Identifier(identifier)
+            }
+            ModuleExportName::Literal(literal) => ExportSpecifierLocal::Literal(literal),
+        }
+    }
+
+    pub fn to_export_specifier_exported(self) -> ExportSpecifierExported {
+        match self {
+            ModuleExportName::Identifier(identifier) => {
+                ExportSpecifierExported::Identifier(identifier)
+            }
+            ModuleExportName::Literal(literal) => ExportSpecifierExported::Literal(literal),
         }
     }
 }

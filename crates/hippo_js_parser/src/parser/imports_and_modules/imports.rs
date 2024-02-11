@@ -33,9 +33,7 @@ impl<'a> Parser<'a> {
 
                 import_clause.push(name_space_import);
             } else if self.cursor.current_token_kind() == TokenKind::LeftCurlyBrace {
-                if let Some(named_imports) = self.parse_named_imports()? {
-                    import_clause.extend(named_imports);
-                };
+                import_clause.extend(self.parse_named_imports()?);
             }
         }
 
@@ -89,9 +87,7 @@ impl<'a> Parser<'a> {
                 import_specifiers.push(self.parse_name_space_import()?);
             }
             TokenKind::LeftCurlyBrace => {
-                if let Some(named_imports) = self.parse_named_imports()? {
-                    import_specifiers.extend(named_imports);
-                };
+                import_specifiers.extend(self.parse_named_imports()?);
             }
             _ => return Err(self.unexpected_current_token_kind()),
         }
@@ -132,8 +128,10 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-NamedImports
-    fn parse_named_imports(&mut self) -> Result<Option<Vec<ImportSpecifier>>, ParserError> {
+    fn parse_named_imports(&mut self) -> Result<Vec<ImportSpecifier>, ParserError> {
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
+
+        let mut imports_list = vec![];
 
         if self.cursor.current_token_kind() == TokenKind::RightCurlyBrace {
             self.start_node();
@@ -142,14 +140,14 @@ impl<'a> Parser<'a> {
 
             self.end_node()?;
 
-            return Ok(None);
+            return Ok(imports_list);
         }
 
-        let imports_list = self.parse_imports_list()?;
+        imports_list.extend(self.parse_imports_list()?);
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
-        Ok(Some(imports_list))
+        Ok(imports_list)
     }
 
     // https://tc39.es/ecma262/#prod-FromClause

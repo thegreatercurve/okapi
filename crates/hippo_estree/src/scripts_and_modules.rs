@@ -88,7 +88,7 @@ pub struct ExportAllDeclaration {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(untagged)]
 pub enum ExportAllDeclarationExported {
     Identifier(Identifier),
     Literal(Literal),
@@ -117,9 +117,9 @@ pub enum ExportDefaultDeclarationDeclaration {
 pub struct ExportNamedDeclaration {
     #[serde(flatten)]
     pub node: Node,
-    pub declaration: ExportNamedDeclarationDeclaration,
+    pub declaration: Option<ExportNamedDeclarationDeclaration>,
     pub specifiers: Vec<ExportSpecifier>,
-    pub source: Literal,
+    pub source: Option<Literal>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -135,19 +135,19 @@ pub enum ExportNamedDeclarationDeclaration {
 pub struct ExportSpecifier {
     #[serde(flatten)]
     pub node: Node,
-    pub exported: Box<ExportSpecifierExported>,
     pub local: Box<ExportSpecifierLocal>,
+    pub exported: Box<ExportSpecifierExported>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(untagged)]
 pub enum ExportSpecifierExported {
     Identifier(Identifier),
     Literal(Literal),
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(untagged)]
 pub enum ExportSpecifierLocal {
     Identifier(Identifier),
     Literal(Literal),
