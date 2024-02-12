@@ -16,7 +16,7 @@ pub struct ClassDeclaration {
     #[serde(flatten)]
     pub node: Node,
     pub id: Option<Identifier>,
-    #[serde(alias = "superClass")]
+    #[serde(rename = "superClass")]
     pub super_class: Option<Expression>,
     pub body: ClassBody,
 }
