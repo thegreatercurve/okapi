@@ -280,28 +280,28 @@ impl<'a> Parser<'a> {
 
                         let assignment_expression = self.parse_assignment_expression()?;
 
-                        value = Box::new(assignment_expression);
+                        value = assignment_expression;
                     }
                     TokenKind::Equal => {
                         shorthand = false;
 
                         let assignment_expression = self.parse_assignment_expression()?;
 
-                        value = Box::new(assignment_expression);
+                        value = assignment_expression;
                     }
                     TokenKind::LeftParenthesis => {
                         method = true;
 
                         let method_definition = self.parse_method_definition()?;
 
-                        value = Box::new(method_definition);
+                        value = method_definition;
                     }
                     _ => {
                         shorthand = true;
 
                         match &property_name {
                             Expression::Identifier(identifier) => {
-                                value = Box::new(Expression::Identifier(identifier.clone()));
+                                value = Expression::Identifier(identifier.clone());
                             }
                             _ => return Err(ParserError::InvalidPropertyKey),
                         };
@@ -314,7 +314,7 @@ impl<'a> Parser<'a> {
                     computed,
                     key: property_name,
                     node: self.end_node()?,
-                    value,
+                    value: PropertyValue::Expression(value),
                     kind,
                 }))
             }

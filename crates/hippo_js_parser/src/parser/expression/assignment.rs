@@ -86,7 +86,7 @@ impl<'a> Parser<'a> {
                 return Ok(Expression::Assignment(AssignmentExpression {
                     node: self.end_node()?,
                     operator,
-                    left: Box::new(left_expression),
+                    left: Box::new(AssignmentExpressionLeft::Expression(left_expression)),
                     right: Box::new(right),
                 }));
             }

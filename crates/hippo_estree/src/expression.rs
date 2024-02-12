@@ -1,4 +1,4 @@
-use crate::{BlockStatement, FunctionParameter, Node};
+use crate::{ArrayPattern, BlockStatement, Node, ObjectPattern, Pattern};
 use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -37,66 +37,6 @@ pub enum Expression {
     Yield(YieldExpression),
 }
 
-// Patterns
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-pub struct ArrayPattern {
-    #[serde(flatten)]
-    pub node: Node,
-    pub elements: Vec<Option<ArrayPatternElement>>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum ArrayPatternElement {
-    AssignmentPattern(AssignmentPattern),
-    Identifier(Identifier),
-    BindingPattern(BindingPattern),
-    RestElement(RestElement),
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-pub struct RestElement {
-    #[serde(flatten)]
-    pub node: Node,
-    pub argument: RestElementArgument,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum RestElementArgument {
-    Identifier(Identifier),
-    BindingPattern(BindingPattern),
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-pub struct AssignmentPattern {
-    #[serde(flatten)]
-    pub node: Node,
-    pub left: AssignmentPatternLeft,
-    pub right: Expression,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum AssignmentPatternLeft {
-    Identifier(Identifier),
-    BindingPattern(BindingPattern),
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-pub struct ObjectPattern {
-    #[serde(flatten)]
-    pub node: Node,
-    pub properties: Vec<Property>,
-}
-
-// Expressions
-
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ArrayExpression {
@@ -118,7 +58,7 @@ pub enum ArrayExpressionElement {
 pub struct ArrowFunctionExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub params: Vec<FunctionParameter>,
+    pub params: Vec<Pattern>,
     pub body: ArrowFunctionExpressionBody,
     pub expression: bool,
     pub generator: bool,
@@ -139,8 +79,15 @@ pub struct AssignmentExpression {
     #[serde(flatten)]
     pub node: Node,
     pub operator: AssignmentOperator,
-    pub left: Box<Expression>,
+    pub left: Box<AssignmentExpressionLeft>,
     pub right: Box<Expression>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum AssignmentExpressionLeft {
+    Expression(Expression),
+    Pattern(Pattern),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -333,7 +280,7 @@ pub struct ConditionalExpression {
 pub struct FunctionExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub params: Vec<FunctionParameter>,
+    pub params: Vec<Pattern>,
     pub body: BlockStatement,
     pub expression: bool,
     pub generator: bool,
@@ -473,7 +420,7 @@ pub struct Property {
     pub computed: bool,
     pub key: Expression,
     pub kind: PropertyKind,
-    pub value: Box<Expression>,
+    pub value: PropertyValue,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -482,6 +429,13 @@ pub enum PropertyKind {
     Init,
     Get,
     Set,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum PropertyValue {
+    Expression(Expression),
+    Pattern(Pattern),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

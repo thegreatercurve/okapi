@@ -1,9 +1,6 @@
 use serde::Serialize;
 
-use crate::{
-    ArrayPattern, AssignmentPattern, BindingPattern, ClassBody, Expression, Identifier, Node,
-    ObjectPattern, RestElement,
-};
+use crate::{Declaration, Expression, Identifier, Node, Pattern, VariableDeclaration};
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
@@ -32,14 +29,6 @@ pub enum Statement {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
-pub enum Declaration {
-    Class(ClassDeclaration),
-    Function(FunctionDeclaration),
-    Variable(VariableDeclaration),
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
 pub enum StatementListItem {
     Declaration(Declaration),
     Statement(Statement),
@@ -59,17 +48,6 @@ pub struct BreakStatement {
     #[serde(flatten)]
     pub node: Node,
     pub label: Option<Identifier>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-pub struct ClassDeclaration {
-    #[serde(flatten)]
-    pub node: Node,
-    pub id: Option<Identifier>,
-    #[serde(alias = "superClass")]
-    pub super_class: Option<Expression>,
-    pub body: ClassBody,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -154,29 +132,6 @@ pub struct ForOfStatement {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
-pub struct FunctionDeclaration {
-    #[serde(flatten)]
-    pub node: Node,
-    pub id: Option<Identifier>,
-    pub expression: bool,
-    pub generator: bool,
-    #[serde(rename = "async")]
-    pub asynchronous: bool,
-    pub params: Vec<FunctionParameter>,
-    pub body: BlockStatement,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum FunctionParameter {
-    Assignment(AssignmentPattern),
-    Binding(BindingPattern),
-    Identifier(Identifier),
-    Rest(RestElement),
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
 pub struct IfStatement {
     #[serde(flatten)]
     pub node: Node,
@@ -251,49 +206,8 @@ pub struct TryStatement {
 pub struct CatchClause {
     #[serde(flatten)]
     pub node: Node,
-    pub param: CatchClauseParameter,
+    pub param: Option<Pattern>,
     pub body: BlockStatement,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum CatchClauseParameter {
-    BindingPattern(BindingPattern),
-    Identifier(Identifier),
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-pub struct VariableDeclaration {
-    #[serde(flatten)]
-    pub node: Node,
-    pub declarations: Vec<VariableDeclarator>,
-    pub kind: VariableKind,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum VariableKind {
-    Var,
-    Let,
-    Const,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(tag = "type")]
-pub struct VariableDeclarator {
-    #[serde(flatten)]
-    pub node: Node,
-    pub id: VariableDeclaratorBindingKind,
-    pub init: Option<Expression>,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum VariableDeclaratorBindingKind {
-    Identifier(Identifier),
-    ObjectPattern(ObjectPattern),
-    ArrayPattern(ArrayPattern),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

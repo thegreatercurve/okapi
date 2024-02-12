@@ -62,15 +62,9 @@ impl<'a> Parser<'a> {
         let current_token_kind = self.cursor.current_token_kind();
 
         let binding_identifier = match current_token_kind {
-            TokenKind::Identifier => {
-                VariableDeclaratorBindingKind::Identifier(self.parse_binding_identifier()?)
-            }
-            TokenKind::LeftCurlyBrace => {
-                VariableDeclaratorBindingKind::ObjectPattern(self.parse_object_binding_pattern()?)
-            }
-            TokenKind::LeftSquareBracket => {
-                VariableDeclaratorBindingKind::ArrayPattern(self.parse_array_binding_pattern()?)
-            }
+            TokenKind::Identifier => Pattern::Identifier(self.parse_binding_identifier()?),
+            TokenKind::LeftCurlyBrace => Pattern::Object(self.parse_object_binding_pattern()?),
+            TokenKind::LeftSquareBracket => Pattern::Array(self.parse_array_binding_pattern()?),
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
@@ -99,7 +93,7 @@ impl<'a> Parser<'a> {
 
         Ok(RestElement {
             node: self.end_node()?,
-            argument: RestElementArgument::Identifier(argument),
+            argument: Pattern::Identifier(argument),
         })
     }
 
@@ -174,16 +168,14 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingElement
-    pub(crate) fn parse_binding_element(&mut self) -> Result<FunctionParameter, ParserError> {
+    pub(crate) fn parse_binding_element(&mut self) -> Result<Pattern, ParserError> {
         // TODO This should handle a lot more options.
 
-        Ok(FunctionParameter::Identifier(
-            self.parse_binding_identifier()?,
-        ))
+        Ok(Pattern::Identifier(self.parse_binding_identifier()?))
     }
 
     // https://tc39.es/ecma262/#prod-BindingElement
-    pub(crate) fn parse_binding_rest_element(&mut self) -> Result<FunctionParameter, ParserError> {
+    pub(crate) fn parse_binding_rest_element(&mut self) -> Result<Pattern, ParserError> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::Ellipsis)?;
@@ -195,17 +187,17 @@ impl<'a> Parser<'a> {
         {
             let binding_identifier = self.parse_binding_identifier()?;
 
-            return Ok(FunctionParameter::Rest(RestElement {
+            return Ok(Pattern::Rest(Box::new(RestElement {
                 node: self.end_node()?,
-                argument: RestElementArgument::Identifier(binding_identifier),
-            }));
+                argument: Pattern::Identifier(binding_identifier),
+            })));
         }
 
         let binding_pattern = self.parse_binding_pattern()?;
 
-        Ok(FunctionParameter::Rest(RestElement {
-            node: self.end_node()?,
-            argument: RestElementArgument::BindingPattern(binding_pattern),
-        }))
+        match binding_pattern {
+            BindingPattern::ArrayPattern(array_pattern) => Ok(Pattern::Array(array_pattern)),
+            BindingPattern::ObjectPattern(object_pattern) => Ok(Pattern::Object(object_pattern)),
+        }
     }
 }
