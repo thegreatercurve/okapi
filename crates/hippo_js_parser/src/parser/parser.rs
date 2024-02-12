@@ -99,6 +99,6 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-Initializer
     fn parse_initializer(&mut self) -> Result<(), ParserError> {
-        todo!()
+        todo!("parse_initializer")
     }
 }

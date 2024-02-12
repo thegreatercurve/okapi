@@ -71,7 +71,7 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::Import) => {
                 self.cursor.advance(); // Eat 'import' token.
 
-                todo!()
+                todo!("import")
             }
             TokenKind::LeftParenthesis => {
                 let arguments = self.parse_arguments()?;
@@ -84,7 +84,7 @@ impl<'a> Parser<'a> {
                     arguments,
                 }));
             }
-            _ => todo!(),
+            _ => todo!("parse_call_expression"),
         }
     }
 
