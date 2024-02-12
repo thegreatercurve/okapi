@@ -40,6 +40,8 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
+        self.expect_optional_semicolon_and_advance();
+
         Ok(Statement::DoWhile(DoWhileStatement {
             node: self.end_node()?,
             test: test,

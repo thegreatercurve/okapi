@@ -24,7 +24,7 @@ impl<'a> Parser<'a> {
                 KeywordKind::Continue => self.parse_continue_statement(),
                 KeywordKind::Break => self.parse_break_statement(),
                 KeywordKind::Return => self.parse_return_statement(),
-                KeywordKind::With => todo!(),
+                KeywordKind::With => todo!("parse_with_statement"),
                 KeywordKind::Throw => self.parse_throw_statement(),
                 KeywordKind::Try => self.parse_try_statement(),
                 KeywordKind::Switch => self.parse_switch_statement(),
@@ -114,6 +114,8 @@ impl<'a> Parser<'a> {
             Some(self.parse_label_identifier()?)
         };
 
+        self.expect_optional_semicolon_and_advance();
+
         Ok(Statement::Continue(ContinueStatement {
             node: self.end_node()?,
             label,
@@ -150,6 +152,8 @@ impl<'a> Parser<'a> {
             Some(self.parse_expression()?)
         };
 
+        self.expect_optional_semicolon_and_advance();
+
         Ok(Statement::Return(ReturnStatement {
             node: self.end_node()?,
             argument,
@@ -163,6 +167,8 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Throw))?;
 
         let argument = self.parse_expression()?;
+
+        self.expect_optional_semicolon_and_advance();
 
         Ok(Statement::Throw(ThrowStatement {
             node: self.end_node()?,
