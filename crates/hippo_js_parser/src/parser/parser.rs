@@ -96,9 +96,4 @@ impl<'a> Parser<'a> {
             self.cursor.advance();
         }
     }
-
-    // https://tc39.es/ecma262/#prod-Initializer
-    fn parse_initializer(&mut self) -> Result<(), ParserError> {
-        todo!("parse_initializer")
-    }
 }

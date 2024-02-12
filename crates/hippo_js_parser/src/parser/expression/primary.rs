@@ -44,6 +44,8 @@ impl<'a> Parser<'a> {
         }
     }
 
+    // 13.2.1 The this Keyword
+    // https://tc39.es/ecma262/#sec-this-keyword
     fn parse_this_expression(&mut self) -> Result<Expression, ParserError> {
         self.start_node();
 
@@ -69,6 +71,7 @@ impl<'a> Parser<'a> {
         Ok(expression)
     }
 
+    // 13.2.3 Literals
     // https://tc39.es/ecma262/#prod-Literal
     pub(crate) fn parse_literal(&mut self) -> Result<Expression, ParserError> {
         self.start_node();
@@ -151,6 +154,7 @@ impl<'a> Parser<'a> {
         })
     }
 
+    // 13.2.4 Array Initializer
     // https://tc39.es/ecma262/#prod-ArrayLiteral
     fn parse_array_literal(&mut self) -> Result<Expression, ParserError> {
         self.start_node();
@@ -211,6 +215,7 @@ impl<'a> Parser<'a> {
         Ok(elements)
     }
 
+    // 13.2.5 Object Initializer
     // https://tc39.es/ecma262/#prod-ObjectLiteral
     fn parse_object_literal(&mut self) -> Result<Expression, ParserError> {
         self.start_node();
@@ -400,5 +405,10 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 
         Ok(assignment_expression)
+    }
+
+    // https://tc39.es/ecma262/#prod-Initializer
+    fn parse_initializer(&mut self) -> Result<(), ParserError> {
+        todo!("parse_initializer")
     }
 }
