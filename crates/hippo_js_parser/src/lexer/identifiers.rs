@@ -155,7 +155,7 @@ impl<'a> Lexer<'a> {
     pub(crate) fn scan_private_identifier(&mut self) -> Token {
         let start_index = self.read_index;
 
-        self.read_char();
+        self.read_char(); // Eat the '#' char.
 
         let identifier = self.read_identifier_start();
 
@@ -163,7 +163,7 @@ impl<'a> Lexer<'a> {
 
         match identifier {
             Ok(_) => Token::new(
-                TokenKind::Identifier,
+                TokenKind::PrivateIdentifier,
                 start_index,
                 self.read_index,
                 TokenValue::String(identifer_name.to_string()),

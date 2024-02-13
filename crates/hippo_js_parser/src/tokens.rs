@@ -94,6 +94,7 @@ pub enum TokenKind {
     // Keywords or Identifiers
     Keyword(KeywordKind),
     Identifier,
+    PrivateIdentifier,
 
     // Literals
     StringLiteral,
@@ -172,7 +173,7 @@ pub enum TokenKind {
 }
 
 impl TokenKind {
-    pub(crate) fn is_lexical_declaration_keyword(&self) -> bool {
+    pub(crate) fn is_lexical_declaration_start(&self) -> bool {
         matches!(
             self,
             TokenKind::Keyword(KeywordKind::Let)
@@ -181,14 +182,14 @@ impl TokenKind {
         )
     }
 
-    pub(crate) fn is_declaration_keyword(&self) -> bool {
+    pub(crate) fn is_declaration_start(&self) -> bool {
         matches!(
             self,
             TokenKind::Keyword(KeywordKind::Function) | TokenKind::Keyword(KeywordKind::Class)
-        ) | self.is_lexical_declaration_keyword()
+        ) | self.is_lexical_declaration_start()
     }
 
-    pub(crate) fn is_hoistable_declaration_keyword(&self) -> bool {
+    pub(crate) fn is_hoistable_declaration_start(&self) -> bool {
         matches!(
             self,
             TokenKind::Keyword(KeywordKind::Function) | TokenKind::Keyword(KeywordKind::Async)
@@ -254,7 +255,7 @@ impl TokenKind {
     }
 
     // https://tc39.es/ecma262/#prod-BindingIdentifier
-    pub(crate) fn is_binding_identifier_keyword(&self) -> bool {
+    pub(crate) fn is_binding_identifier_start(&self) -> bool {
         matches!(
             self,
             TokenKind::Identifier
@@ -270,6 +271,7 @@ impl std::fmt::Display for TokenKind {
             TokenKind::Addition => write!(f, "Addition"),
             TokenKind::Keyword(_) => write!(f, "Keyword"),
             TokenKind::Identifier => write!(f, "Identifier"),
+            TokenKind::PrivateIdentifier => write!(f, "PrivateIdentifier"),
             TokenKind::StringLiteral => write!(f, "StringLiteral"),
             TokenKind::NumberLiteral => write!(f, "NumberLiteral"),
             TokenKind::BigIntLiteral => write!(f, "BigIntLiteral"),

@@ -183,7 +183,7 @@ impl<'a> Parser<'a> {
         if self
             .cursor
             .current_token_kind()
-            .is_binding_identifier_keyword()
+            .is_binding_identifier_start()
         {
             let binding_identifier = self.parse_binding_identifier()?;
 

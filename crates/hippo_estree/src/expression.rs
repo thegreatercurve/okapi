@@ -1,4 +1,4 @@
-use crate::{ArrayPattern, BlockStatement, Node, ObjectPattern, Pattern};
+use crate::{ArrayPattern, BlockStatement, Node, ObjectPattern, Pattern, StaticBlockStatement};
 use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -241,7 +241,33 @@ pub struct ClassExpression {
 pub struct ClassBody {
     #[serde(flatten)]
     pub node: Node,
-    pub body: Vec<MethodDefinition>,
+    pub body: Vec<ClassBodyBody>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum ClassBodyBody {
+    MethodDefinition(MethodDefinition),
+    PropertyDefinition(PropertyDefinition),
+    StaticBlock(StaticBlockStatement),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(tag = "type")]
+pub struct PropertyDefinition {
+    #[serde(flatten)]
+    pub node: Node,
+    pub key: Option<PropertyDefinitionKey>,
+    pub value: Option<FunctionExpression>,
+    pub computed: bool,
+    #[serde(alias = "static")]
+    pub stattic: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub enum PropertyDefinitionKey {
+    Expression(Expression),
+    PrivateIdentifier(PrivateIdentifier),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -249,12 +275,18 @@ pub struct ClassBody {
 pub struct MethodDefinition {
     #[serde(flatten)]
     pub node: Node,
-    pub key: Option<Expression>,
+    pub key: Option<MethodDefinitionKey>,
     pub value: Option<FunctionExpression>,
     pub computed: bool,
     pub kind: MethodDefinitionKind,
     #[serde(alias = "static")]
     pub stattic: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub enum MethodDefinitionKey {
+    Expression(Expression),
+    PrivateIdentifier(PrivateIdentifier),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -291,6 +323,14 @@ pub struct FunctionExpression {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct Identifier {
+    #[serde(flatten)]
+    pub node: Node,
+    pub name: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(tag = "type")]
+pub struct PrivateIdentifier {
     #[serde(flatten)]
     pub node: Node,
     pub name: String,

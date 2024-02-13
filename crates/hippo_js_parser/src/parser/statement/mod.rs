@@ -20,7 +20,7 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-Statement
     pub(crate) fn parse_statement(&mut self) -> Result<Statement, ParserError> {
         match self.cursor.current_token_kind() {
-            current_token_kind if current_token_kind.is_lexical_declaration_keyword() => Ok(
+            current_token_kind if current_token_kind.is_lexical_declaration_start() => Ok(
                 Statement::Declaration(Declaration::Variable(self.parse_lexical_declaration()?)),
             ),
             TokenKind::Keyword(keyword) => match keyword {
@@ -47,13 +47,13 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-Declaration
     fn parse_declaration(&mut self) -> Result<Declaration, ParserError> {
         match self.cursor.current_token_kind() {
-            current_token_kind if current_token_kind.is_hoistable_declaration_keyword() => {
+            current_token_kind if current_token_kind.is_hoistable_declaration_start() => {
                 self.parse_hoistable_declaration()
             }
             TokenKind::Keyword(KeywordKind::Class) => {
                 Ok(Declaration::Class(self.parse_class_declaration()?))
             }
-            current_token_kind if current_token_kind.is_lexical_declaration_keyword() => {
+            current_token_kind if current_token_kind.is_lexical_declaration_start() => {
                 Ok(Declaration::Variable(self.parse_lexical_declaration()?))
             }
 

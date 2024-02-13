@@ -60,9 +60,38 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-ClassBody
-    fn parse_class_body(&mut self) -> Result<Vec<MethodDefinition>, ParserError> {
+    fn parse_class_body(&mut self) -> Result<Vec<ClassBodyBody>, ParserError> {
         // TODO This should parse method definitions.
+        let mut class_element_list = vec![];
 
-        Ok(vec![])
+        while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {
+            let Some(class_element) = self.parse_class_element()? else {
+                continue;
+            };
+
+            class_element_list.push(class_element);
+        }
+
+        Ok(class_element_list)
+    }
+
+    // https://tc39.es/ecma262/#prod-ClassElement
+    fn parse_class_element(&mut self) -> Result<Option<ClassBodyBody>, ParserError> {
+        match self.cursor.current_token_kind() {
+            TokenKind::Semicolon => {
+                self.cursor.advance();
+
+                return Ok(None);
+            }
+            TokenKind::Keyword(KeywordKind::Static) => {
+                // TODO Check if is method definition, field definition or static block.
+                todo!("parse_class_element")
+            }
+            _ => {
+                todo!("parse_class_element")
+            }
+        }
+
+        // Ok(Some())
     }
 }

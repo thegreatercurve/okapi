@@ -52,7 +52,7 @@ impl<'a> Parser<'a> {
                     },
                 ))
             }
-            current_token_kind if current_token_kind.is_declaration_keyword() => {
+            current_token_kind if current_token_kind.is_declaration_start() => {
                 let variable_declaration = self.parse_lexical_declaration()?;
 
                 Ok(ExportDeclaration::ExportNamedDeclaration(

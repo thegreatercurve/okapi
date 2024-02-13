@@ -35,7 +35,7 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-StatementListItem
     pub(crate) fn parse_statement_list_item(&mut self) -> Result<StatementListItem, ParserError> {
         match self.cursor.current_token_kind() {
-            current_token_kind if current_token_kind.is_declaration_keyword() => {
+            current_token_kind if current_token_kind.is_declaration_start() => {
                 Ok(StatementListItem::Declaration(self.parse_declaration()?))
             }
             _ => Ok(StatementListItem::Statement(self.parse_statement()?)),
