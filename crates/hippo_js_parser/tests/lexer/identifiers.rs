@@ -123,7 +123,12 @@ fn complex_keywords_and_identifiers() {
             ),
             identifier("Foo", 6, 9),
             punctuator(TokenKind::LeftCurlyBrace, 10, 11),
-            identifier("#bar", 12, 16),
+            Token {
+                kind: TokenKind::PrivateIdentifier,
+                start: 12,
+                end: 16,
+                value: TokenValue::String("bar".to_string()),
+            },
             punctuator(TokenKind::Assignment, 17, 18),
             number_literal("1", 1.0, 19, 20),
             punctuator(TokenKind::Semicolon, 20, 21),

@@ -19,7 +19,7 @@ pub enum Statement {
     If(IfStatement),
     Labeled(LabeledStatement),
     Return(ReturnStatement),
-    StaticBlock(StaticBlockStatement),
+    StaticBlock(StaticBlock),
     Switch(SwitchStatement),
     Throw(ThrowStatement),
     Try(TryStatement),
@@ -159,10 +159,10 @@ pub struct ReturnStatement {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
-pub struct StaticBlockStatement {
+pub struct StaticBlock {
     #[serde(flatten)]
     pub node: Node,
-    pub body: Vec<Box<StatementListItem>>,
+    pub body: Vec<StatementListItem>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

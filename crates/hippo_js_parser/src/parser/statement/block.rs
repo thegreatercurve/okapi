@@ -22,7 +22,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-StatementList
-    fn parse_statement_list(&mut self) -> Result<Vec<StatementListItem>, ParserError> {
+    pub(crate) fn parse_statement_list(&mut self) -> Result<Vec<StatementListItem>, ParserError> {
         let mut body = vec![];
 
         while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {

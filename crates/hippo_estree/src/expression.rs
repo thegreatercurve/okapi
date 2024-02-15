@@ -1,4 +1,4 @@
-use crate::{ArrayPattern, BlockStatement, Node, ObjectPattern, Pattern, StaticBlockStatement};
+use crate::{ArrayPattern, BlockStatement, Node, ObjectPattern, Pattern, StaticBlock};
 use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -249,7 +249,7 @@ pub struct ClassBody {
 pub enum ClassBodyBody {
     MethodDefinition(MethodDefinition),
     PropertyDefinition(PropertyDefinition),
-    StaticBlock(StaticBlockStatement),
+    StaticBlock(StaticBlock),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -257,14 +257,15 @@ pub enum ClassBodyBody {
 pub struct PropertyDefinition {
     #[serde(flatten)]
     pub node: Node,
-    pub key: Option<PropertyDefinitionKey>,
-    pub value: Option<FunctionExpression>,
-    pub computed: bool,
-    #[serde(alias = "static")]
+    #[serde(rename = "static")]
     pub stattic: bool,
+    pub computed: bool,
+    pub key: Option<PropertyDefinitionKey>,
+    pub value: Option<Expression>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum PropertyDefinitionKey {
     Expression(Expression),
     PrivateIdentifier(PrivateIdentifier),

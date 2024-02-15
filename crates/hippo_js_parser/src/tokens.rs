@@ -263,6 +263,20 @@ impl TokenKind {
                 | TokenKind::Keyword(KeywordKind::Yield)
         )
     }
+
+    // 15.7 Class Definitions
+    // https://tc39.es/ecma262/#prod-ClassElementName
+    pub(crate) fn is_class_element_name_start(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::Keyword(KeywordKind::Static)
+                | TokenKind::PrivateIdentifier
+                | TokenKind::Identifier
+                | TokenKind::StringLiteral
+                | TokenKind::NumberLiteral
+                | TokenKind::LeftSquareBracket
+        )
+    }
 }
 
 impl std::fmt::Display for TokenKind {

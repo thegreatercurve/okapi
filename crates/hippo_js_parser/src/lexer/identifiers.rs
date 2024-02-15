@@ -159,7 +159,8 @@ impl<'a> Lexer<'a> {
 
         let identifier = self.read_identifier_start();
 
-        let identifer_name = &self.source_str[start_index..self.read_index];
+        // Omit the '#' char.
+        let identifer_name = &self.source_str[start_index + 1..self.read_index];
 
         match identifier {
             Ok(_) => Token::new(

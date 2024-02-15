@@ -6,7 +6,7 @@ use hippo_estree::*;
 impl<'a> Parser<'a> {
     // 15.4 Method Definitions
     // https://tc39.es/ecma262/#sec-method-definitions
-    pub(crate) fn parse_method_definition(&mut self) -> Result<Expression, ParserError> {
+    pub(crate) fn parse_method_definition(&mut self) -> Result<MethodDefinition, ParserError> {
         todo!("parse_method_definition")
     }
 }

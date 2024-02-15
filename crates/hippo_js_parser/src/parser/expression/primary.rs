@@ -285,28 +285,30 @@ impl<'a> Parser<'a> {
 
                         let assignment_expression = self.parse_assignment_expression()?;
 
-                        value = assignment_expression;
+                        value = PropertyValue::Expression(assignment_expression);
                     }
                     TokenKind::Equal => {
                         shorthand = false;
 
                         let assignment_expression = self.parse_assignment_expression()?;
 
-                        value = assignment_expression;
+                        value = PropertyValue::Expression(assignment_expression);
                     }
-                    TokenKind::LeftParenthesis => {
-                        method = true;
+                    // TokenKind::LeftParenthesis => {
+                    //     method = true;
 
-                        let method_definition = self.parse_method_definition()?;
+                    //     let method_definition = self.parse_method_definition()?;
 
-                        value = method_definition;
-                    }
+                    //     value = PropertyValue::Expression(method_definition);
+                    // }
                     _ => {
                         shorthand = true;
 
                         match &property_name {
                             Expression::Identifier(identifier) => {
-                                value = Expression::Identifier(identifier.clone());
+                                value = PropertyValue::Expression(Expression::Identifier(
+                                    identifier.clone(),
+                                ));
                             }
                             _ => return Err(ParserError::InvalidPropertyKey),
                         };
@@ -319,7 +321,7 @@ impl<'a> Parser<'a> {
                     computed,
                     key: property_name,
                     node: self.end_node()?,
-                    value: PropertyValue::Expression(value),
+                    value,
                     kind,
                 }))
             }
@@ -340,7 +342,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-PropertyName
-    fn parse_property_name(&mut self) -> Result<Expression, ParserError> {
+    pub(crate) fn parse_property_name(&mut self) -> Result<Expression, ParserError> {
         let token_value = self.cursor.current_token_value();
 
         match self.cursor.current_token_kind() {
