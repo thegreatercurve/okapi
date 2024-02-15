@@ -77,9 +77,6 @@ impl<'a> Parser<'a> {
 
     // https://tc39.es/ecma262/#prod-ClassElement
     fn parse_class_element(&mut self) -> Result<Option<ClassBodyBody>, ParserError> {
-        let is_static = self.cursor.current_token_kind() == TokenKind::Keyword(KeywordKind::Static);
-        let is_computed = self.cursor.current_token_kind() == TokenKind::LeftSquareBracket;
-
         match self.cursor.current_token_kind() {
             TokenKind::Semicolon => {
                 self.cursor.advance(); // Eat ';' token.
@@ -101,7 +98,7 @@ impl<'a> Parser<'a> {
                     )))
                 } else {
                     Ok(Some(ClassBodyBody::PropertyDefinition(
-                        self.parse_field_definition(is_static, is_computed)?,
+                        self.parse_field_definition()?,
                     )))
                 }
             }
@@ -110,12 +107,17 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-FieldDefinition
-    fn parse_field_definition(
-        &mut self,
-        is_static: bool,
-        is_computed: bool,
-    ) -> Result<PropertyDefinition, ParserError> {
+    fn parse_field_definition(&mut self) -> Result<PropertyDefinition, ParserError> {
+        let mut is_static = false;
+        let mut is_computed = false;
+
         self.start_node();
+
+        if self.cursor.current_token_kind() == TokenKind::Keyword(KeywordKind::Static) {
+            is_static = true;
+
+            self.expect_and_advance(TokenKind::Keyword(KeywordKind::Static))?;
+        }
 
         let property_name = match self.cursor.current_token_kind() {
             TokenKind::PrivateIdentifier => {
@@ -133,6 +135,8 @@ impl<'a> Parser<'a> {
                 })
             }
             TokenKind::LeftSquareBracket => {
+                is_computed = true;
+
                 self.cursor.advance(); // Eat '[' token.
 
                 let expression = self.parse_expression()?;
