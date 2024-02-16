@@ -25,7 +25,7 @@ fn class_declaration_with_class_heritage() {
 // }
 
 #[test]
-fn class_declaration_with_class_element_list() {
+fn class_declaration_with_class_element_list_property_definitions() {
     assert_parse_module_eq!(
         r#"class Foo extends Bar { ;;; }"#,
         r#"{"type":"Program","start":0,"end":29,"body":[{"type":"ClassDeclaration","start":0,"end":29,"id":{"type":"Identifier","start":6,"end":9,"name":"Foo"},"superClass":{"type":"Identifier","start":18,"end":21,"name":"Bar"},"body":{"type":"ClassBody","start":22,"end":29,"body":[]}}],"sourceType":"module"}"#
@@ -44,20 +44,22 @@ fn class_declaration_with_class_element_list() {
 #[test]
 fn class_declaration_with_class_element_list_method_definitions() {
     assert_parse_module_eq!(
-        r#"class Foo { constructor() {} bar() {} }"#,
-        r#"{"type":"Program","start":0,"end":39,"body":[{"type":"ClassDeclaration","start":0,"end":39,"id":{"type":"Identifier","start":6,"end":9,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":10,"end":39,"body":[{"type":"MethodDefinition","start":12,"end":28,"static":false,"computed":false,"key":{"type":"Identifier","start":12,"end":23,"name":"constructor"},"kind":"constructor","value":{"type":"FunctionExpression","start":23,"end":28,"id":null,"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":26,"end":28,"body":[]}}},{"type":"MethodDefinition","start":29,"end":37,"static":false,"computed":false,"key":{"type":"Identifier","start":29,"end":32,"name":"bar"},"kind":"method","value":{"type":"FunctionExpression","start":32,"end":37,"id":null,"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":35,"end":37,"body":[]}}}]}}],"sourceType":"module"}"#
-    );
-
-    assert_parse_module_eq!(
-        r#"class Foo { static method() {} }"#,
-        r#"{"type":"Program","start":0,"end":32,"body":[{"type":"ClassDeclaration","start":0,"end":32,"id":{"type":"Identifier","start":6,"end":9,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":10,"end":32,"body":[{"type":"MethodDefinition","start":12,"end":30,"static":true,"computed":false,"key":{"type":"Identifier","start":19,"end":25,"name":"method"},"kind":"method","value":{"type":"FunctionExpression","start":25,"end":30,"id":null,"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":28,"end":30,"body":[]}}}]}}],"sourceType":"module"}"#
+        r#"class Foo {
+    constructor() {}
+    bar() {}
+}"#,
+        r#"{"type":"Program","start":0,"end":47,"body":[{"type":"ClassDeclaration","start":0,"end":47,"id":{"type":"Identifier","start":6,"end":9,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":10,"end":47,"body":[{"type":"MethodDefinition","start":16,"end":32,"static":false,"computed":false,"key":{"type":"Identifier","start":16,"end":27,"name":"constructor"},"kind":"constructor","value":{"type":"FunctionExpression","start":27,"end":32,"id":null,"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":30,"end":32,"body":[]}}},{"type":"MethodDefinition","start":37,"end":45,"static":false,"computed":false,"key":{"type":"Identifier","start":37,"end":40,"name":"bar"},"kind":"method","value":{"type":"FunctionExpression","start":40,"end":45,"id":null,"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":43,"end":45,"body":[]}}}]}}],"sourceType":"module"}"#
     );
 }
 
 #[test]
 fn class_declaration_with_static_block() {
     assert_parse_module_eq!(
-        r#"class Foo { static { 1 + 1; } }"#,
-        r#"{"type":"Program","start":0,"end":31,"body":[{"type":"ClassDeclaration","start":0,"end":31,"id":{"type":"Identifier","start":6,"end":9,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":10,"end":31,"body":[{"type":"StaticBlock","start":12,"end":29,"body":[{"type":"ExpressionStatement","start":21,"end":27,"expression":{"type":"BinaryExpression","start":21,"end":26,"left":{"type":"Literal","start":21,"end":22,"value":1.0,"raw":"1"},"operator":"+","right":{"type":"Literal","start":25,"end":26,"value":1.0,"raw":"1"}}}]}]}}],"sourceType":"module"}"#
+        r#"class Foo { 
+    static {
+        1 + 1; 
+    }
+}"#,
+        r#"{"type":"Program","start":0,"end":49,"body":[{"type":"ClassDeclaration","start":0,"end":49,"id":{"type":"Identifier","start":6,"end":9,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":10,"end":49,"body":[{"type":"StaticBlock","start":17,"end":47,"body":[{"type":"ExpressionStatement","start":34,"end":40,"expression":{"type":"BinaryExpression","start":34,"end":39,"left":{"type":"Literal","start":34,"end":35,"value":1.0,"raw":"1"},"operator":"+","right":{"type":"Literal","start":38,"end":39,"value":1.0,"raw":"1"}}}]}]}}],"sourceType":"module"}"#
     );
 }

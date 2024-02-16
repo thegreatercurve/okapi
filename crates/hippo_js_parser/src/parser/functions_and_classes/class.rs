@@ -91,14 +91,17 @@ impl<'a> Parser<'a> {
                 Ok(Some(ClassBodyBody::StaticBlock(static_block)))
             }
             // TODO Parse method definitions.
-            current_token_kind if current_token_kind.is_class_element_name_start() => {
+            current_token_kind
+                if current_token_kind == TokenKind::Keyword(KeywordKind::Static)
+                    || current_token_kind.is_class_element_name_start() =>
+            {
                 if self.cursor.peek_token_kind() == TokenKind::LeftParenthesis {
                     Ok(Some(ClassBodyBody::MethodDefinition(
-                        self.parse_method_definition()?,
+                        self.parse_method_definition_with_static()?,
                     )))
                 } else {
                     Ok(Some(ClassBodyBody::PropertyDefinition(
-                        self.parse_field_definition()?,
+                        self.parse_field_definition_with_static()?,
                     )))
                 }
             }
@@ -107,46 +110,20 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-FieldDefinition
-    fn parse_field_definition(&mut self) -> Result<PropertyDefinition, ParserError> {
+    fn parse_field_definition_with_static(&mut self) -> Result<PropertyDefinition, ParserError> {
         let mut is_static = false;
-        let mut is_computed = false;
 
         self.start_node();
 
         if self.cursor.current_token_kind() == TokenKind::Keyword(KeywordKind::Static) {
             is_static = true;
 
-            self.expect_and_advance(TokenKind::Keyword(KeywordKind::Static))?;
+            self.cursor.advance(); // Eat `static` token.
         }
 
-        let property_name = match self.cursor.current_token_kind() {
-            TokenKind::PrivateIdentifier => {
-                self.start_node();
+        let is_computed: bool = self.cursor.current_token_kind() == TokenKind::LeftSquareBracket;
 
-                let TokenValue::String(token_value) = self.cursor.current_token_value() else {
-                    return Err(ParserError::UnexpectedTokenValue);
-                };
-
-                self.cursor.advance(); // Eat private identifier token.
-
-                PropertyDefinitionKey::PrivateIdentifier(PrivateIdentifier {
-                    node: self.end_node()?,
-                    name: token_value,
-                })
-            }
-            TokenKind::LeftSquareBracket => {
-                is_computed = true;
-
-                self.cursor.advance(); // Eat '[' token.
-
-                let expression = self.parse_expression()?;
-
-                self.expect_and_advance(TokenKind::RightSquareBracket)?;
-
-                PropertyDefinitionKey::Expression(expression)
-            }
-            _ => PropertyDefinitionKey::Expression(self.parse_property_name()?),
-        };
+        let class_element_name = self.parse_class_element_name()?;
 
         let optional_assignment_expression =
             if self.cursor.current_token_kind() == TokenKind::Assignment {
@@ -161,11 +138,38 @@ impl<'a> Parser<'a> {
 
         Ok(PropertyDefinition {
             node: self.end_node()?,
-            stattic: is_static,
+            is_static: is_static,
             computed: is_computed,
-            key: Some(property_name),
+            key: Some(class_element_name),
             value: optional_assignment_expression,
         })
+    }
+
+    // https://tc39.es/ecma262/#prod-ClassElementName
+    pub(crate) fn parse_class_element_name(
+        &mut self,
+    ) -> Result<PropertyDefinitionKey, ParserError> {
+        match self.cursor.current_token_kind() {
+            TokenKind::PrivateIdentifier => {
+                self.start_node();
+
+                let TokenValue::String(token_value) = self.cursor.current_token_value() else {
+                    return Err(ParserError::UnexpectedTokenValue);
+                };
+
+                self.cursor.advance(); // Eat private identifier token.
+
+                Ok(PropertyDefinitionKey::PrivateIdentifier(
+                    PrivateIdentifier {
+                        node: self.end_node()?,
+                        name: token_value,
+                    },
+                ))
+            }
+            _ => Ok(PropertyDefinitionKey::Expression(
+                self.parse_property_name()?,
+            )),
+        }
     }
 
     // https://tc39.es/ecma262/#prod-ClassStaticBlock

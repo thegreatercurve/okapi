@@ -62,8 +62,8 @@ pub struct ArrowFunctionExpression {
     pub body: ArrowFunctionExpressionBody,
     pub expression: bool,
     pub generator: bool,
-    #[serde(alias = "async")]
-    pub asynchronous: bool,
+    #[serde(rename = "async")]
+    pub is_async: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -258,7 +258,7 @@ pub struct PropertyDefinition {
     #[serde(flatten)]
     pub node: Node,
     #[serde(rename = "static")]
-    pub stattic: bool,
+    pub is_static: bool,
     pub computed: bool,
     pub key: Option<PropertyDefinitionKey>,
     pub value: Option<Expression>,
@@ -276,21 +276,16 @@ pub enum PropertyDefinitionKey {
 pub struct MethodDefinition {
     #[serde(flatten)]
     pub node: Node,
-    pub key: Option<MethodDefinitionKey>,
-    pub value: Option<FunctionExpression>,
+    #[serde(rename = "static")]
+    pub is_static: bool,
     pub computed: bool,
+    pub key: Option<PropertyDefinitionKey>,
     pub kind: MethodDefinitionKind,
-    #[serde(alias = "static")]
-    pub stattic: bool,
+    pub value: Option<FunctionExpression>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
-pub enum MethodDefinitionKey {
-    Expression(Expression),
-    PrivateIdentifier(PrivateIdentifier),
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum MethodDefinitionKind {
     Constructor,
     Method,
@@ -313,12 +308,13 @@ pub struct ConditionalExpression {
 pub struct FunctionExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub params: Vec<Pattern>,
-    pub body: BlockStatement,
+    pub id: Option<Identifier>,
     pub expression: bool,
     pub generator: bool,
-    #[serde(alias = "async")]
-    pub asynchronous: bool,
+    #[serde(rename = "async")]
+    pub is_async: bool,
+    pub params: Vec<Pattern>,
+    pub body: BlockStatement,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

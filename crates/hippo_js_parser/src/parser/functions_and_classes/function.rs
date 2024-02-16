@@ -62,16 +62,17 @@ impl<'a> Parser<'a> {
 
         Ok(Expression::Function(FunctionExpression {
             node: self.end_node()?,
+            id: None,
             body,
             params: formal_paramaters,
             expression: false,
             generator: false,
-            asynchronous: false,
+            is_async: false,
         }))
     }
 
     // https://tc39.es/ecma262/#prod-FunctionBody
-    fn parse_function_body(&mut self) -> Result<BlockStatement, ParserError> {
+    pub(crate) fn parse_function_body(&mut self) -> Result<BlockStatement, ParserError> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;

@@ -126,7 +126,7 @@ pub struct ForOfStatement {
     pub left: Expression,
     pub right: Expression,
     pub body: Box<Statement>,
-    #[serde(alias = "await")]
+    #[serde(rename = "await")]
     pub awaiting: bool,
 }
 

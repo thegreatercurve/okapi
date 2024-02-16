@@ -269,12 +269,11 @@ impl TokenKind {
     pub(crate) fn is_class_element_name_start(&self) -> bool {
         matches!(
             self,
-            TokenKind::Keyword(KeywordKind::Static)
-                | TokenKind::PrivateIdentifier
-                | TokenKind::Identifier
+            TokenKind::Identifier
                 | TokenKind::StringLiteral
                 | TokenKind::NumberLiteral
                 | TokenKind::LeftSquareBracket
+                | TokenKind::PrivateIdentifier
         )
     }
 }
