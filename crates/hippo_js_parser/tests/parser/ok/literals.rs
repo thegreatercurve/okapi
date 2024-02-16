@@ -15,10 +15,10 @@ fn literals() {
         r#"{"type":"Program","start":0,"end":5,"body":[{"type":"ExpressionStatement","start":0,"end":5,"expression":{"type":"Literal","start":0,"end":5,"value":false,"raw":"false"}}],"sourceType":"module"}"#
     );
     // assert_parse_module_eq!(r#"5n"#, r#"undefined"#);
-    // assert_parse_module_eq!(
-    //     r#""foo""#,
-    //     r#"{"type":"Program","start":0,"end":5,"body":[{"type":"ExpressionStatement","start":0,"end":5,"expression":{"type":"Literal","start":0,"end":5,"value":"foo","raw":"\"foo\""},"directive":"foo"}],"sourceType":"module"}"#
-    // );
+    assert_parse_module_eq!(
+        r#""foo""#,
+        r#"{"type":"Program","start":0,"end":5,"body":[{"type":"ExpressionStatement","start":0,"end":5,"expression":{"type":"Literal","start":0,"end":5,"value":"foo","raw":"\"foo\""},"directive":"foo"}],"sourceType":"module"}"#
+    );
     // assert_parse_module_eq!(
     //     r#"'bar'"#,
     //     r#"{"type":"Program","start":0,"end":5,"body":[{"type":"ExpressionStatement","start":0,"end":5,"expression":{"type":"Literal","start":0,"end":5,"value":"bar","raw":"'bar'"},"directive":"bar"}],"sourceType":"module"}"#

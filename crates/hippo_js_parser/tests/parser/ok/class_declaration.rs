@@ -53,6 +53,19 @@ fn class_declaration_with_class_element_list_method_definitions() {
 }
 
 #[test]
+fn class_declaration_with_class_element_list_static_method_definitions() {
+    assert_parse_module_eq!(
+        r#"class foo {
+    static foo(bar) {}
+    static *foo() {}
+    static async foo() {}
+    static async *foo() {}
+}"#,
+        r#"{"type":"Program","start":0,"end":49,"body":[{"type":"ClassDeclaration","start":0,"end":49,"id":{"type":"Identifier","start":6,"end":9,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":10,"end":49,"body":[{"type":"StaticBlock","start":17,"end":47,"body":[{"type":"ExpressionStatement","start":34,"end":40,"expression":{"type":"BinaryExpression","start":34,"end":39,"left":{"type":"Literal","start":34,"end":35,"value":1.0,"raw":"1"},"operator":"+","right":{"type":"Literal","start":38,"end":39,"value":1.0,"raw":"1"}}}]}]}}],"sourceType":"module"}"#
+    );
+}
+
+#[test]
 fn class_declaration_with_static_block() {
     assert_parse_module_eq!(
         r#"class Foo { 
