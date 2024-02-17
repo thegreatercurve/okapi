@@ -1,4 +1,4 @@
-witch (foo) {
+switch (foo) {
   case bar:
   default:
 }

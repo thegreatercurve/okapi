@@ -1,3 +1,5 @@
+mod array_binding;
+mod array_binding_rest;
 mod array_expression;
 mod assignment_expression;
 mod binary_expression;
@@ -15,7 +17,7 @@ mod logical_expression;
 mod module_export;
 mod module_import;
 mod object_expression;
-mod parameter_list;
+// mod parameter_list;
 mod postfix_expression;
 mod prefix_expression;
 mod return_statement;
@@ -25,8 +27,6 @@ mod while_statement;
 
 // mod array_assignment_target;
 // mod array_assignment_target_rest;
-// mod array_binding;
-// mod array_binding_rest;
 // mod array_element_in_expression;
 // mod arrow_expression_in_alternate;
 // mod arrow_expression_single_param;
