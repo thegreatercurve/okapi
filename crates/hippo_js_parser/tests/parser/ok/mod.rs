@@ -16,6 +16,7 @@ mod literals;
 mod logical_expression;
 mod module_export;
 mod module_import;
+mod object_binding;
 mod object_expression;
 // mod parameter_list;
 mod postfix_expression;

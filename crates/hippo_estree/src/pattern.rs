@@ -3,6 +3,16 @@ use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
+pub enum FunctionParameter {
+    Identifier(Identifier),
+    Object(ObjectPattern),
+    Array(ArrayPattern),
+    Assignment(AssignmentPattern),
+    Rest(RestElement),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum Pattern {
     Identifier(Identifier),
     Object(ObjectPattern),
@@ -16,7 +26,51 @@ pub enum Pattern {
 pub struct ArrayPattern {
     #[serde(flatten)]
     pub node: Node,
-    pub elements: Vec<Option<Pattern>>,
+    pub elements: Vec<Option<ArrayPatternElement>>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum ArrayPatternElement {
+    Identifier(Identifier),
+    Object(ObjectPattern),
+    Array(ArrayPattern),
+    Rest(RestElement),
+    Assignment(AssignmentPattern),
+}
+
+impl ArrayPatternElement {
+    pub fn to_function_parameter(self) -> FunctionParameter {
+        match self {
+            ArrayPatternElement::Identifier(identifier) => {
+                FunctionParameter::Identifier(identifier)
+            }
+            ArrayPatternElement::Object(object_pattern) => {
+                FunctionParameter::Object(object_pattern)
+            }
+            ArrayPatternElement::Array(array_pattern) => FunctionParameter::Array(array_pattern),
+
+            ArrayPatternElement::Assignment(assignment_pattern) => {
+                FunctionParameter::Assignment(assignment_pattern)
+            }
+
+            ArrayPatternElement::Rest(assignment_pattern) => {
+                FunctionParameter::Rest(assignment_pattern)
+            }
+        }
+    }
+
+    pub fn to_pattern(self) -> Pattern {
+        match self {
+            ArrayPatternElement::Identifier(identifier) => Pattern::Identifier(identifier),
+            ArrayPatternElement::Object(object_pattern) => Pattern::Object(object_pattern),
+            ArrayPatternElement::Array(array_pattern) => Pattern::Array(array_pattern),
+            ArrayPatternElement::Rest(rest_element) => Pattern::Rest(Box::new(rest_element)),
+            ArrayPatternElement::Assignment(assignment_pattern) => {
+                Pattern::Assignment(Box::new(assignment_pattern))
+            }
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -41,5 +95,12 @@ pub struct AssignmentPattern {
 pub struct ObjectPattern {
     #[serde(flatten)]
     pub node: Node,
-    pub properties: Vec<Property>,
+    pub properties: Vec<ObjectPatternProperty>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum ObjectPatternProperty {
+    Property(Property),
+    Rest(RestElement),
 }

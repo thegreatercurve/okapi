@@ -264,14 +264,14 @@ impl<'a> Parser<'a> {
 
                 let property_name = self.parse_property_name()?;
 
-                let mut shorthand = matches!(property_name, Expression::Identifier(_));
+                let mut _shorthand = matches!(property_name, Expression::Identifier(_));
 
                 let computed = !matches!(
                     property_name,
                     Expression::Identifier(_) | Expression::Literal(_)
                 );
 
-                let mut method = false;
+                let mut _method = false;
                 // TODO Add support for `get` and `set`.
                 let kind = PropertyKind::Init;
 
@@ -279,7 +279,7 @@ impl<'a> Parser<'a> {
 
                 match self.cursor.current_token_kind() {
                     TokenKind::Colon => {
-                        shorthand = false;
+                        _shorthand = false;
 
                         self.expect_and_advance(TokenKind::Colon)?;
 
@@ -288,7 +288,7 @@ impl<'a> Parser<'a> {
                         value = PropertyValue::Expression(assignment_expression);
                     }
                     TokenKind::Equal => {
-                        shorthand = false;
+                        _shorthand = false;
 
                         let assignment_expression = self.parse_assignment_expression()?;
 
@@ -302,7 +302,7 @@ impl<'a> Parser<'a> {
                     //     value = PropertyValue::Expression(method_definition);
                     // }
                     _ => {
-                        shorthand = true;
+                        _shorthand = true;
 
                         match &property_name {
                             Expression::Identifier(identifier) => {
@@ -316,8 +316,8 @@ impl<'a> Parser<'a> {
                 }
 
                 Ok(ObjectExpressionProperties::Property(Property {
-                    method,
-                    shorthand,
+                    method: _method,
+                    shorthand: _shorthand,
                     computed,
                     key: property_name,
                     node: self.end_node()?,

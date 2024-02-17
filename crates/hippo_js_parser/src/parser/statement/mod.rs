@@ -11,7 +11,7 @@ mod switch;
 mod throw;
 mod try_statement;
 
-use crate::{KeywordKind, Parser, ParserError, TokenKind, TokenValue};
+use crate::{KeywordKind, Parser, ParserError, TokenKind};
 use hippo_estree::*;
 
 // 14 ECMAScript Language: Statements and Declarations

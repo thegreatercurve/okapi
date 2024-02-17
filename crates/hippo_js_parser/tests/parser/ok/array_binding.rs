@@ -13,8 +13,8 @@ fn array_binding() {
     );
 
     assert_parse_module_eq!(
-        r#"let [e = "default", x] = []"#,
-        r#"{"type":"Program","start":0,"end":27,"body":[{"type":"VariableDeclaration","start":0,"end":27,"declarations":[{"type":"VariableDeclarator","start":4,"end":27,"id":{"type":"ArrayPattern","start":4,"end":22,"elements":[{"type":"AssignmentPattern","start":5,"end":18,"left":{"type":"Identifier","start":5,"end":6,"name":"e"},"right":{"type":"Literal","start":9,"end":18,"value":"default","raw":"\"default\""}},{"type":"Identifier","start":20,"end":21,"name":"x"}]},"init":{"type":"ArrayExpression","start":25,"end":27,"elements":[]}}],"kind":"let"}],"sourceType":"module"}"#
+        r#"let [foo = "default", bar] = []"#,
+        r#"{"type":"Program","start":0,"end":31,"body":[{"type":"VariableDeclaration","start":0,"end":31,"declarations":[{"type":"VariableDeclarator","start":4,"end":31,"id":{"type":"ArrayPattern","start":4,"end":26,"elements":[{"type":"AssignmentPattern","start":5,"end":20,"left":{"type":"Identifier","start":5,"end":8,"name":"foo"},"right":{"type":"Literal","start":11,"end":20,"value":"default","raw":"\"default\""}},{"type":"Identifier","start":22,"end":25,"name":"bar"}]},"init":{"type":"ArrayExpression","start":29,"end":31,"elements":[]}}],"kind":"let"}],"sourceType":"module"}"#
     );
 }
 

@@ -6,7 +6,9 @@ use hippo_estree::*;
 impl<'a> Parser<'a> {
     // 15.1 Parameter Lists
     // https://tc39.es/ecma262/#prod-FormalParameters
-    pub(crate) fn parse_formal_parameters(&mut self) -> Result<Vec<Pattern>, ParserError> {
+    pub(crate) fn parse_formal_parameters(
+        &mut self,
+    ) -> Result<Vec<ArrayPatternElement>, ParserError> {
         let mut parameter_list = vec![];
 
         if self.cursor.current_token_kind() == TokenKind::Ellipsis {
@@ -25,7 +27,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-FormalParameterList
-    fn parse_formal_parameter_list(&mut self) -> Result<Vec<Pattern>, ParserError> {
+    fn parse_formal_parameter_list(&mut self) -> Result<Vec<ArrayPatternElement>, ParserError> {
         let mut parameter_list = vec![];
 
         while self.cursor.current_token_kind() == TokenKind::Identifier {
@@ -44,12 +46,12 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-FunctionRestParameter
-    fn parse_function_rest_parameter(&mut self) -> Result<Pattern, ParserError> {
+    fn parse_function_rest_parameter(&mut self) -> Result<ArrayPatternElement, ParserError> {
         self.parse_binding_rest_element()
     }
 
     // https://tc39.es/ecma262/#prod-FormalParameter
-    fn parse_formal_parameter(&mut self) -> Result<Pattern, ParserError> {
+    fn parse_formal_parameter(&mut self) -> Result<ArrayPatternElement, ParserError> {
         self.parse_binding_element()
     }
 }

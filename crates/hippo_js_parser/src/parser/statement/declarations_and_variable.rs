@@ -1,4 +1,4 @@
-use crate::{KeywordKind, Parser, ParserError, Token, TokenKind};
+use crate::{KeywordKind, Parser, ParserError, TokenKind};
 use hippo_estree::*;
 
 // 14.3 Declarations and the Variable Statement
@@ -83,20 +83,6 @@ impl<'a> Parser<'a> {
         })
     }
 
-    // https://tc39.es/ecma262/#prod-BindingRestProperty
-    fn parse_binding_rest_property(&mut self) -> Result<RestElement, ParserError> {
-        self.start_node();
-
-        self.expect_and_advance(TokenKind::Ellipsis)?; // Eat '...' token.
-
-        let argument = self.parse_binding_identifier()?;
-
-        Ok(RestElement {
-            node: self.end_node()?,
-            argument: Pattern::Identifier(argument),
-        })
-    }
-
     // 14.3.3 Destructuring Binding Patterns
     // https://tc39.es/ecma262/#prod-BindingPattern
     pub(crate) fn parse_binding_pattern(&mut self) -> Result<BindingPattern, ParserError> {
@@ -119,21 +105,13 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?; // Eat '{' token.
 
-        let properties = vec![];
+        let mut properties = self.parse_binding_property_list()?;
 
-        let mut current_token_kind = self.cursor.current_token_kind();
-
-        while current_token_kind != TokenKind::RightCurlyBrace {
-            if current_token_kind == TokenKind::Ellipsis {
-                self.parse_binding_rest_property()?;
-            } else {
-                self.parse_binding_property_list()?;
-            }
-
-            current_token_kind = self.cursor.current_token_kind();
+        if self.cursor.current_token_kind() == TokenKind::Ellipsis {
+            properties.push(self.parse_binding_rest_property()?);
         }
 
-        self.expect_and_advance(TokenKind::RightCurlyBrace)?;
+        self.expect_and_advance(TokenKind::RightCurlyBrace)?; // Eat '}' token.
 
         Ok(ObjectPattern {
             node: self.end_node()?,
@@ -153,7 +131,7 @@ impl<'a> Parser<'a> {
             elements.push(Some(self.parse_binding_rest_element()?));
         }
 
-        self.expect_and_advance(TokenKind::RightSquareBracket)?; // Eat '[' token.
+        self.expect_and_advance(TokenKind::RightSquareBracket)?; // Eat ']' token.
 
         Ok(ArrayPattern {
             node: self.end_node()?,
@@ -161,21 +139,50 @@ impl<'a> Parser<'a> {
         })
     }
 
-    // https://tc39.es/ecma262/#prod-BindingPropertyList
-    fn parse_binding_property_list(&mut self) -> Result<BindingPattern, ParserError> {
-        self.parse_binding_property()?;
+    // https://tc39.es/ecma262/#prod-BindingRestProperty
+    fn parse_binding_rest_property(&mut self) -> Result<ObjectPatternProperty, ParserError> {
+        self.start_node();
 
-        todo!("parse_binding_property_list")
+        self.expect_and_advance(TokenKind::Ellipsis)?; // Eat '...' token.
+
+        let argument = self.parse_binding_identifier()?;
+
+        Ok(ObjectPatternProperty::Rest(RestElement {
+            node: self.end_node()?,
+            argument: Pattern::Identifier(argument),
+        }))
+    }
+
+    // https://tc39.es/ecma262/#prod-BindingPropertyList
+    fn parse_binding_property_list(&mut self) -> Result<Vec<ObjectPatternProperty>, ParserError> {
+        let mut properties = vec![];
+
+        while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {
+            if self.cursor.current_token_kind() == TokenKind::Ellipsis {
+                break;
+            }
+
+            properties.push(self.parse_binding_property()?);
+
+            if self.cursor.current_token_kind() == TokenKind::Comma {
+                self.cursor.advance(); // Eat ',' token.
+            }
+        }
+
+        Ok(properties)
     }
 
     // https://tc39.es/ecma262/#prod-BindingElementList
-    fn parse_binding_element_list(&mut self) -> Result<Vec<Option<Pattern>>, ParserError> {
+    fn parse_binding_element_list(
+        &mut self,
+    ) -> Result<Vec<Option<ArrayPatternElement>>, ParserError> {
         let mut elements = vec![];
 
-        while !matches!(
-            self.cursor.current_token_kind(),
-            TokenKind::RightSquareBracket | TokenKind::Ellipsis
-        ) {
+        while self.cursor.current_token_kind() != TokenKind::RightSquareBracket {
+            if self.cursor.current_token_kind() == TokenKind::Ellipsis {
+                break;
+            }
+
             if self.cursor.current_token_kind() == TokenKind::Comma {
                 self.cursor.advance(); // Eat ellision token.
 
@@ -195,12 +202,83 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingProperty
-    fn parse_binding_property(&mut self) -> Result<BindingPattern, ParserError> {
-        todo!("parse_binding_property")
+    fn parse_binding_property(&mut self) -> Result<ObjectPatternProperty, ParserError> {
+        let binding_property = match self.cursor.current_token_kind() {
+            TokenKind::Identifier => {
+                match self.cursor.peek_token_kind() {
+                    TokenKind::Colon => {
+                        self.start_node();
+
+                        let property_name = self.parse_property_name()?;
+
+                        self.expect_and_advance(TokenKind::Colon)?; // Eat ':' token.
+
+                        let binding_element = self.parse_binding_element()?;
+
+                        ObjectPatternProperty::Property(Property {
+                            node: self.end_node()?,
+                            method: false,
+                            shorthand: false,
+                            computed: false,
+                            key: property_name,
+                            kind: PropertyKind::Init,
+                            value: PropertyValue::Pattern(binding_element.to_pattern()),
+                        })
+                    }
+                    TokenKind::Assignment => {
+                        self.start_node(); // Start node for property.
+
+                        self.start_node(); // Start node for assignment pattern.
+
+                        let binding_identifier = self.parse_binding_identifier()?;
+
+                        self.cursor.advance(); // Eat '=' token.
+
+                        let assignment_expression = self.parse_assignment_expression()?;
+
+                        let assignment_pattern = AssignmentPattern {
+                            node: self.end_node()?,
+                            left: Pattern::Identifier(binding_identifier.clone()),
+                            right: assignment_expression,
+                        };
+
+                        ObjectPatternProperty::Property(Property {
+                            node: self.end_node()?,
+                            method: false,
+                            shorthand: true,
+                            computed: false,
+                            key: Expression::Identifier(binding_identifier.clone()),
+                            kind: PropertyKind::Init,
+                            value: PropertyValue::Pattern(Pattern::Assignment(Box::new(
+                                assignment_pattern,
+                            ))),
+                        })
+                    }
+                    _ => {
+                        self.start_node();
+
+                        let binding_identifier = self.parse_binding_identifier()?;
+
+                        ObjectPatternProperty::Property(Property {
+                            node: self.end_node()?,
+                            method: false,
+                            shorthand: true,
+                            computed: false,
+                            key: Expression::Identifier(binding_identifier.clone()),
+                            kind: PropertyKind::Init,
+                            value: PropertyValue::Pattern(Pattern::Identifier(binding_identifier)),
+                        })
+                    }
+                }
+            }
+            _ => return Err(self.unexpected_current_token_kind()),
+        };
+
+        Ok(binding_property)
     }
 
     // https://tc39.es/ecma262/#prod-BindingElement
-    pub(crate) fn parse_binding_element(&mut self) -> Result<Pattern, ParserError> {
+    pub(crate) fn parse_binding_element(&mut self) -> Result<ArrayPatternElement, ParserError> {
         let binding_element = match self.cursor.current_token_kind() {
             TokenKind::Identifier => {
                 self.start_node();
@@ -212,26 +290,26 @@ impl<'a> Parser<'a> {
 
                     let assignment_expression = self.parse_assignment_expression()?;
 
-                    Pattern::Assignment(Box::new(AssignmentPattern {
+                    ArrayPatternElement::Assignment(AssignmentPattern {
                         node: self.end_node()?,
                         left: Pattern::Identifier(binding_identifier),
                         right: assignment_expression,
-                    }))
+                    })
                 } else {
                     self.end_node()?; // End node for binding_identifier.
 
-                    Pattern::Identifier(binding_identifier)
+                    ArrayPatternElement::Identifier(binding_identifier)
                 }
             }
             TokenKind::LeftSquareBracket => {
                 let array_binding_pattern = self.parse_array_binding_pattern()?;
 
-                Pattern::Array(array_binding_pattern)
+                ArrayPatternElement::Array(array_binding_pattern)
             }
             TokenKind::LeftCurlyBrace => {
                 let object_binding_pattern = self.parse_object_binding_pattern()?;
 
-                Pattern::Object(object_binding_pattern)
+                ArrayPatternElement::Object(object_binding_pattern)
             }
             _ => return Err(self.unexpected_current_token_kind()),
         };
@@ -240,7 +318,9 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-BindingElement
-    pub(crate) fn parse_binding_rest_element(&mut self) -> Result<Pattern, ParserError> {
+    pub(crate) fn parse_binding_rest_element(
+        &mut self,
+    ) -> Result<ArrayPatternElement, ParserError> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::Ellipsis)?;
@@ -252,9 +332,9 @@ impl<'a> Parser<'a> {
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
-        Ok(Pattern::Rest(Box::new(RestElement {
+        Ok(ArrayPatternElement::Rest(RestElement {
             node: self.end_node()?,
             argument: binding_identifier_or_pattern,
-        })))
+        }))
     }
 }

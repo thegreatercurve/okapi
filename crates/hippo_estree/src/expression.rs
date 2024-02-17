@@ -1,4 +1,6 @@
-use crate::{ArrayPattern, BlockStatement, Node, ObjectPattern, Pattern, StaticBlock};
+use crate::{
+    ArrayPattern, BlockStatement, FunctionParameter, Node, ObjectPattern, Pattern, StaticBlock,
+};
 use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -313,7 +315,7 @@ pub struct FunctionExpression {
     pub generator: bool,
     #[serde(rename = "async")]
     pub is_async: bool,
-    pub params: Vec<Pattern>,
+    pub params: Vec<FunctionParameter>,
     pub body: BlockStatement,
 }
 

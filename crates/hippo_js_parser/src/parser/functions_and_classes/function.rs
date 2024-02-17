@@ -26,7 +26,12 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let formal_paramaters = self.parse_formal_parameters()?;
+        // TODO Figure out a better way of handling these typings.
+        let formal_parameters = self
+            .parse_formal_parameters()?
+            .into_iter()
+            .map(|parameter| parameter.to_function_parameter())
+            .collect();
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
@@ -35,7 +40,7 @@ impl<'a> Parser<'a> {
         Ok(FunctionDeclaration {
             node: self.end_node()?,
             id: identifier,
-            params: formal_paramaters,
+            params: formal_parameters,
             body,
             generator: false,
             asynchronous: false,
@@ -54,7 +59,12 @@ impl<'a> Parser<'a> {
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let formal_paramaters = self.parse_formal_parameters()?;
+        // TODO Figure out a better way of handling these typings.
+        let formal_parameters = self
+            .parse_formal_parameters()?
+            .into_iter()
+            .map(|parameter| parameter.to_function_parameter())
+            .collect();
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
@@ -64,7 +74,7 @@ impl<'a> Parser<'a> {
             node: self.end_node()?,
             id: None,
             body,
-            params: formal_paramaters,
+            params: formal_parameters,
             expression: false,
             generator: false,
             is_async: false,
