@@ -19,10 +19,10 @@ fn literals() {
         r#""foo""#,
         r#"{"type":"Program","start":0,"end":5,"body":[{"type":"ExpressionStatement","start":0,"end":5,"expression":{"type":"Literal","start":0,"end":5,"value":"foo","raw":"\"foo\""},"directive":"foo"}],"sourceType":"module"}"#
     );
-    // assert_parse_module_eq!(
-    //     r#"'bar'"#,
-    //     r#"{"type":"Program","start":0,"end":5,"body":[{"type":"ExpressionStatement","start":0,"end":5,"expression":{"type":"Literal","start":0,"end":5,"value":"bar","raw":"'bar'"},"directive":"bar"}],"sourceType":"module"}"#
-    // );
+    assert_parse_module_eq!(
+        r#"'bar'"#,
+        r#"{"type":"Program","start":0,"end":5,"body":[{"type":"ExpressionStatement","start":0,"end":5,"expression":{"type":"Literal","start":0,"end":5,"value":"bar","raw":"\"bar\""},"directive":"bar"}],"sourceType":"module"}"#
+    );
     assert_parse_module_eq!(
         r#"null"#,
         r#"{"type":"Program","start":0,"end":4,"body":[{"type":"ExpressionStatement","start":0,"end":4,"expression":{"type":"Literal","start":0,"end":4,"value":null,"raw":"null"}}],"sourceType":"module"}"#

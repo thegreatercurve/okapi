@@ -15,6 +15,7 @@ mod logical_expression;
 mod module_export;
 mod module_import;
 mod object_expression;
+mod parameter_list;
 mod postfix_expression;
 mod prefix_expression;
 mod return_statement;
@@ -81,7 +82,7 @@ mod while_statement;
 // mod super_expression_in_constructor_parameter_list;
 // mod template_literal;
 // mod throw_statement;
-// mod try_statement;
+// mod try_statement;s
 // mod unary_delete;
 // mod unary_delete_nested;
 // mod unary_expression;
