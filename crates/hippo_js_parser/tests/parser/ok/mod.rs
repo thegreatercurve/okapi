@@ -1,5 +1,4 @@
 mod array_binding;
-mod array_binding_rest;
 mod array_expression;
 mod assignment_expression;
 mod binary_expression;
@@ -18,11 +17,12 @@ mod module_export;
 mod module_import;
 mod object_binding;
 mod object_expression;
-// mod parameter_list;
+// mod object_shorthand_property;
 mod postfix_expression;
 mod prefix_expression;
 mod return_statement;
 mod script;
+mod semicolons;
 mod this_expression;
 mod while_statement;
 
@@ -70,14 +70,12 @@ mod while_statement;
 // mod object_member_name;
 // mod object_prop_in_rhs;
 // mod object_prop_name;
-// mod object_property_binding;
-// mod object_shorthand_property;
+
 // mod parameter_list;
 // mod paren_or_arrow_expression;
 // mod parenthesized_sequence_expression;
 // mod pattern_with_default_in_keyword;
-// mod rest_property_binding;
-// mod semicolons;
+
 // mod single_parameter_arrow_function_with_parameter_named_async;
 // mod subscripts;
 // mod super_expression_in_constructor_parameter_list;

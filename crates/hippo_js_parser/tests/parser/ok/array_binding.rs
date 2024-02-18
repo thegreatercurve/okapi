@@ -29,6 +29,16 @@ fn array_binding_with_rest_element() {
         r#"let [, f, ...rest] = []"#,
         r#"{"type":"Program","start":0,"end":23,"body":[{"type":"VariableDeclaration","start":0,"end":23,"declarations":[{"type":"VariableDeclarator","start":4,"end":23,"id":{"type":"ArrayPattern","start":4,"end":18,"elements":[null,{"type":"Identifier","start":7,"end":8,"name":"f"},{"type":"RestElement","start":10,"end":17,"argument":{"type":"Identifier","start":13,"end":17,"name":"rest"}}]},"init":{"type":"ArrayExpression","start":21,"end":23,"elements":[]}}],"kind":"let"}],"sourceType":"module"}"#
     );
+
+    assert_parse_module_eq!(
+        r#"let [ ...[foo, bar] ] = baz;"#,
+        r#"{"type":"Program","start":0,"end":28,"body":[{"type":"VariableDeclaration","start":0,"end":28,"declarations":[{"type":"VariableDeclarator","start":4,"end":27,"id":{"type":"ArrayPattern","start":4,"end":21,"elements":[{"type":"RestElement","start":6,"end":19,"argument":{"type":"ArrayPattern","start":9,"end":19,"elements":[{"type":"Identifier","start":10,"end":13,"name":"foo"},{"type":"Identifier","start":15,"end":18,"name":"bar"}]}}]},"init":{"type":"Identifier","start":24,"end":27,"name":"baz"}}],"kind":"let"}],"sourceType":"module"}"#
+    );
+
+    assert_parse_module_eq!(
+        r#"let [ ...[ ...foo ] ] = bar;"#,
+        r#"{"type":"Program","start":0,"end":28,"body":[{"type":"VariableDeclaration","start":0,"end":28,"declarations":[{"type":"VariableDeclarator","start":4,"end":27,"id":{"type":"ArrayPattern","start":4,"end":21,"elements":[{"type":"RestElement","start":6,"end":19,"argument":{"type":"ArrayPattern","start":9,"end":19,"elements":[{"type":"RestElement","start":11,"end":17,"argument":{"type":"Identifier","start":14,"end":17,"name":"foo"}}]}}]},"init":{"type":"Identifier","start":24,"end":27,"name":"bar"}}],"kind":"let"}],"sourceType":"module"}"#
+    );
 }
 
 #[test]
