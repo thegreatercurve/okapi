@@ -235,7 +235,7 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-PropertyDefinitionList
     fn parse_property_definition_list(
         &mut self,
-    ) -> Result<Vec<ObjectExpressionProperties>, ParserError> {
+    ) -> Result<Vec<ObjectExpressionProperty>, ParserError> {
         let mut properties = vec![];
 
         while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {
@@ -254,7 +254,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-PropertyDefinition
-    fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperties, ParserError> {
+    fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperty, ParserError> {
         match self.cursor.current_token_kind() {
             TokenKind::Identifier
             | TokenKind::StringLiteral
@@ -285,14 +285,18 @@ impl<'a> Parser<'a> {
 
                         let assignment_expression = self.parse_assignment_expression()?;
 
-                        value = PropertyValue::Expression(assignment_expression);
+                        value = PropertyValue::FunctionExpression(FunctionExpression::from(
+                            assignment_expression,
+                        ));
                     }
                     TokenKind::Equal => {
                         _shorthand = false;
 
                         let assignment_expression = self.parse_assignment_expression()?;
 
-                        value = PropertyValue::Expression(assignment_expression);
+                        value = PropertyValue::FunctionExpression(FunctionExpression::from(
+                            assignment_expression,
+                        ));
                     }
                     // TokenKind::LeftParenthesis => {
                     //     method = true;
@@ -306,22 +310,22 @@ impl<'a> Parser<'a> {
 
                         match &property_name {
                             Expression::Identifier(identifier) => {
-                                value = PropertyValue::Expression(Expression::Identifier(
-                                    identifier.clone(),
-                                ));
+                                value = PropertyValue::BindingIdentifier(
+                                    BindingIdentifier::Identifier(identifier.clone()),
+                                );
                             }
                             _ => return Err(ParserError::InvalidPropertyKey),
                         };
                     }
                 }
 
-                Ok(ObjectExpressionProperties::Property(Property {
+                Ok(ObjectExpressionProperty::Property(Property {
                     method: _method,
                     shorthand: _shorthand,
                     computed,
-                    key: property_name,
+                    key: PropertyKey::from(property_name),
                     node: self.end_node()?,
-                    value,
+                    value: Some(value),
                     kind,
                 }))
             }
@@ -332,7 +336,7 @@ impl<'a> Parser<'a> {
 
                 let assigment_expression: Expression = self.parse_assignment_expression()?;
 
-                Ok(ObjectExpressionProperties::SpreadElement(SpreadElement {
+                Ok(ObjectExpressionProperty::SpreadElement(SpreadElement {
                     node: self.end_node()?,
                     argument: assigment_expression,
                 }))

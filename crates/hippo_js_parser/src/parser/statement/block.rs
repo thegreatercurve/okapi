@@ -22,23 +22,23 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-StatementList
-    pub(crate) fn parse_statement_list(&mut self) -> Result<Vec<StatementListItem>, ParserError> {
+    pub(crate) fn parse_statement_list(&mut self) -> Result<Vec<Statement>, ParserError> {
         let mut body = vec![];
 
         while self.cursor.current_token_kind() != TokenKind::RightCurlyBrace {
-            body.push(StatementListItem::Statement(self.parse_statement()?));
+            body.push(self.parse_statement()?);
         }
 
         Ok(body)
     }
 
     // https://tc39.es/ecma262/#prod-StatementListItem
-    pub(crate) fn parse_statement_list_item(&mut self) -> Result<StatementListItem, ParserError> {
+    pub(crate) fn parse_statement_list_item(&mut self) -> Result<Statement, ParserError> {
         match self.cursor.current_token_kind() {
             current_token_kind if current_token_kind.is_declaration_start() => {
-                Ok(StatementListItem::Declaration(self.parse_declaration()?))
+                Ok(Statement::Declaration(self.parse_declaration()?))
             }
-            _ => Ok(StatementListItem::Statement(self.parse_statement()?)),
+            _ => Ok(self.parse_statement()?),
         }
     }
 }

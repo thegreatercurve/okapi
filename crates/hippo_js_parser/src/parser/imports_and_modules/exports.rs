@@ -19,18 +19,12 @@ impl<'a> Parser<'a> {
 
                 self.expect_optional_semicolon_and_advance();
 
-                Ok(ExportDeclaration::ExportAllDeclaration(
-                    ExportAllDeclaration {
-                        node: self.end_node()?,
-                        source: from_clause,
-                        exported: match export_from_clause {
-                            Some(mode_export_name) => {
-                                Some(mode_export_name.to_export_all_declaration_exported())
-                            }
-                            _ => None,
-                        },
-                    },
-                ))
+                Ok(ExportDeclaration::ExportAll(ExportAllDeclaration {
+                    node: self.end_node()?,
+                    source: from_clause,
+                    exported: export_from_clause,
+                    assertions: None,
+                }))
             }
             TokenKind::LeftCurlyBrace => {
                 let named_exports = self.parse_named_exports()?;
@@ -43,58 +37,48 @@ impl<'a> Parser<'a> {
 
                 self.expect_optional_semicolon_and_advance();
 
-                Ok(ExportDeclaration::ExportNamedDeclaration(
-                    ExportNamedDeclaration {
-                        node: self.end_node()?,
-                        declaration: None,
-                        specifiers: named_exports,
-                        source: from_clause,
-                    },
-                ))
+                Ok(ExportDeclaration::ExportNamed(ExportNamedDeclaration {
+                    node: self.end_node()?,
+                    declaration: None,
+                    specifiers: named_exports,
+                    source: from_clause,
+                    assertions: None,
+                }))
             }
             current_token_kind if current_token_kind.is_declaration_start() => {
                 let variable_declaration = self.parse_lexical_declaration()?;
 
-                Ok(ExportDeclaration::ExportNamedDeclaration(
-                    ExportNamedDeclaration {
-                        node: self.end_node()?,
-                        declaration: Some(ExportNamedDeclarationDeclaration::Variable(
-                            variable_declaration,
-                        )),
-                        specifiers: vec![],
-                        source: None,
-                    },
-                ))
+                Ok(ExportDeclaration::ExportNamed(ExportNamedDeclaration {
+                    node: self.end_node()?,
+                    declaration: Some(ExportableNamedDeclaration::Variable(variable_declaration)),
+                    specifiers: vec![],
+                    source: None,
+                    assertions: None,
+                }))
             }
             TokenKind::Keyword(KeywordKind::Function) => {
                 let function_declaration = self.parse_function_declaration()?;
 
                 self.expect_optional_semicolon_and_advance();
 
-                Ok(ExportDeclaration::ExportNamedDeclaration(
-                    ExportNamedDeclaration {
-                        node: self.end_node()?,
-                        declaration: Some(ExportNamedDeclarationDeclaration::Function(
-                            function_declaration,
-                        )),
-                        specifiers: vec![],
-                        source: None,
-                    },
-                ))
+                Ok(ExportDeclaration::ExportNamed(ExportNamedDeclaration {
+                    node: self.end_node()?,
+                    declaration: Some(ExportableNamedDeclaration::Function(function_declaration)),
+                    specifiers: vec![],
+                    source: None,
+                    assertions: None,
+                }))
             }
             TokenKind::Keyword(KeywordKind::Class) => {
                 let class_declaration = self.parse_class_declaration()?;
 
-                Ok(ExportDeclaration::ExportNamedDeclaration(
-                    ExportNamedDeclaration {
-                        node: self.end_node()?,
-                        declaration: Some(ExportNamedDeclarationDeclaration::Class(
-                            class_declaration,
-                        )),
-                        specifiers: vec![],
-                        source: None,
-                    },
-                ))
+                Ok(ExportDeclaration::ExportNamed(ExportNamedDeclaration {
+                    node: self.end_node()?,
+                    declaration: Some(ExportableNamedDeclaration::Class(class_declaration)),
+                    specifiers: vec![],
+                    source: None,
+                    assertions: None,
+                }))
             }
             // TODO Handle default exports properly.
             _ => Err(self.unexpected_current_token_kind()),
@@ -104,7 +88,7 @@ impl<'a> Parser<'a> {
     // https://tc39.es/ecma262/#prod-ExportFromClause
     fn parse_export_from_clause_export_all_declaration(
         &mut self,
-    ) -> Result<Option<ModuleExportName>, ParserError> {
+    ) -> Result<Option<ExportAllDeclaration>, ParserError> {
         self.start_node();
 
         self.expect_and_advance(TokenKind::Multiplication)?;
@@ -179,8 +163,8 @@ impl<'a> Parser<'a> {
 
                 Ok(ExportSpecifier {
                     node: self.end_node()?,
-                    local: Box::new(local_module_export_name.to_export_specifier_local()),
-                    exported: Box::new(export_module_export_name.to_export_specifier_exported()),
+                    local: Box::new(local_module_export_name),
+                    exported: Box::new(export_module_export_name),
                 })
             }
             _ => {
@@ -190,8 +174,8 @@ impl<'a> Parser<'a> {
 
                 Ok(ExportSpecifier {
                     node: self.end_node()?,
-                    local: Box::new(module_export_name.clone().to_export_specifier_local()),
-                    exported: Box::new(module_export_name.to_export_specifier_exported()),
+                    local: Box::new(module_export_name.clone()),
+                    exported: Box::new(module_export_name),
                 })
             }
         }

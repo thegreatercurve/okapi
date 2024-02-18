@@ -1,3 +1,5 @@
+use std::array;
+
 use serde::Serialize;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize)]
@@ -40,7 +42,7 @@ pub enum ArrayExpressionElement {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum ArrayPatternElement {
-    AssignmentPattern(AssignmentPattern),
+    Assignment(AssignmentPattern),
     BindingIdentifier(BindingIdentifier),
     BindingPattern(BindingPattern),
     RestElement(RestElement),
@@ -156,8 +158,8 @@ pub enum BinaryOperator {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum BindingPattern {
-    ArrayPattern(ArrayPattern),
-    ObjectPattern,
+    Array(ArrayPattern),
+    Object(ObjectPattern),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -191,7 +193,7 @@ pub enum ChainElement {
 #[serde(untagged)]
 pub enum Class {
     ClassDeclaration(ClassDeclaration),
-    ClassExpression,
+    ClassExpression(ClassExpression),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -205,11 +207,11 @@ pub enum ClassBodyBody {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum Declaration {
-    FunctionDeclaration(FunctionDeclaration),
-    VariableDeclaration(VariableDeclaration),
-    ClassDeclaration(ClassDeclaration),
-    ImportDeclaration(ImportDeclaration),
-    ExportDeclaration(ExportDeclaration),
+    Function(FunctionDeclaration),
+    Variable(VariableDeclaration),
+    Class(ClassDeclaration),
+    Import(ImportDeclaration),
+    Export(ExportDeclaration),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -246,18 +248,18 @@ pub enum ExportableDefaultDeclaration {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum ExportableNamedDeclaration {
-    AsyncFunctionDeclaration(AsyncFunctionDeclaration),
-    ClassDeclaration(ClassDeclaration),
-    FunctionDeclaration(FunctionDeclaration),
-    VariableDeclaration(VariableDeclaration),
+    AsyncFunction(AsyncFunctionDeclaration),
+    Class(ClassDeclaration),
+    Function(FunctionDeclaration),
+    Variable(VariableDeclaration),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum ExportDeclaration {
-    ExportAllDeclaration(ExportAllDeclaration),
-    ExportDefaultDeclaration(ExportDefaultDeclaration),
-    ExportNamedDeclaration(ExportNamedDeclaration),
+    ExportAll(ExportAllDeclaration),
+    ExportDefault(ExportDefaultDeclaration),
+    ExportNamed(ExportNamedDeclaration),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -380,21 +382,21 @@ pub enum ObjectPatternProperty {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum Pattern {
+    Expression(Expression),
+    Object(ObjectPattern),
+    Array(ArrayPattern),
+    Identifier(Identifier),
+    AssignmentPattern(AssignmentPattern),
+    RestElement(RestElement),
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ProgramSource {
     Script,
     Module,
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum Pattern {
-    Expression(Expression),
-    ObjectPattern(ObjectPattern),
-    ArrayPattern(ArrayPattern),
-    Identifier(Identifier),
-    AssignmentPattern(AssignmentPattern),
-    RestElement(RestElement),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -405,6 +407,24 @@ pub enum PropertyKey {
     PrivateIdentifier(PrivateIdentifier),
 }
 
+impl From<Expression> for PropertyKey {
+    fn from(value: Expression) -> Self {
+        match value {
+            Expression::Identifier(identifier) => PropertyKey::Identifier(identifier),
+            Expression::Literal(literal) => PropertyKey::Literal(literal),
+            _ => panic!("Expected an identifier or literal"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum PropertyKind {
+    Init,
+    Get,
+    Set,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum PropertyValue {
@@ -412,6 +432,27 @@ pub enum PropertyValue {
     BindingIdentifier(BindingIdentifier),
     BindingPattern(BindingPattern),
     FunctionExpression(FunctionExpression),
+}
+
+impl From<Expression> for PropertyValue {
+    fn from(value: Expression) -> Self {
+        match value {
+            Expression::Assignment(assignment_expression) => {
+                PropertyValue::AssignmentPattern(AssignmentPattern::from(assignment_expression))
+            }
+            Expression::Function(function) => PropertyValue::FunctionExpression(function),
+            Expression::Identifier(identifier) => {
+                PropertyValue::BindingIdentifier(BindingIdentifier::Identifier(identifier))
+            }
+            Expression::Object(object_expression) => PropertyValue::BindingPattern(
+                BindingPattern::Object(ObjectPattern::from(object_expression)),
+            ),
+            Expression::Array(array_expression) => PropertyValue::BindingPattern(
+                BindingPattern::Array(ArrayPattern::from(array_expression)),
+            ),
+            _ => panic!("Unexpected token for conversion to PropertyValue"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -447,6 +488,25 @@ pub enum Statement {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+pub enum UnaryOperator {
+    Minus,
+    Plus,
+    Bang,
+    Tilde,
+    Typeof,
+    Void,
+    Delete,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub enum UpdateOperator {
+    #[serde(rename = "++")]
+    PlusPlus,
+    #[serde(rename = "--")]
+    MinusMinus,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum VariableDeclaratorId {
     BindingIdentifier(BindingIdentifier),
@@ -454,11 +514,19 @@ pub enum VariableDeclaratorId {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum VariableKind {
+    Var,
+    Let,
+    Const,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ArrayExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub elements: Vec<ArrayExpressionElement>,
+    pub elements: Vec<Option<ArrayExpressionElement>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -466,7 +534,23 @@ pub struct ArrayExpression {
 pub struct ArrayPattern {
     #[serde(flatten)]
     pub node: Node,
-    pub elements: Vec<ArrayPatternElement>,
+    pub elements: Vec<Option<ArrayPatternElement>>,
+}
+
+impl From<ArrayExpression> for ArrayPattern {
+    fn from(array_expression: ArrayExpression) -> Self {
+        Self {
+            node: array_expression.node,
+            elements: array_expression
+                .elements
+                .into_iter()
+                .map(|element| match element {
+                    Some(elem) => ArrayPatternElement::from(elem),
+                    _ => None,
+                })
+                .collect(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -479,7 +563,8 @@ pub struct ArrowFunctionExpression {
     pub body: Box<ArrowFunctionExpressionBody>,
     pub generator: bool,
     pub expression: bool,
-    pub asynchronous: bool,
+    #[serde(rename = "async")]
+    pub is_async: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -501,6 +586,18 @@ pub struct AssignmentPattern {
     pub right: Expression,
 }
 
+impl From<AssignmentExpression> for AssignmentPattern {
+    fn from(assignment: AssignmentExpression) -> Self {
+        Self {
+            node: assignment.node,
+            left: AssignmentPatternLeft::BindingIdentifier(BindingIdentifier::Identifier(
+                Identifier::from(*assignment.left),
+            )),
+            right: *assignment.right,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct AsyncFunctionDeclaration {
@@ -511,7 +608,8 @@ pub struct AsyncFunctionDeclaration {
     pub body: BlockStatement,
     pub generator: bool,
     pub expression: bool,
-    pub asynchronous: bool,
+    #[serde(rename = "async")]
+    pub is_async: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -590,7 +688,7 @@ pub struct ChainExpression {
 pub struct ClassBody {
     #[serde(flatten)]
     pub node: Node,
-    pub body: Box<ClassBodyBody>,
+    pub body: Vec<ClassBodyBody>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -770,7 +868,8 @@ pub struct FunctionDeclaration {
     pub body: BlockStatement,
     pub generator: bool,
     pub expression: bool,
-    pub asynchronous: bool,
+    #[serde(rename = "async")]
+    pub is_async: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -783,7 +882,17 @@ pub struct FunctionExpression {
     pub body: BlockStatement,
     pub generator: bool,
     pub expression: bool,
-    pub asynchronous: bool,
+    #[serde(rename = "async")]
+    pub is_async: bool,
+}
+
+impl From<Expression> for FunctionExpression {
+    fn from(expression: Expression) -> Self {
+        match expression {
+            Expression::Function(function) => function,
+            _ => panic!("Expected a function expression"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -792,6 +901,15 @@ pub struct Identifier {
     #[serde(flatten)]
     pub node: Node,
     pub name: String,
+}
+
+impl From<Expression> for Identifier {
+    fn from(expression: Expression) -> Self {
+        match expression {
+            Expression::Identifier(identifier) => identifier,
+            _ => panic!("Expected an identifier"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -917,7 +1035,8 @@ pub struct MethodDefinition {
     pub computed: bool,
     pub value: Option<FunctionExpression>,
     pub kind: String,
-    pub stattic: bool,
+    #[serde(rename = "static")]
+    pub is_static: bool,
     pub decorators: Vec<Option<Decorator>>,
 }
 
@@ -955,6 +1074,34 @@ pub struct ObjectPattern {
     pub properties: Vec<ObjectPatternProperty>,
 }
 
+impl From<ObjectExpression> for ObjectPattern {
+    fn from(object_expression: ObjectExpression) -> Self {
+        Self {
+            node: object_expression.node,
+            properties: object_expression
+                .properties
+                .into_iter()
+                .map(|property| match property {
+                    ObjectExpressionProperty::Property(property) => {
+                        ObjectPatternProperty::Property(property)
+                    }
+                    ObjectExpressionProperty::SpreadElement(spread_element) => {
+                        ObjectPatternProperty::RestElement(RestElement {
+                            node: spread_element.node,
+                            argument: RestElementArgument::BindingIdentifier(
+                                BindingIdentifier::Identifier(Identifier {
+                                    node: spread_element.node,
+                                    name: spread_element.argument.name,
+                                }),
+                            ),
+                        })
+                    }
+                })
+                .collect(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct PrivateIdentifier {
@@ -981,7 +1128,7 @@ pub struct Property {
     pub key: PropertyKey,
     pub computed: bool,
     pub value: Option<PropertyValue>,
-    pub kind: String,
+    pub kind: PropertyKind,
     pub method: bool,
     pub shorthand: bool,
 }
@@ -994,7 +1141,8 @@ pub struct PropertyDefinition {
     pub key: PropertyKey,
     pub computed: bool,
     pub value: Option<PropertyValue>,
-    pub stattic: bool,
+    #[serde(rename = "static")]
+    pub is_static: bool,
     pub decorators: Option<Vec<Decorator>>,
 }
 
@@ -1159,7 +1307,7 @@ pub struct TryStatement {
 pub struct UnaryExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub operator: String,
+    pub operator: UnaryOperator,
     pub argument: Box<Expression>,
     pub prefix: bool,
 }
@@ -1169,7 +1317,7 @@ pub struct UnaryExpression {
 pub struct UpdateExpression {
     #[serde(flatten)]
     pub node: Node,
-    pub operator: String,
+    pub operator: UpdateOperator,
     pub argument: Box<Expression>,
     pub prefix: bool,
 }
@@ -1180,7 +1328,7 @@ pub struct VariableDeclaration {
     #[serde(flatten)]
     pub node: Node,
     pub declarations: Vec<VariableDeclarator>,
-    pub kind: String,
+    pub kind: VariableKind,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

@@ -58,14 +58,15 @@ impl<'a> Parser<'a> {
                     body: function_body,
                 };
 
-                return Ok(MethodDefinition {
+                Ok(MethodDefinition {
                     node: self.end_node()?,
                     kind: method_definition_kind,
                     value: Some(function_expression),
                     is_static,
                     computed: is_computed,
                     key: Some(class_element_name),
-                });
+                    decorators: vec![],
+                })
             }
             // TokenKind::Keyword(KeywordKind::Get) => {
             //     method_definition_kind = MethodDefinitionKind::Get

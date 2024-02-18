@@ -101,18 +101,9 @@ impl<'a> Parser<'a> {
         } else {
             self.expect_optional_semicolon_and_advance();
 
-            let string_literal_value = match &expression {
-                Expression::Literal(literal) => match &literal.value {
-                    LiteralValue::String(string_literal) => Some(string_literal.to_string()),
-                    _ => None,
-                },
-                _ => None,
-            };
-
             Ok(Statement::Expression(ExpressionStatement {
                 node: self.end_node()?,
                 expression: expression.clone(),
-                directive: string_literal_value,
             }))
         }
     }

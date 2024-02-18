@@ -155,7 +155,7 @@ impl<'a> Parser<'a> {
                 left_expression = Expression::Binary(BinaryExpression {
                     node,
                     operator,
-                    left: Box::new(left_expression),
+                    left: Box::new(BinaryExpressionLeft::Expression(left_expression)),
                     right: Box::new(right_expression),
                 });
             } else {

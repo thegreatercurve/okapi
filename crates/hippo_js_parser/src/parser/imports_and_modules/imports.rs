@@ -20,6 +20,7 @@ impl<'a> Parser<'a> {
                 node: self.end_node()?,
                 source: module_specifier,
                 specifiers: vec![],
+                assertions: None,
             });
         }
 
@@ -45,11 +46,12 @@ impl<'a> Parser<'a> {
             node: self.end_node()?,
             source: module_specifier,
             specifiers: import_clause,
+            assertions: None,
         })
     }
 
     // https://tc39.es/ecma262/#prod-ModuleExportName
-    pub(crate) fn parse_module_export_name(&mut self) -> Result<ModuleExportName, ParserError> {
+    pub(crate) fn parse_module_export_name(&mut self) -> Result<ExportSpecifier, ParserError> {
         self.start_node();
 
         match self.cursor.current_token_kind() {
@@ -58,7 +60,7 @@ impl<'a> Parser<'a> {
 
                 self.end_node()?;
 
-                Ok(ModuleExportName::Identifier(identifier))
+                Ok(ExportSpecifier::Identifier(identifier))
             }
             TokenKind::StringLiteral => {
                 let current_token_value = self.cursor.current_token_value();
@@ -69,7 +71,7 @@ impl<'a> Parser<'a> {
 
                 let string_literal = self.parse_string_literal(current_token_value, node)?;
 
-                Ok(ModuleExportName::Literal(string_literal))
+                Ok(ExportSpecifierExported::Literal(string_literal))
             }
             _ => Err(self.unexpected_current_token_kind()),
         }
@@ -182,7 +184,8 @@ impl<'a> Parser<'a> {
             TokenKind::Keyword(KeywordKind::As) => {
                 self.start_node();
 
-                let module_export_name = self.parse_module_export_name()?;
+                let module_export_name =
+                    ImportSpecifierImported::Identifier(self.parse_module_export_name()?);
 
                 self.expect_and_advance(TokenKind::Keyword(KeywordKind::As))?;
 
@@ -192,7 +195,7 @@ impl<'a> Parser<'a> {
                     node: self.end_node()?,
                     kind: ImportSpecifierKind::ImportSpecifier,
                     local: import_specifier,
-                    imported: Some(module_export_name.to_import_specifier_imported()),
+                    imported: Some(module_export_name),
                 })
             }
             _ => {
@@ -200,13 +203,14 @@ impl<'a> Parser<'a> {
 
                 let import_specifier = self.parse_imported_binding()?;
 
-                let module_export_name = ModuleExportName::Identifier(import_specifier.clone());
+                let module_export_name =
+                    ImportSpecifierImported::Identifier(import_specifier.clone());
 
                 Ok(ImportSpecifier {
                     node: self.end_node()?,
                     kind: ImportSpecifierKind::ImportSpecifier,
                     local: import_specifier.clone(),
-                    imported: Some(module_export_name.to_import_specifier_imported()),
+                    imported: Some(module_export_name),
                 })
             }
         }

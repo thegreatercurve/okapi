@@ -30,7 +30,7 @@ impl<'a> Parser<'a> {
         let formal_parameters = self
             .parse_formal_parameters()?
             .into_iter()
-            .map(|parameter| parameter.to_function_parameter())
+            .map(|parameter| parameter)
             .collect();
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
@@ -43,7 +43,7 @@ impl<'a> Parser<'a> {
             params: formal_parameters,
             body,
             generator: false,
-            asynchronous: false,
+            is_async: false,
             expression: false,
         })
     }
@@ -63,7 +63,7 @@ impl<'a> Parser<'a> {
         let formal_parameters = self
             .parse_formal_parameters()?
             .into_iter()
-            .map(|parameter| parameter.to_function_parameter())
+            .map(|parameter| parameter)
             .collect();
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;

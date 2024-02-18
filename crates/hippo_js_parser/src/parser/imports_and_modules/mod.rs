@@ -16,7 +16,7 @@ impl<'a> Parser<'a> {
 
         Ok(Program {
             body: program_body,
-            source_type: ProgramSourceTypes::Script,
+            source_type: ProgramSource::Script,
             node: Node::new(0, self.cursor.lexer.len()),
         })
     }
@@ -28,7 +28,7 @@ impl<'a> Parser<'a> {
 
         Ok(Program {
             body: program_body,
-            source_type: ProgramSourceTypes::Module,
+            source_type: ProgramSource::Module,
             node: Node::new(0, self.cursor.lexer.len()),
         })
     }

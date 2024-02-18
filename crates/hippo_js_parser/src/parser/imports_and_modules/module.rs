@@ -6,7 +6,7 @@ use hippo_estree::*;
 impl<'a> Parser<'a> {
     // 16.2 Module
     // https://tc39.es/ecma262/#prod-ModuleBody
-    pub(crate) fn parse_module_body(&mut self) -> Result<ProgramBody, ParserError> {
+    pub(crate) fn parse_module_body(&mut self) -> Result<Vec<Statement>, ParserError> {
         // TODO Parse parser statement of declaration.
         let mut body = vec![];
 
@@ -16,19 +16,19 @@ impl<'a> Parser<'a> {
             body.push(module_item);
         }
 
-        Ok(ProgramBody::Module(body))
+        Ok(body)
     }
 
     // https://tc39.es/ecma262/#prod-ModuleItem
-    fn parse_module_item(&mut self) -> Result<ModuleItem, ParserError> {
+    fn parse_module_item(&mut self) -> Result<Statement, ParserError> {
         let module_item = match self.cursor.current_token_kind() {
             TokenKind::Keyword(KeywordKind::Import) => {
-                ModuleItem::ImportDeclaration(self.parse_import_declaration()?)
+                Statement::Declaration(Declaration::Import(self.parse_import_declaration()?))
             }
             TokenKind::Keyword(KeywordKind::Export) => {
-                ModuleItem::ExportDeclaration(self.parse_export_declaration()?)
+                Statement::Declaration(Declaration::Export(self.parse_export_declaration()?))
             }
-            _ => ModuleItem::StatementListItem(self.parse_statement_list_item()?),
+            _ => Declaration::StatementListItem(self.parse_statement_list_item()?),
         };
 
         Ok(module_item)

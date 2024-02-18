@@ -15,7 +15,7 @@ impl<'a> Parser<'a> {
 
         let super_class =
             if self.cursor.current_token_kind() == TokenKind::Keyword(KeywordKind::Extends) {
-                Some(self.parse_class_heritage()?)
+                Some(Identifier::from(self.parse_class_heritage()?))
             } else {
                 None
             };
@@ -28,6 +28,7 @@ impl<'a> Parser<'a> {
             id: Some(binding_identifier),
             super_class,
             body: class_tail,
+            decorators: vec![],
         })
     }
 
@@ -129,7 +130,7 @@ impl<'a> Parser<'a> {
             if self.cursor.current_token_kind() == TokenKind::Assignment {
                 self.cursor.advance(); // Eat  '=' token.
 
-                Some(self.parse_assignment_expression()?)
+                Some(PropertyValue::from(self.parse_assignment_expression()?))
             } else {
                 None
             };
@@ -140,15 +141,14 @@ impl<'a> Parser<'a> {
             node: self.end_node()?,
             is_static: is_static,
             computed: is_computed,
-            key: Some(class_element_name),
+            key: class_element_name,
             value: optional_assignment_expression,
+            decorators: None,
         })
     }
 
     // https://tc39.es/ecma262/#prod-ClassElementName
-    pub(crate) fn parse_class_element_name(
-        &mut self,
-    ) -> Result<PropertyDefinitionKey, ParserError> {
+    pub(crate) fn parse_class_element_name(&mut self) -> Result<PropertyKey, ParserError> {
         match self.cursor.current_token_kind() {
             TokenKind::PrivateIdentifier => {
                 self.start_node();
@@ -159,16 +159,12 @@ impl<'a> Parser<'a> {
 
                 self.cursor.advance(); // Eat private identifier token.
 
-                Ok(PropertyDefinitionKey::PrivateIdentifier(
-                    PrivateIdentifier {
-                        node: self.end_node()?,
-                        name: token_value,
-                    },
-                ))
+                Ok(PropertyKey::PrivateIdentifier(PrivateIdentifier {
+                    node: self.end_node()?,
+                    name: token_value,
+                }))
             }
-            _ => Ok(PropertyDefinitionKey::Expression(
-                self.parse_property_name()?,
-            )),
+            _ => Ok(PropertyKey::Expression(self.parse_property_name()?)),
         }
     }
 

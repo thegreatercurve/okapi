@@ -5,12 +5,10 @@ use hippo_estree::*;
 impl<'a> Parser<'a> {
     // 16.1 Scripts
     // https://tc39.es/ecma262/#prod-Script
-    pub(crate) fn parse_script_body(&mut self) -> Result<ProgramBody, ParserError> {
+    pub(crate) fn parse_script_body(&mut self) -> Result<Vec<Statement>, ParserError> {
         // TODO Parse parser statement of declaration.
         let statement_list_item = self.parse_statement()?;
 
-        Ok(ProgramBody::StatementList(vec![
-            StatementListItem::Statement(statement_list_item),
-        ]))
+        Ok(vec![statement_list_item])
     }
 }

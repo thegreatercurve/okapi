@@ -66,6 +66,7 @@ impl<'a> Parser<'a> {
                         },
                     ))),
                     arguments,
+                    optional: false,
                 }));
             }
             TokenKind::Keyword(KeywordKind::Import) => {
@@ -82,6 +83,7 @@ impl<'a> Parser<'a> {
                     node: self.end_node()?,
                     callee: Box::new(CallExpressionCallee::Expression(call_expression)),
                     arguments,
+                    optional: false,
                 }));
             }
             _ => todo!("parse_call_expression"),
@@ -89,7 +91,7 @@ impl<'a> Parser<'a> {
     }
 
     // https://tc39.es/ecma262/#prod-Arguments
-    fn parse_arguments(&mut self) -> Result<Vec<CallExpressionArguments>, ParserError> {
+    fn parse_arguments(&mut self) -> Result<Vec<ArgumentListElement>, ParserError> {
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
         let mut arguments_list = vec![];
@@ -108,12 +110,12 @@ impl<'a> Parser<'a> {
             let argument = self.parse_assignment_expression()?;
 
             if is_spread {
-                arguments_list.push(CallExpressionArguments::SpreadElement(SpreadElement {
+                arguments_list.push(ArgumentListElement::SpreadElement(SpreadElement {
                     node: self.end_node()?,
                     argument,
                 }));
             } else {
-                arguments_list.push(CallExpressionArguments::Expression(argument));
+                arguments_list.push(ArgumentListElement::Expression(argument));
             }
 
             if self.cursor.current_token_kind() != TokenKind::Comma {

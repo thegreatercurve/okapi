@@ -62,9 +62,15 @@ impl<'a> Parser<'a> {
         let current_token_kind = self.cursor.current_token_kind();
 
         let binding_identifier = match current_token_kind {
-            TokenKind::Identifier => Pattern::Identifier(self.parse_binding_identifier()?),
-            TokenKind::LeftCurlyBrace => Pattern::Object(self.parse_object_binding_pattern()?),
-            TokenKind::LeftSquareBracket => Pattern::Array(self.parse_array_binding_pattern()?),
+            TokenKind::Identifier => VariableDeclaratorId::BindingIdentifier(
+                BindingIdentifier::Identifier(self.parse_binding_identifier()?),
+            ),
+            TokenKind::LeftCurlyBrace => VariableDeclaratorId::BindingPattern(
+                BindingPattern::Object(self.parse_object_binding_pattern()?),
+            ),
+            TokenKind::LeftSquareBracket => VariableDeclaratorId::BindingPattern(
+                BindingPattern::Array(self.parse_array_binding_pattern()?),
+            ),
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
@@ -89,12 +95,12 @@ impl<'a> Parser<'a> {
         let current_token_kind = self.cursor.current_token_kind();
 
         match current_token_kind {
-            TokenKind::LeftCurlyBrace => Ok(BindingPattern::ObjectPattern(
-                self.parse_object_binding_pattern()?,
-            )),
-            TokenKind::LeftSquareBracket => Ok(BindingPattern::ArrayPattern(
-                self.parse_array_binding_pattern()?,
-            )),
+            TokenKind::LeftCurlyBrace => {
+                Ok(BindingPattern::Object(self.parse_object_binding_pattern()?))
+            }
+            TokenKind::LeftSquareBracket => {
+                Ok(BindingPattern::Array(self.parse_array_binding_pattern()?))
+            }
             _ => Err(self.unexpected_current_token_kind()),
         }
     }
@@ -147,9 +153,11 @@ impl<'a> Parser<'a> {
 
         let argument = self.parse_binding_identifier()?;
 
-        Ok(ObjectPatternProperty::Rest(RestElement {
+        Ok(ObjectPatternProperty::RestElement(RestElement {
             node: self.end_node()?,
-            argument: Pattern::Identifier(argument),
+            argument: RestElementArgument::BindingIdentifier(BindingIdentifier::Identifier(
+                argument,
+            )),
         }))
     }
 
@@ -220,9 +228,9 @@ impl<'a> Parser<'a> {
                             method: false,
                             shorthand: false,
                             computed: false,
-                            key: property_name,
+                            key: PropertyKey::Identifier(property_name),
                             kind: PropertyKind::Init,
-                            value: PropertyValue::Pattern(binding_element.to_pattern()),
+                            value: Some(PropertyValue::BindingPattern(binding_element)),
                         })
                     }
                     TokenKind::Assignment => {
@@ -238,7 +246,9 @@ impl<'a> Parser<'a> {
 
                         let assignment_pattern = AssignmentPattern {
                             node: self.end_node()?,
-                            left: Pattern::Identifier(binding_identifier.clone()),
+                            left: AssignmentPatternLeft::BindingIdentifier(
+                                BindingIdentifier::Identifier(binding_identifier.clone()),
+                            ),
                             right: assignment_expression,
                         };
 
@@ -247,9 +257,9 @@ impl<'a> Parser<'a> {
                             method: false,
                             shorthand: true,
                             computed: false,
-                            key: Expression::Identifier(binding_identifier.clone()),
+                            key: PropertyKey::Identifier(binding_identifier.clone()),
                             kind: PropertyKind::Init,
-                            value: PropertyValue::Pattern(Pattern::Assignment(Box::new(
+                            value: Some(PropertyValue::BindingPattern(BindingPattern::Array(
                                 assignment_pattern,
                             ))),
                         })
@@ -264,9 +274,11 @@ impl<'a> Parser<'a> {
                             method: false,
                             shorthand: true,
                             computed: false,
-                            key: Expression::Identifier(binding_identifier.clone()),
+                            key: PropertyKey::Identifier(binding_identifier.clone()),
                             kind: PropertyKind::Init,
-                            value: PropertyValue::Pattern(Pattern::Identifier(binding_identifier)),
+                            value: Some(PropertyValue::BindingIdentifier(
+                                BindingIdentifier::Identifier(binding_identifier),
+                            )),
                         })
                     }
                 }
@@ -292,24 +304,28 @@ impl<'a> Parser<'a> {
 
                     ArrayPatternElement::Assignment(AssignmentPattern {
                         node: self.end_node()?,
-                        left: Pattern::Identifier(binding_identifier),
+                        left: AssignmentPatternLeft::BindingIdentifier(
+                            BindingIdentifier::Identifier(binding_identifier),
+                        ),
                         right: assignment_expression,
                     })
                 } else {
                     self.end_node()?; // End node for binding_identifier.
 
-                    ArrayPatternElement::Identifier(binding_identifier)
+                    ArrayPatternElement::BindingIdentifier(BindingIdentifier::Identifier(
+                        binding_identifier,
+                    ))
                 }
             }
             TokenKind::LeftSquareBracket => {
                 let array_binding_pattern = self.parse_array_binding_pattern()?;
 
-                ArrayPatternElement::Array(array_binding_pattern)
+                ArrayPatternElement::BindingPattern(BindingPattern::Array(array_binding_pattern))
             }
             TokenKind::LeftCurlyBrace => {
                 let object_binding_pattern = self.parse_object_binding_pattern()?;
 
-                ArrayPatternElement::Object(object_binding_pattern)
+                ArrayPatternElement::BindingPattern(BindingPattern::Object(object_binding_pattern))
             }
             _ => return Err(self.unexpected_current_token_kind()),
         };
@@ -326,13 +342,19 @@ impl<'a> Parser<'a> {
         self.expect_and_advance(TokenKind::Ellipsis)?;
 
         let binding_identifier_or_pattern = match self.cursor.current_token_kind() {
-            TokenKind::Identifier => Pattern::Identifier(self.parse_binding_identifier()?),
-            TokenKind::LeftSquareBracket => Pattern::Array(self.parse_array_binding_pattern()?),
-            TokenKind::LeftCurlyBrace => Pattern::Object(self.parse_object_binding_pattern()?),
+            TokenKind::Identifier => RestElementArgument::BindingIdentifier(
+                BindingIdentifier::Identifier(self.parse_binding_identifier()?),
+            ),
+            TokenKind::LeftSquareBracket => RestElementArgument::BindingPattern(
+                BindingPattern::Array(self.parse_array_binding_pattern()?),
+            ),
+            TokenKind::LeftCurlyBrace => RestElementArgument::BindingPattern(
+                BindingPattern::Object(self.parse_object_binding_pattern()?),
+            ),
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
-        Ok(ArrayPatternElement::Rest(RestElement {
+        Ok(ArrayPatternElement::RestElement(RestElement {
             node: self.end_node()?,
             argument: binding_identifier_or_pattern,
         }))

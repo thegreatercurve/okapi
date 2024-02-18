@@ -42,11 +42,11 @@ impl<'a> Parser<'a> {
 
         self.expect_optional_semicolon_and_advance();
 
-        Ok(Statement::DoWhile(DoWhileStatement {
+        Ok(Statement::DoWhile(Box::new(DoWhileStatement {
             node: self.end_node()?,
             test: test,
-            body: Box::new(body),
-        }))
+            body,
+        })))
     }
 
     // 14.7.3 The while Statement
@@ -64,10 +64,10 @@ impl<'a> Parser<'a> {
 
         let body = self.parse_statement()?;
 
-        Ok(Statement::While(WhileStatement {
+        Ok(Statement::While(Box::new(WhileStatement {
             node: self.end_node()?,
             test,
-            body: Box::new(body),
-        }))
+            body,
+        })))
     }
 }

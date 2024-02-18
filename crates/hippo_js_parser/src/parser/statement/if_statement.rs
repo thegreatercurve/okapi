@@ -23,16 +23,16 @@ impl<'a> Parser<'a> {
         {
             self.expect_and_advance(TokenKind::Keyword(KeywordKind::Else))?;
 
-            Some(Box::new(self.parse_statement()?))
+            Some(self.parse_statement()?)
         } else {
             None
         };
 
-        Ok(Statement::If(IfStatement {
+        Ok(Statement::If(Box::new(IfStatement {
             node: self.end_node()?,
             test: test,
-            consequent: Box::new(consequent),
+            consequent,
             alternate,
-        }))
+        })))
     }
 }
