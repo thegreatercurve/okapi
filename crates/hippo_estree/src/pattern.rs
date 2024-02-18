@@ -21,6 +21,20 @@ pub enum Pattern {
     Assignment(Box<AssignmentPattern>),
 }
 
+impl From<ArrayPatternElement> for Pattern {
+    fn from(pattern: ArrayPatternElement) -> Self {
+        match pattern {
+            ArrayPatternElement::Identifier(identifier) => Pattern::Identifier(identifier),
+            ArrayPatternElement::Object(object_pattern) => Pattern::Object(object_pattern),
+            ArrayPatternElement::Array(array_pattern) => Pattern::Array(array_pattern),
+            ArrayPatternElement::Rest(rest_element) => Pattern::Rest(Box::new(rest_element)),
+            ArrayPatternElement::Assignment(assignment_pattern) => {
+                Pattern::Assignment(Box::new(assignment_pattern))
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct ArrayPattern {

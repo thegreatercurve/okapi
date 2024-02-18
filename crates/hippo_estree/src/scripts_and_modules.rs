@@ -6,11 +6,11 @@ use serde::Serialize;
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
-#[serde(rename_all = "camelCase")]
 pub struct Program {
     #[serde(flatten)]
     pub node: Node,
     pub body: ProgramBody,
+    #[serde(rename = "sourceType")]
     pub source_type: ProgramSourceTypes,
 }
 
