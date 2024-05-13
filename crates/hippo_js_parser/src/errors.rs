@@ -40,6 +40,7 @@ pub enum ParserError {
 
     // Object expressions
     InvalidPropertyKey,
+    InvalidPropertyValue,
 
     // Assignment patterns
     InvalidLeftHandSideExpression,
@@ -130,6 +131,7 @@ impl std::fmt::Display for ParserError {
             }
             ParserError::InvalidRegexExpressionClass => write!(f, "InvalidRegexExpressionClass"),
             ParserError::InvalidPropertyKey => write!(f, "InvalidPropertyKey"),
+            ParserError::InvalidPropertyValue => write!(f, "InvalidPropertyValue"),
             ParserError::InvalidLeftHandSideExpression => {
                 write!(f, "InvalidLeftHandSideExpression")
             }

@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::{ast::*, TokenValue};
 use crate::{KeywordKind, Parser, ParserError, TokenKind};
 
 // 15 ECMAScript Language: Functions and Classes
@@ -80,7 +80,7 @@ impl Parser {
         let mut class_element_list = vec![];
 
         while self.token_kind() != TokenKind::RightCurlyBrace {
-            let Some(class_element) = self.parse_class_element()? else {
+            let Some(class_element) = self.parse_class_element(false, None)? else {
                 continue;
             };
 
@@ -91,92 +91,190 @@ impl Parser {
     }
 
     // https://tc39.es/ecma262/#prod-ClassElement
-    fn parse_class_element(&mut self) -> Result<Option<ClassBodyBody>, ParserError> {
-        let mut is_static = false;
+    fn parse_class_element(
+        &mut self,
+        is_static: bool,
+        start_index: Option<usize>,
+    ) -> Result<Option<ClassBodyBody>, ParserError> {
+        let start_index = start_index.unwrap_or(self.start_node());
 
-        if self.token_kind() == TokenKind::Semicolon {
-            self.advance_any(); // Eat ';' token.
+        match (self.token_kind(), self.peek_token_kind()) {
+            // Handle `;`.
+            (TokenKind::Semicolon, _) => {
+                self.advance_any(); // Eat ';' token.
 
-            return Ok(None);
-        }
-
-        let start_index = self.start_node(); // Start class element node.
-
-        if self.token_kind() == TokenKind::Keyword(KeywordKind::Static) {
-            // Cheap check to see if 'static' is being used as an identifier.
-            if self.peek_token_kind() == TokenKind::Semicolon {
-                let field_definition =
-                    self.parse_field_definition(start_index, None, false, false)?;
-
-                self.expect_optional_semicolon_and_advance();
-
-                return Ok(Some(ClassBodyBody::PropertyDefinition(field_definition)));
+                return Ok(None);
             }
-
-            is_static = true;
-
-            if self.peek_token_kind() == TokenKind::LeftCurlyBrace {
+            // Handle `ClassStaticBlock > static {`.
+            (TokenKind::Keyword(KeywordKind::Static), TokenKind::LeftCurlyBrace) => {
                 let static_block = self.parse_static_block()?;
 
                 return Ok(Some(ClassBodyBody::StaticBlock(static_block)));
-            } else {
-                self.advance_any(); // Eat 'static' token.
             }
-        }
+            // Handle `static MethodDefinition`.
+            // Handle `static FieldDefinition`.
+            (TokenKind::Keyword(KeywordKind::Static), _) => {
+                // Handle `static;` where `static` is used as an identifier.
+                if self.peek_token_kind() == TokenKind::Semicolon {
+                    let field_definition =
+                        self.parse_field_definition(start_index, None, false, false)?;
 
-        // TODO This could probably be a lot better to handle complex async and generator methods combinations.
-        // let is_method_definition = match (self.token_kind(), self.peek_token_kind()) {
-        //     (TokenKind::Keyword(KeywordKind::Async) | TokenKind::Keyword(KeywordKind::Get) | TokenKind::Keyword(KeywordKind::Set), _) => {
-        //         let is_generator = self.peek_token_kind() == TokenKind::Multiplication;
-        //         let is_class_element_name = self.peek_token_kind().is_class_element_name_start();
-        //         let is_keyword_as_class_element_name =
-        //             self.peek_token_kind() == TokenKind::LeftParenthesis;
+                    return Ok(Some(ClassBodyBody::PropertyDefinition(field_definition)));
+                }
 
-        //         is_generator || is_class_element_name || is_keyword_as_class_element_name
-        //     }
-        //     (token_kind , _) if token_kind.is_class_element_name_start() => {
-        //         self.peek_token_kind() == TokenKind::LeftParenthesis
-        //     }
-        //     (TokenKind::Multiplication, _) => true,
-        //     _ => false,
-        // };
+                self.advance_any(); // Eat 'static' token.
 
-        let method_definition_kind = self.parse_method_definition_kind();
+                return self.parse_class_element(true, Some(start_index));
+            }
+            // Handle `MethodDefinition > get ClassElementName ... ;`.
+            (TokenKind::Keyword(KeywordKind::Get), peek_token_kind)
+                if peek_token_kind.is_class_element_name() =>
+            {
+                self.advance_any(); // Eat 'get' token.
 
-        let is_computed = self.token_kind() == TokenKind::LeftSquareBracket;
+                let is_computed = self.token_kind() == TokenKind::LeftSquareBracket;
 
-        let optional_class_element_name = if self.token_kind().is_class_element_name_start()
-            && !self
-                .token_kind()
-                .is_reserved_keyword_when_identifier_prohibited()
-        {
-            Some(self.parse_class_element_name()?)
-        } else {
-            None
-        };
+                let method_definition_key = self.parse_class_element_name()?;
 
-        if matches!(
-            self.token_kind(),
-            TokenKind::Assignment | TokenKind::Semicolon
-        ) {
-            let field_definition = self.parse_field_definition(
-                start_index,
-                optional_class_element_name,
-                is_static,
-                is_computed,
-            )?;
+                let function_expression = self.parse_method_definition_getter_body()?;
 
-            Ok(Some(ClassBodyBody::PropertyDefinition(field_definition)))
-        } else {
-            let method_definition = self.parse_method_definition(
-                start_index,
-                optional_class_element_name,
-                method_definition_kind,
-                is_static,
-                is_computed,
-            )?;
+                let method_definition = self.parse_method_definition(
+                    start_index,
+                    Some(method_definition_key),
+                    Some(function_expression),
+                    MethodDefinitionKind::Get,
+                    is_static,
+                    is_computed,
+                )?;
 
-            Ok(Some(ClassBodyBody::MethodDefinition(method_definition)))
+                return Ok(Some(ClassBodyBody::MethodDefinition(method_definition)));
+            }
+            // Handle `MethodDefinition > set ClassElementName ... ;`.
+            (TokenKind::Keyword(KeywordKind::Set), peek_token_kind)
+                if peek_token_kind.is_class_element_name() =>
+            {
+                self.advance_any(); // Eat 'set' token.
+
+                let is_computed = self.token_kind() == TokenKind::LeftSquareBracket;
+
+                let method_definition_key = self.parse_class_element_name()?;
+
+                let function_expression = self.parse_method_definition_setter_body()?;
+
+                let method_definition = self.parse_method_definition(
+                    start_index,
+                    Some(method_definition_key),
+                    Some(function_expression),
+                    MethodDefinitionKind::Set,
+                    is_static,
+                    is_computed,
+                )?;
+
+                return Ok(Some(ClassBodyBody::MethodDefinition(method_definition)));
+            }
+            // Handle `MethodDefinition > GeneratorMethod > * ClassElementName`.
+            (TokenKind::Multiplication, peek_token_kind)
+                if peek_token_kind.is_class_element_name() =>
+            {
+                let is_computed = self.peek_token_kind() == TokenKind::LeftSquareBracket;
+
+                let generator_method_definition = self.parse_generator_method(
+                    start_index,
+                    is_computed,
+                    false,
+                    is_static,
+                    MethodDefinitionKind::Method,
+                )?;
+
+                return Ok(Some(ClassBodyBody::MethodDefinition(
+                    generator_method_definition,
+                )));
+            }
+            // Handle `MethodDefinition > AsyncMethod > async [no LineTerminator here] ClassElementName`.
+            (TokenKind::Keyword(KeywordKind::Async), peek_token_kind)
+                if !self.has_current_token_line_terminator()
+                    && peek_token_kind.is_class_element_name() =>
+            {
+                let is_computed = self.peek_token_kind() == TokenKind::LeftSquareBracket;
+
+                let async_method_definition = self.parse_async_method(
+                    start_index,
+                    is_computed,
+                    is_static,
+                    MethodDefinitionKind::Method,
+                )?;
+
+                return Ok(Some(ClassBodyBody::MethodDefinition(
+                    async_method_definition,
+                )));
+            }
+            // Handle `MethodDefinition > AsyncGeneratorMethod > async [no LineTerminator here] * ClassElementName`.
+            (TokenKind::Keyword(KeywordKind::Async), TokenKind::Multiplication)
+                if !self.has_current_token_line_terminator() =>
+            {
+                self.advance_any(); // Eat 'async' token.
+
+                let is_computed = self.peek_token_kind() == TokenKind::LeftSquareBracket;
+
+                let async_generator_method_definition = self.parse_generator_method(
+                    start_index,
+                    is_computed,
+                    true,
+                    is_static,
+                    MethodDefinitionKind::Method,
+                )?;
+
+                return Ok(Some(ClassBodyBody::MethodDefinition(
+                    async_generator_method_definition,
+                )));
+            }
+            // Handle `MethodDefinition > ClassElementName ( ... ;`.
+            // Handle `FieldDefinition > ClassElementName;`.
+            (token_kind, _) if token_kind.is_class_element_name() => {
+                let is_computed = token_kind == TokenKind::LeftSquareBracket;
+
+                let constructor_token_value = TokenValue::String {
+                    raw: "constructor".to_string(),
+                    value: "constructor".to_string(),
+                };
+
+                let method_definition_kind = if self.token_value() == constructor_token_value {
+                    MethodDefinitionKind::Constructor
+                } else {
+                    MethodDefinitionKind::Method
+                };
+
+                let method_definition_key = self.parse_class_element_name()?;
+
+                match self.token_kind() {
+                    TokenKind::LeftParenthesis => {
+                        let function_expression = self.parse_method_definition_method_body()?;
+
+                        let method_definition = self.parse_method_definition(
+                            start_index,
+                            Some(method_definition_key),
+                            Some(function_expression),
+                            method_definition_kind,
+                            is_static,
+                            is_computed,
+                        )?;
+
+                        return Ok(Some(ClassBodyBody::MethodDefinition(method_definition)));
+                    }
+                    TokenKind::Assignment | TokenKind::Semicolon => {
+                        let field_definition = self.parse_field_definition(
+                            start_index,
+                            Some(method_definition_key),
+                            is_static,
+                            is_computed,
+                        )?;
+
+                        return Ok(Some(ClassBodyBody::PropertyDefinition(field_definition)));
+                    }
+                    _ => return Err(self.unexpected_current_token_kind()),
+                }
+            }
+            _ => return Err(self.unexpected_current_token_kind()),
         }
     }
 

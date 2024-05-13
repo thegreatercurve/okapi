@@ -284,110 +284,247 @@ impl Parser {
 
     // https://tc39.es/ecma262/#prod-PropertyDefinition
     fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperty, ParserError> {
-        if self.token_kind() == TokenKind::Ellipsis {
-            let start_index = self.start_node();
-
-            self.advance_any(); // Eat '...' token.
-
-            let assigment_expression: Expression = self.parse_assignment_expression()?;
-
-            return Ok(ObjectExpressionProperty::SpreadElement(SpreadElement {
-                node: self.end_node(start_index)?,
-                argument: assigment_expression,
-            }));
-        }
-
-        // TODO This could probably be a lot better to handle complex async and generator methods combinations. Duplicate of parse_method_definition.
-        let mut is_method_definition = match self.token_kind() {
-            TokenKind::Keyword(KeywordKind::Async)
-            | TokenKind::Keyword(KeywordKind::Get)
-            | TokenKind::Keyword(KeywordKind::Set) => {
-                let is_generator = self.peek_token_kind() == TokenKind::Multiplication;
-                let is_class_element_name = self.peek_token_kind().is_class_element_name_start();
-                let is_keyword_as_class_element_name =
-                    self.peek_token_kind() == TokenKind::LeftParenthesis;
-
-                is_generator || is_class_element_name || is_keyword_as_class_element_name
-            }
-            token_kind if token_kind.is_class_element_name_start() => {
-                self.peek_token_kind() == TokenKind::LeftParenthesis
-            }
-            TokenKind::Multiplication => true,
-            _ => false,
-        };
-
-        let method_definition_kind = self.parse_method_definition_kind();
-
         let start_index = self.start_node();
 
-        if is_method_definition {
-            let method_definition = self.parse_method_definition(
-                start_index,
-                None,
-                method_definition_kind,
-                false,
-                false,
-            )?;
+        let mut property_definition_key = None;
+        let mut property_definition_value = None;
 
-            return Ok(ObjectExpressionProperty::Property(Property::try_from(
-                method_definition,
-            )?));
+        let property_definition_kind = PropertyKind::Init;
+
+        let mut is_shorthand = false;
+        let mut is_computed = false;
+
+        match (self.token_kind(), self.peek_token_kind()) {
+            // Handle `... AssignmentExpression`.
+            (TokenKind::Ellipsis, _) => {
+                self.advance_any(); // Eat '...' token.
+
+                let assigment_expression = self.parse_assignment_expression()?;
+
+                return Ok(ObjectExpressionProperty::SpreadElement(SpreadElement {
+                    node: self.end_node(start_index)?,
+                    argument: assigment_expression,
+                }));
+            }
+            // Handle `MethodDefinition > get ClassElementName`.
+            (TokenKind::Keyword(KeywordKind::Get), peek_token_kind)
+                if peek_token_kind.is_class_element_name() =>
+            {
+                self.advance_any(); // Eat 'get' token.
+
+                is_computed = self.token_kind() == TokenKind::LeftSquareBracket;
+
+                let method_definition_key = self.parse_class_element_name()?;
+
+                let function_expression = self.parse_method_definition_getter_body()?;
+
+                let method_definition = self.parse_method_definition(
+                    start_index,
+                    Some(method_definition_key),
+                    Some(function_expression),
+                    MethodDefinitionKind::Get,
+                    false,
+                    is_computed,
+                )?;
+
+                return Ok(ObjectExpressionProperty::Property(Property::try_from(
+                    method_definition,
+                )?));
+            }
+            // Handle `MethodDefinition > set ClassElementName`.
+            (TokenKind::Keyword(KeywordKind::Set), peek_token_kind)
+                if peek_token_kind.is_class_element_name() =>
+            {
+                self.advance_any(); // Eat 'set' token.
+
+                is_computed = self.token_kind() == TokenKind::LeftSquareBracket;
+
+                let method_definition_key = self.parse_class_element_name()?;
+
+                let function_expression = self.parse_method_definition_setter_body()?;
+
+                let method_definition = self.parse_method_definition(
+                    start_index,
+                    Some(method_definition_key),
+                    Some(function_expression),
+                    MethodDefinitionKind::Set,
+                    false,
+                    is_computed,
+                )?;
+
+                return Ok(ObjectExpressionProperty::Property(Property::try_from(
+                    method_definition,
+                )?));
+            }
+            // Handle `MethodDefinition > GeneratorMethod > * ClassElementName`.
+            (TokenKind::Multiplication, peek_token_kind)
+                if peek_token_kind.is_class_element_name() =>
+            {
+                is_computed = self.peek_token_kind() == TokenKind::LeftSquareBracket;
+
+                let generator_method_definition = self.parse_generator_method(
+                    start_index,
+                    is_computed,
+                    false,
+                    false,
+                    MethodDefinitionKind::Method,
+                )?;
+
+                return Ok(ObjectExpressionProperty::Property(Property::try_from(
+                    generator_method_definition,
+                )?));
+            }
+            // Handle `MethodDefinition > AsyncMethod > async [no LineTerminator here] ClassElementName`.
+            (TokenKind::Keyword(KeywordKind::Async), peek_token_kind)
+                if !self.has_current_token_line_terminator()
+                    && peek_token_kind.is_class_element_name() =>
+            {
+                is_computed = self.peek_token_kind() == TokenKind::LeftSquareBracket;
+
+                let async_method_definition = self.parse_async_method(
+                    start_index,
+                    is_computed,
+                    false,
+                    MethodDefinitionKind::Method,
+                )?;
+
+                return Ok(ObjectExpressionProperty::Property(Property::try_from(
+                    async_method_definition,
+                )?));
+            }
+            // Handle `MethodDefinition > AsyncGeneratorMethod > async [no LineTerminator here] * ClassElementName`.
+            (TokenKind::Keyword(KeywordKind::Async), TokenKind::Multiplication)
+                if !self.has_current_token_line_terminator() =>
+            {
+                self.advance_any(); // Eat 'async' token.
+
+                is_computed = self.peek_token_kind() == TokenKind::LeftSquareBracket;
+
+                let async_generator_method_definition = self.parse_generator_method(
+                    start_index,
+                    is_computed,
+                    true,
+                    false,
+                    MethodDefinitionKind::Method,
+                )?;
+
+                return Ok(ObjectExpressionProperty::Property(Property::try_from(
+                    async_generator_method_definition,
+                )?));
+            }
+            // Handle `CoverInitializedName > IdentifierReference Initializer`.
+            (token_kind, TokenKind::Assignment) if token_kind.is_identifier_reference() => {
+                property_definition_key = Some(self.parse_identifier_reference()?);
+
+                self.expect_and_advance(TokenKind::Assignment)?;
+
+                let assignment_expression = self.parse_assignment_expression()?;
+
+                property_definition_value = Some(PropertyValue::Expression(assignment_expression));
+            }
+            // Handle `(PropertyName > LiteralPropertyName) :`.
+            (token_kind, TokenKind::Colon) if token_kind.is_property_name() => {
+                property_definition_key = Some(self.parse_property_name()?);
+
+                self.expect_and_advance(TokenKind::Colon)?;
+
+                let assignment_expression = self.parse_assignment_expression()?;
+
+                property_definition_value = Some(PropertyValue::Expression(assignment_expression));
+            }
+
+            // Handle `(PropertyName > ComputedPropertyName) :`.
+            (TokenKind::LeftSquareBracket, _) => {
+                is_computed = true;
+
+                let property_name = self.parse_property_name()?;
+
+                match self.token_kind() {
+                    // Handle `ComputedPropertyName : AssignmentExpression`.
+                    TokenKind::Colon => {
+                        property_definition_key = Some(property_name);
+
+                        self.expect_and_advance(TokenKind::Colon)?;
+
+                        let assignment_expression = self.parse_assignment_expression()?;
+
+                        property_definition_value =
+                            Some(PropertyValue::Expression(assignment_expression));
+                    }
+                    // Handle `MethodDefinition > ClassElementName > ComputedPropertyName ( UniqueFormalParameters )`.
+                    TokenKind::LeftParenthesis => {
+                        let function_expression = self.parse_method_definition_method_body()?;
+
+                        let method_definition = self.parse_method_definition(
+                            start_index,
+                            Some(PropertyDefinitionKey::Expression(property_name)),
+                            Some(function_expression),
+                            MethodDefinitionKind::Method,
+                            false,
+                            is_computed,
+                        )?;
+
+                        return Ok(ObjectExpressionProperty::Property(Property::try_from(
+                            method_definition,
+                        )?));
+                    }
+                    _ => return Err(self.unexpected_current_token_kind()),
+                };
+            }
+            // Handle `IdentifierReference`.
+            (token_kind, peek_token_kind)
+                if token_kind.is_identifier_reference()
+                    && peek_token_kind != TokenKind::LeftParenthesis =>
+            {
+                is_shorthand = true;
+
+                let identifier = self.parse_identifier_reference()?;
+
+                property_definition_key = Some(identifier.clone());
+
+                property_definition_value = Some(PropertyValue::Expression(identifier));
+            }
+            // Handle `MethodDefinition > ClassElementName ( UniqueFormalParameters )`.
+            (token_kind, _) if token_kind.is_class_element_name() => {
+                is_computed = token_kind == TokenKind::LeftSquareBracket;
+
+                let method_definition_key = self.parse_class_element_name()?;
+
+                let function_expression = self.parse_method_definition_method_body()?;
+
+                let method_definition = self.parse_method_definition(
+                    start_index,
+                    Some(method_definition_key),
+                    Some(function_expression),
+                    MethodDefinitionKind::Method,
+                    false,
+                    is_computed,
+                )?;
+
+                return Ok(ObjectExpressionProperty::Property(Property::try_from(
+                    method_definition,
+                )?));
+            }
+            _ => return Err(self.unexpected_current_token_kind()),
         };
 
-        let mut is_computed = self.token_kind() == TokenKind::LeftSquareBracket;
+        let Some(property_definition_key) = property_definition_key else {
+            return Err(ParserError::InvalidPropertyKey);
+        };
 
-        if self.token_kind().is_property_name() {
-            let property_name = self.parse_property_name()?;
+        let Some(property_definition_value) = property_definition_value else {
+            return Err(ParserError::InvalidPropertyValue);
+        };
 
-            let mut is_shorthand = false;
-
-            let value = match self.token_kind() {
-                TokenKind::LeftParenthesis => {
-                    is_method_definition = true;
-                    is_computed = true; // Must be a computed method name.
-
-                    let function_expression = self.parse_method_definition_method_body()?;
-
-                    PropertyValue::Expression(Expression::Function(function_expression))
-                }
-                TokenKind::Colon => {
-                    self.expect_and_advance(TokenKind::Colon)?;
-
-                    let assignment_expression = self.parse_assignment_expression()?;
-
-                    PropertyValue::Expression(assignment_expression)
-                }
-                TokenKind::Assignment => {
-                    self.expect_and_advance(TokenKind::Assignment)?;
-
-                    let assignment_expression = self.parse_assignment_expression()?;
-
-                    PropertyValue::Expression(assignment_expression)
-                }
-                _ => {
-                    is_shorthand = true;
-
-                    match &property_name {
-                        Expression::Identifier(identifier) => {
-                            PropertyValue::Expression(Expression::Identifier(identifier.clone()))
-                        }
-                        _ => return Err(ParserError::InvalidPropertyKey),
-                    }
-                }
-            };
-
-            return Ok(ObjectExpressionProperty::Property(Property {
-                method: is_method_definition,
-                shorthand: is_shorthand,
-                computed: is_computed,
-                key: property_name,
-                node: self.end_node(start_index)?,
-                value,
-                kind: PropertyKind::Init,
-            }));
-        }
-
-        Err(self.unexpected_current_token_kind())
+        Ok(ObjectExpressionProperty::Property(Property {
+            method: false,
+            shorthand: is_shorthand,
+            computed: is_computed,
+            key: property_definition_key,
+            node: self.end_node(start_index)?,
+            value: property_definition_value,
+            kind: property_definition_kind,
+        }))
     }
 
     // https://tc39.es/ecma262/#prod-PropertyName

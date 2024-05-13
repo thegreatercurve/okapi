@@ -324,19 +324,6 @@ impl TokenKind {
         )
     }
 
-    pub(crate) fn is_reserved_keyword_when_identifier_prohibited(&self) -> bool {
-        matches!(
-            self,
-            TokenKind::Keyword(KeywordKind::As)
-                | TokenKind::Keyword(KeywordKind::Async)
-                | TokenKind::Keyword(KeywordKind::From)
-                | TokenKind::Keyword(KeywordKind::Get)
-                | TokenKind::Keyword(KeywordKind::Of)
-                | TokenKind::Keyword(KeywordKind::Set)
-                | TokenKind::Keyword(KeywordKind::Target)
-        )
-    }
-
     // 13.1 Identifiers
     // https://tc39.es/ecma262/#prod-BindingIdentifier
     pub(crate) fn is_binding_identifier(&self) -> bool {
@@ -506,7 +493,7 @@ impl TokenKind {
 
     // 15.7 Class Definitions
     // https://tc39.es/ecma262/#prod-ClassElementName
-    pub(crate) fn is_class_element_name_start(&self) -> bool {
+    pub(crate) fn is_class_element_name(&self) -> bool {
         matches!(self, TokenKind::PrivateIdentifier) || self.is_property_name()
     }
 

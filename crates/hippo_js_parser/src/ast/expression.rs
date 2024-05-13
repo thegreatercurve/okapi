@@ -317,7 +317,6 @@ pub struct PropertyDefinition {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum PropertyDefinitionKey {
-    ComputedExpression(Expression),
     Expression(Expression),
     PrivateIdentifier(PrivateIdentifier),
 }
@@ -597,6 +596,19 @@ pub enum PropertyKind {
     Init,
     Get,
     Set,
+}
+
+impl TryFrom<MethodDefinitionKind> for PropertyKind {
+    type Error = ParserError;
+
+    fn try_from(method_definition_kind: MethodDefinitionKind) -> Result<Self, Self::Error> {
+        match method_definition_kind {
+            MethodDefinitionKind::Method => Ok(PropertyKind::Init),
+            MethodDefinitionKind::Get => Ok(PropertyKind::Get),
+            MethodDefinitionKind::Set => Ok(PropertyKind::Set),
+            MethodDefinitionKind::Constructor => Ok(PropertyKind::Init),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
