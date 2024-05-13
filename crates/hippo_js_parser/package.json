@@ -1,0 +1,19 @@
+{
+  "name": "hippo-js-parser-tests",
+  "version": "1.0.0",
+  "main": "acorn.js",
+  "scripts": {
+    "generate:acorn": "./node_modules/ts-node/dist/bin-script.js ./scripts/generate-acorn-test-fixtures.ts",
+    "generate:hippo": "./node_modules/ts-node/dist/bin-script.js ./scripts/generate-hippo-test-fixtures.ts"
+  },
+  "dependencies": {
+    "acorn": "^8.11.3",
+    "hippo": "../hippo_napi"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
+  }
+}
