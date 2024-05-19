@@ -18,7 +18,7 @@ async function writeFile(
 
 async function writeFixture(fileName: string) {
   const buffer = await fs.readFile(
-    path.join(process.cwd(), "tests/parser/fixtures", fileName),
+    path.join(process.cwd(), "tests/parser/acorn/fixtures", fileName),
     "utf8"
   );
 

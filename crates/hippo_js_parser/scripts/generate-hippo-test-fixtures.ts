@@ -35,7 +35,7 @@ async function writeFixture(fileName: string) {
   }
 
   writeFile(
-    path.join(process.cwd(), "tests/parser/fixtures/hippo", fileName),
+    path.join(process.cwd(), "tests/parser/acorn/fixtures/hippo", fileName),
     JSON.stringify(result, null, 2),
     ".json"
   );

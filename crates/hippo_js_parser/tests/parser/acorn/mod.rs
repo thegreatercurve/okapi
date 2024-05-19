@@ -4,15 +4,15 @@ use crate::parser::sort_json_keys;
 use hippo_js_parser::Parser;
 use pretty_assertions::assert_eq;
 
-use super::read_file;
+mod file;
 
 pub(crate) fn read_fixture(path: &str) -> io::Result<String> {
     let mut full_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
 
-    full_path.push("tests/parser/fixtures");
+    full_path.push("tests/parser/acorn/fixtures");
     full_path.push(path);
 
-    read_file(&full_path)
+    file::read_file(&full_path)
 }
 
 #[test]
