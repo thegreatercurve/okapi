@@ -1,5 +1,5 @@
 use crate::ast::*;
-use crate::{KeywordKind, Parser, ParserError, TokenKind, TokenValue};
+use crate::{Parser, ParserError, TokenKind};
 
 // 15 ECMAScript Language: Functions and Classes
 // https://tc39.es/ecma262/#sec-ecmascript-language-functions-and-classes

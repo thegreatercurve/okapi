@@ -1,7 +1,7 @@
 use std::{io, path::PathBuf};
 
 use crate::parser::sort_json_keys;
-use hippo_js_parser::Parser;
+use hippo_js_parser::{Config, Parser};
 use pretty_assertions::assert_eq;
 
 mod file;
@@ -19,7 +19,9 @@ pub(crate) fn read_fixture(path: &str) -> io::Result<String> {
 fn acorn_equality_react() {
     let fixture = read_fixture(&"react@18.2.0.development.js").unwrap();
 
-    let parsed = Parser::new(&fixture).parse_module_json().unwrap();
+    let parsed = Parser::new(&fixture, Config::default())
+        .parse_module_json()
+        .unwrap();
     let parsed_json = serde_json::from_str(&parsed).unwrap();
     let parsed_sorted = sort_json_keys(parsed_json).unwrap();
 
@@ -34,7 +36,9 @@ fn acorn_equality_react() {
 fn acorn_equality_react_dom() {
     let fixture = read_fixture(&"react-dom@18.2.0.development.js").unwrap();
 
-    let parsed = Parser::new(&fixture).parse_module_json().unwrap();
+    let parsed = Parser::new(&fixture, Config::default())
+        .parse_module_json()
+        .unwrap();
     let parsed_json = serde_json::from_str(&parsed).unwrap();
     let parsed_sorted = sort_json_keys(parsed_json).unwrap();
 
@@ -49,7 +53,9 @@ fn acorn_equality_react_dom() {
 fn acorn_equality_angular() {
     let fixture = read_fixture(&"angular@1.8.3.js").unwrap();
 
-    let parsed = Parser::new(&fixture).parse_module_json().unwrap();
+    let parsed = Parser::new(&fixture, Config::default())
+        .parse_module_json()
+        .unwrap();
     let parsed_json = serde_json::from_str(&parsed).unwrap();
     let parsed_sorted = sort_json_keys(parsed_json).unwrap();
 
@@ -64,7 +70,9 @@ fn acorn_equality_angular() {
 fn acorn_equality_three() {
     let fixture = read_fixture(&"three@0.163.0.js").unwrap();
 
-    let parsed = Parser::new(&fixture).parse_module_json().unwrap();
+    let parsed = Parser::new(&fixture, Config::default())
+        .parse_module_json()
+        .unwrap();
     let parsed_json = serde_json::from_str(&parsed).unwrap();
     let parsed_sorted = sort_json_keys(parsed_json).unwrap();
 

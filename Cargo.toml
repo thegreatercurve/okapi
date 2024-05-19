@@ -12,3 +12,4 @@ hippo_js_parser = { path = "crates/hippo_js_parser" }
 hippo_napi = { path = "crates/hippo_napi" }
 hippo_unicode = { path = "crates/hippo_unicode" }
 hippo_wasm = { path = "crates/hippo_wasm" }
+hippo_test262 = { path = "crates/hippo_test262" }
