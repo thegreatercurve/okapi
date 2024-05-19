@@ -286,7 +286,9 @@ impl Parser {
     fn parse_property_definition(&mut self) -> Result<ObjectExpressionProperty, ParserError> {
         let start_index = self.start_node();
 
+        #[allow(unused_assignments)]
         let mut property_definition_key = None;
+        #[allow(unused_assignments)]
         let mut property_definition_value = None;
 
         let property_definition_kind = PropertyKind::Init;

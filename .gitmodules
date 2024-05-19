@@ -1,0 +1,6 @@
+[submodule "crates/hippo_test262/test262"]
+	path = crates/hippo_test262/test262
+	url = https://github.com/tc39/test262
+[submodule "crates/hippo_test262/test262-parser-tests"]
+	path = crates/hippo_test262/test262-parser-tests
+	url = git@github.com:tc39/test262-parser-tests.git

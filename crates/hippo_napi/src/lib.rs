@@ -3,7 +3,7 @@
 #[macro_use]
 extern crate napi_derive;
 
-use hippo_js_parser::Parser;
+use hippo_js_parser::{Config, Parser};
 
 #[napi(object)]
 pub struct ParseResult {
@@ -13,7 +13,7 @@ pub struct ParseResult {
 
 #[napi]
 pub fn parse(source: String) -> ParseResult {
-    let mut parser = Parser::new(&source);
+    let mut parser = Parser::new(&source, Config::default());
 
     match parser.parse_module_json() {
         Ok(program) => ParseResult {

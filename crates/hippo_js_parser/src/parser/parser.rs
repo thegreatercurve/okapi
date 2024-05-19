@@ -6,18 +6,24 @@ pub struct Config {
     pub strict_mode: bool,
 }
 
-#[derive(Clone, Debug)]
-pub struct Context {
-    pub allow_in: bool,
-    pub allow_yield: bool,
-    pub allow_super: bool,
-    pub in_optional_chain: bool,
+impl Config {
+    pub fn new(strict_mode: bool) -> Self {
+        Self { strict_mode }
+    }
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self { strict_mode: true }
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct Context {
+    pub allow_in: bool,
+    pub allow_yield: bool,
+    pub allow_super: bool,
+    pub in_optional_chain: bool,
 }
 
 #[derive(Clone)]
@@ -28,9 +34,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn new(input: &str) -> Self {
-        let config = Config::default();
-
+    pub fn new(input: &str, config: Config) -> Self {
         let mut lexer = Lexer::new(input, config.clone());
 
         let current_token = lexer.next_token();
