@@ -1,6 +1,6 @@
 use std::{fs::File, io::BufReader, path::PathBuf};
 
-use hippo_js_parser::{Config, Parser};
+use hippo_js_parser::Parser;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -59,10 +59,10 @@ impl Test for RunTimeTest {
         }
     }
 
-    fn parse_module(&self, strict_mode: bool) -> Result<bool, ErrorKind> {
+    fn parse_module(&self) -> Result<bool, ErrorKind> {
         let source = &self.source;
 
-        let mut parser = Parser::new(&source, Config::new(strict_mode));
+        let mut parser = Parser::new(&source);
 
         match parser.parse_module() {
             Ok(_) => Ok(true),
@@ -70,10 +70,10 @@ impl Test for RunTimeTest {
         }
     }
 
-    fn parse_script(&self, strict_mode: bool) -> Result<bool, ErrorKind> {
+    fn parse_script(&self) -> Result<bool, ErrorKind> {
         let source = &self.source;
 
-        let mut parser = Parser::new(&source, Config::new(strict_mode));
+        let mut parser = Parser::new(&source);
 
         match parser.parse_script() {
             Ok(_) => Ok(true),

@@ -28,9 +28,9 @@ impl<'a> Test<'a> for ParserTest {
 
     fn run(&self) -> Result<bool, ErrorKind> {
         if self.meta_data.module {
-            self.parse_module(true)
+            self.parse_module()
         } else {
-            self.parse_script(true)
+            self.parse_script()
         }
     }
 }

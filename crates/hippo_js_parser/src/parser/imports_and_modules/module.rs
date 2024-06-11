@@ -7,12 +7,14 @@ impl Parser {
     // 16.2 Module
     // https://tc39.es/ecma262/#prod-ModuleBody
     pub(crate) fn parse_module_body(&mut self) -> Result<ProgramBody, ParserError> {
-        let mut body = vec![];
+        let mut body = self
+            .parse_directive_prologue()?
+            .into_iter()
+            .map(ModuleItem::StatementListItem)
+            .collect::<Vec<ModuleItem>>();
 
         while self.token_kind() != TokenKind::EOF {
-            let module_item = self.parse_module_item()?;
-
-            body.push(module_item);
+            body.push(self.parse_module_item()?);
         }
 
         Ok(ProgramBody::Module(body))

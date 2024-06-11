@@ -1,4 +1,4 @@
-use crate::{parser::Config, tokens::Token, ParserError, TokenKind, TokenValue};
+use crate::{parser::Context, tokens::Token, ParserError, TokenKind, TokenValue};
 
 use super::char::LexerChar;
 
@@ -11,20 +11,19 @@ pub enum GoalSymbol {
 
 #[derive(Clone, Debug)]
 pub struct Lexer {
-    pub config: Config,
+    pub context: Context,
     pub read_index: usize,
-    pub(crate) line: usize,
-    pub(crate) column: usize,
-    pub(crate) chars: Vec<char>,
-    pub(crate) goal_symbol: GoalSymbol,
+    pub line: usize,
+    pub column: usize,
+    pub chars: Vec<char>,
+    pub goal_symbol: GoalSymbol,
 }
 
 impl Lexer {
-    pub fn new(input: &str, config: Config) -> Self {
+    pub fn new(input: &str) -> Self {
         let mut lexer = Self::default();
 
         lexer.chars = input.chars().collect();
-        lexer.config = config;
 
         Self::skip_comment_or_whitespace(&mut lexer, &mut false);
 
@@ -33,7 +32,7 @@ impl Lexer {
 
     fn default() -> Self {
         Self {
-            config: Config::default(),
+            context: Context::default(),
             read_index: 0,
             line: 1,
             column: 1,
@@ -42,7 +41,7 @@ impl Lexer {
         }
     }
 
-    pub(crate) fn read_char(&mut self) {
+    pub fn read_char(&mut self) {
         if self.current_char().is_line_terminator() {
             self.line += 1;
             self.column = 1;
@@ -53,13 +52,13 @@ impl Lexer {
         self.read_index += 1;
     }
 
-    pub(crate) fn read_char_nth(&mut self, offset: usize) {
+    pub fn read_char_nth(&mut self, offset: usize) {
         for _ in 0..offset {
             self.read_char();
         }
     }
 
-    pub(crate) fn current_char(&mut self) -> char {
+    pub fn current_char(&mut self) -> char {
         if !self.is_end_of_file() {
             self.chars[self.read_index]
         } else {
@@ -67,11 +66,11 @@ impl Lexer {
         }
     }
 
-    pub(crate) fn peek_char(&mut self) -> char {
+    pub fn peek_char(&mut self) -> char {
         self.peek_char_nth(1)
     }
 
-    pub(crate) fn peek_char_nth(&mut self, offset: usize) -> char {
+    pub fn peek_char_nth(&mut self, offset: usize) -> char {
         if self.read_index + offset < self.len() {
             self.chars[self.read_index + offset]
         } else {

@@ -335,7 +335,7 @@ impl Lexer {
 
     // https://tc39.es/ecma262/#prod-LegacyOctalEscapeSequence
     fn read_octal_escape_sequence(&mut self) -> Result<u32, ParserError> {
-        if !self.config.strict_mode {
+        if self.context.strict_mode {
             return Err(ParserError::InvalidLegacyOctalEscapeSequenceNotAllowedInStrictMode);
         }
 

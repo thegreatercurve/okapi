@@ -6,7 +6,7 @@ impl Parser {
     // 16.1 Scripts
     // https://tc39.es/ecma262/#prod-Script
     pub(crate) fn parse_script_body(&mut self) -> Result<ProgramBody, ParserError> {
-        let mut statement_list = vec![];
+        let mut statement_list = self.parse_directive_prologue()?;
 
         while self.token_kind() != TokenKind::EOF {
             statement_list.push(self.parse_statement_list_item()?);

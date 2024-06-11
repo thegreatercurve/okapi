@@ -67,7 +67,7 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
 
-        let mut body = vec![];
+        let mut body = self.parse_directive_prologue()?;
 
         while self.token_kind() != TokenKind::RightCurlyBrace {
             body.push(self.parse_statement_list_item()?);

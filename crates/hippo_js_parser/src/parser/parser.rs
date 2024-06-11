@@ -2,53 +2,42 @@ use crate::{ast::*, TokenValue};
 use crate::{Cursor, Lexer, ParserError, TokenKind};
 
 #[derive(Clone, Debug)]
-pub struct Config {
-    pub strict_mode: bool,
-}
-
-impl Config {
-    pub fn new(strict_mode: bool) -> Self {
-        Self { strict_mode }
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self { strict_mode: true }
-    }
-}
-
-#[derive(Clone, Debug)]
 pub struct Context {
     pub allow_in: bool,
     pub allow_yield: bool,
     pub allow_super: bool,
     pub in_optional_chain: bool,
+    pub strict_mode: bool,
+}
+
+impl Context {
+    pub fn default() -> Self {
+        Self {
+            allow_in: true,
+            allow_yield: true,
+            allow_super: false,
+            in_optional_chain: false,
+            strict_mode: false,
+        }
+    }
 }
 
 #[derive(Clone)]
 pub struct Parser {
-    config: Config,
     pub cursor: Cursor,
     pub context: Context,
 }
 
 impl Parser {
-    pub fn new(input: &str, config: Config) -> Self {
-        let mut lexer = Lexer::new(input, config.clone());
+    pub fn new(input: &str) -> Self {
+        let mut lexer = Lexer::new(input);
 
         let current_token = lexer.next_token();
         let next_token = lexer.clone().next_token();
 
         Self {
-            config,
             cursor: Cursor::new(lexer, current_token, next_token),
-            context: Context {
-                allow_in: true,
-                allow_yield: true,
-                allow_super: false,
-                in_optional_chain: false,
-            },
+            context: Context::default(),
         }
     }
 

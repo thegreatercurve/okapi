@@ -237,7 +237,7 @@ impl Lexer {
 
     // https://tc39.es/ecma262/#prod-LegacyOctalIntegerLiteral
     fn read_legacy_octal_integer_literal(&mut self) -> Result<NumKind, ParserError> {
-        if !self.config.strict_mode {
+        if self.context.strict_mode {
             return Err(ParserError::InvalidLegacyOctalNumberLiteralNotAllowedInStrictMode);
         }
 

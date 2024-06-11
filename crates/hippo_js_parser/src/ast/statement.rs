@@ -9,6 +9,7 @@ pub enum Statement {
     Break(BreakStatement),
     Continue(ContinueStatement),
     Debugger(DebuggerStatement),
+    Directive(DirectiveStatement),
     Declaration(Declaration),
     DoWhile(DoWhileStatement),
     Empty(EmptyStatement),
@@ -66,6 +67,15 @@ pub struct DebuggerStatement {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(tag = "type", rename = "ExpressionStatement")]
+pub struct DirectiveStatement {
+    #[serde(flatten)]
+    pub node: Node,
+    pub expression: Expression,
+    pub directive: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub struct DoWhileStatement {
     #[serde(flatten)]
@@ -87,8 +97,6 @@ pub struct ExpressionStatement {
     #[serde(flatten)]
     pub node: Node,
     pub expression: Expression,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub directive: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

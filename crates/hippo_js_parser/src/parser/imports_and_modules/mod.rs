@@ -24,6 +24,10 @@ impl Parser {
     // 16.2 Modules
     // https://tc39.es/ecma262/#prod-Module
     pub fn parse_module(&mut self) -> Result<Program, ParserError> {
+        // The entire contents of JavaScript modules are automatically in strict mode, with no statement needed to initiate it.
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode
+        self.context.strict_mode = true;
+
         let program_body = self.parse_module_body()?;
 
         Ok(Program {

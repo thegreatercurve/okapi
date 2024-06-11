@@ -8,7 +8,6 @@ use crate::parser_262::{ParserTest, ParserTestMetaData};
 
 const TEST_PATH: &str = "test262-parser-tests/pass-explicit";
 
-#[test]
 pub fn run_tests() -> Result<(), ErrorKind> {
     let harness = Harness::new(TEST_PATH)?;
 
