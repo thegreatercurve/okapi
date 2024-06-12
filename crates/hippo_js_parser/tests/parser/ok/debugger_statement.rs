@@ -4,6 +4,6 @@ use crate::parser::test_helper_macros::assert_parser_eq;
 fn debugger_statement() {
     assert_parser_eq!(
         r#"debugger;"#,
-        r#"{"type":"Program","start":0,"end":9,"body":[{"type":"DebuggerStatement","start":0,"end":9}],"sourceType":"module"}"#
+        r#"{"type":"Program","start":0,"end":9,"body":[{"type":"DebuggerStatement","start":0,"end":9}],"sourceType":"script"}"#
     );
 }

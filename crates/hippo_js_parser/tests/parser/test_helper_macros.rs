@@ -4,7 +4,7 @@ macro_rules! assert_parser_eq {
         use hippo_js_parser::Parser;
         use pretty_assertions::assert_eq;
 
-        let parsed = Parser::new(&$test_case).parse_module_json().unwrap();
+        let parsed = Parser::new(&$test_case).parse_script_json().unwrap();
         let parsed_json = serde_json::from_str(&parsed).unwrap();
         let parsed_sorted = sort_json_keys(parsed_json).unwrap();
 
