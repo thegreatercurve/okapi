@@ -1,8 +1,8 @@
-use crate::parser::test_helper_macros::assert_parse_script_eq;
+use crate::parser::test_helper_macros::assert_parser_script_eq;
 
 #[test]
 fn with_statement() {
-    assert_parse_script_eq!(
+    assert_parser_script_eq!(
         r"let a;
 const r = 10;
 

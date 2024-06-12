@@ -9,12 +9,7 @@ impl Parser {
         let mut statement_list = vec![];
 
         while self.token_kind() != TokenKind::EOF {
-            let statement_list_item = match self.parse_statement()? {
-                Statement::Declaration(declaration) => StatementListItem::Declaration(declaration),
-                statement => StatementListItem::Statement(statement),
-            };
-
-            statement_list.push(statement_list_item);
+            statement_list.push(self.parse_statement_list_item()?);
         }
 
         Ok(ProgramBody::StatementList(statement_list))
