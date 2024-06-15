@@ -29,7 +29,7 @@ impl Lexer {
         };
 
         let keyword_or_identifer_name = &self.chars[start_index..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>();
 
         match self.match_reserved_keyword(keyword_or_identifer_name) {
@@ -77,11 +77,12 @@ impl Lexer {
 
                 let unicode_escape_sequence_u32 = self.read_unicode_escape_sequence();
 
-                if unicode_escape_sequence_u32.is_err() {
-                    return Err(unicode_escape_sequence_u32.unwrap_err());
+                match unicode_escape_sequence_u32.is_err() {
+                    true => return Err(unicode_escape_sequence_u32.unwrap_err()),
+                    false => (),
                 }
             }
-            ch if is_unicode_id_start(ch) => self.read_char(),
+            ch if is_unicode_id_start(&ch) => self.read_char(),
             _ => {
                 return Err(ParserError::InvalidIdentifierCharacter);
             }
@@ -99,8 +100,9 @@ impl Lexer {
 
                 let unicode_escape_sequence_u32 = self.read_unicode_escape_sequence();
 
-                if unicode_escape_sequence_u32.is_err() {
-                    return Err(unicode_escape_sequence_u32.unwrap_err());
+                match unicode_escape_sequence_u32.is_err() {
+                    true => return Err(unicode_escape_sequence_u32.unwrap_err()),
+                    false => (),
                 }
             }
 
@@ -185,7 +187,7 @@ impl Lexer {
 
         // Omit the '#' char.
         let identifer_name = &self.chars[start_index + 1..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>();
 
         match identifier {

@@ -90,7 +90,7 @@ impl Parser {
             _ => return Err(self.unexpected_current_token_kind()),
         }
 
-        return Ok(import_specifiers);
+        Ok(import_specifiers)
     }
 
     // https://tc39.es/ecma262/#prod-ImportedDefaultBinding
@@ -99,12 +99,12 @@ impl Parser {
 
         let imported_binding_identifier = self.parse_imported_binding()?;
 
-        return Ok(ImportSpecifier {
+        Ok(ImportSpecifier {
             node: self.end_node(start_index)?,
-            kind: ImportSpecifierKind::ImportDefaultSpecifier,
+            kind: ImportSpecifierKind::DefaultSpecifier,
             local: imported_binding_identifier,
             imported: None,
-        });
+        })
     }
 
     // https://tc39.es/ecma262/#prod-NamedImports
@@ -117,12 +117,12 @@ impl Parser {
 
         let imported_binding_identifier = self.parse_imported_binding()?;
 
-        return Ok(ImportSpecifier {
+        Ok(ImportSpecifier {
             node: self.end_node(start_index)?,
-            kind: ImportSpecifierKind::ImportNamespaceSpecifier,
+            kind: ImportSpecifierKind::NamespaceSpecifier,
             local: imported_binding_identifier,
             imported: None,
-        });
+        })
     }
 
     // https://tc39.es/ecma262/#prod-NamedImports
@@ -184,7 +184,7 @@ impl Parser {
 
                 Ok(ImportSpecifier {
                     node: self.end_node(start_index)?,
-                    kind: ImportSpecifierKind::ImportSpecifier,
+                    kind: ImportSpecifierKind::Specifier,
                     local: import_specifier,
                     imported: Some(module_export_name),
                 })
@@ -198,7 +198,7 @@ impl Parser {
 
                 Ok(ImportSpecifier {
                     node: self.end_node(start_index)?,
-                    kind: ImportSpecifierKind::ImportSpecifier,
+                    kind: ImportSpecifierKind::Specifier,
                     local: import_specifier.clone(),
                     imported: Some(module_export_name),
                 })

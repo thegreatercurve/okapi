@@ -103,13 +103,13 @@ impl Parser {
             (TokenKind::Semicolon, _) => {
                 self.advance_any(); // Eat ';' token.
 
-                return Ok(None);
+                Ok(None)
             }
             // Handle `ClassStaticBlock > static {`.
             (TokenKind::Keyword(KeywordKind::Static), TokenKind::LeftCurlyBrace) => {
                 let static_block = self.parse_static_block()?;
 
-                return Ok(Some(ClassBodyBody::StaticBlock(static_block)));
+                Ok(Some(ClassBodyBody::StaticBlock(static_block)))
             }
             // Handle `static MethodDefinition`.
             // Handle `static FieldDefinition`.
@@ -124,7 +124,7 @@ impl Parser {
 
                 self.advance_any(); // Eat 'static' token.
 
-                return self.parse_class_element(true, Some(start_index));
+                self.parse_class_element(true, Some(start_index))
             }
             // Handle `MethodDefinition > get ClassElementName ... ;`.
             (TokenKind::Keyword(KeywordKind::Get), peek_token_kind)
@@ -147,7 +147,7 @@ impl Parser {
                     is_computed,
                 )?;
 
-                return Ok(Some(ClassBodyBody::MethodDefinition(method_definition)));
+                Ok(Some(ClassBodyBody::MethodDefinition(method_definition)))
             }
             // Handle `MethodDefinition > set ClassElementName ... ;`.
             (TokenKind::Keyword(KeywordKind::Set), peek_token_kind)
@@ -170,7 +170,7 @@ impl Parser {
                     is_computed,
                 )?;
 
-                return Ok(Some(ClassBodyBody::MethodDefinition(method_definition)));
+                Ok(Some(ClassBodyBody::MethodDefinition(method_definition)))
             }
             // Handle `MethodDefinition > GeneratorMethod > * ClassElementName`.
             (TokenKind::Multiplication, peek_token_kind)
@@ -186,9 +186,9 @@ impl Parser {
                     MethodDefinitionKind::Method,
                 )?;
 
-                return Ok(Some(ClassBodyBody::MethodDefinition(
+                Ok(Some(ClassBodyBody::MethodDefinition(
                     generator_method_definition,
-                )));
+                )))
             }
             // Handle `MethodDefinition > AsyncMethod > async [no LineTerminator here] ClassElementName`.
             (TokenKind::Keyword(KeywordKind::Async), peek_token_kind)
@@ -204,9 +204,9 @@ impl Parser {
                     MethodDefinitionKind::Method,
                 )?;
 
-                return Ok(Some(ClassBodyBody::MethodDefinition(
+                Ok(Some(ClassBodyBody::MethodDefinition(
                     async_method_definition,
-                )));
+                )))
             }
             // Handle `MethodDefinition > AsyncGeneratorMethod > async [no LineTerminator here] * ClassElementName`.
             (TokenKind::Keyword(KeywordKind::Async), TokenKind::Multiplication)
@@ -224,9 +224,9 @@ impl Parser {
                     MethodDefinitionKind::Method,
                 )?;
 
-                return Ok(Some(ClassBodyBody::MethodDefinition(
+                Ok(Some(ClassBodyBody::MethodDefinition(
                     async_generator_method_definition,
-                )));
+                )))
             }
             // Handle `MethodDefinition > ClassElementName ( ... ;`.
             // Handle `FieldDefinition > ClassElementName;`.
@@ -259,7 +259,7 @@ impl Parser {
                             is_computed,
                         )?;
 
-                        return Ok(Some(ClassBodyBody::MethodDefinition(method_definition)));
+                        Ok(Some(ClassBodyBody::MethodDefinition(method_definition)))
                     }
                     TokenKind::Assignment | TokenKind::Semicolon => {
                         let field_definition = self.parse_field_definition(
@@ -269,12 +269,12 @@ impl Parser {
                             is_computed,
                         )?;
 
-                        return Ok(Some(ClassBodyBody::PropertyDefinition(field_definition)));
+                        Ok(Some(ClassBodyBody::PropertyDefinition(field_definition)))
                     }
-                    _ => return Err(self.unexpected_current_token_kind()),
+                    _ => Err(self.unexpected_current_token_kind()),
                 }
             }
-            _ => return Err(self.unexpected_current_token_kind()),
+            _ => Err(self.unexpected_current_token_kind()),
         }
     }
 
@@ -325,7 +325,7 @@ impl Parser {
 
                 Ok(PropertyDefinitionKey::Expression(property_name))
             }
-            _ => return Err(self.unexpected_current_token_kind()),
+            _ => Err(self.unexpected_current_token_kind()),
         }
     }
 

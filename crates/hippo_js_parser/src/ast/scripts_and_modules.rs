@@ -58,9 +58,12 @@ pub struct ImportSpecifier {
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub enum ImportSpecifierKind {
-    ImportSpecifier,
-    ImportDefaultSpecifier,
-    ImportNamespaceSpecifier,
+    #[serde(rename = "ImportSpecifier")]
+    Specifier,
+    #[serde(rename = "ImportDefaultSpecifier")]
+    DefaultSpecifier,
+    #[serde(rename = "ImportNamespaceSpecifier")]
+    NamespaceSpecifier,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -73,9 +76,12 @@ pub enum ModuleExportName {
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum ExportDeclaration {
-    ExportAll(ExportAllDeclaration),
-    ExportDefault(ExportDefaultDeclaration),
-    ExportNamed(ExportNamedDeclaration),
+    #[serde(rename = "ExportAllDeclaration")]
+    All(ExportAllDeclaration),
+    #[serde(rename = "ExportDefaultDeclaration")]
+    Default(ExportDefaultDeclaration),
+    #[serde(rename = "ExportNamedDeclaration")]
+    Named(ExportNamedDeclaration),
 }
 
 #[derive(Debug, PartialEq, Serialize)]

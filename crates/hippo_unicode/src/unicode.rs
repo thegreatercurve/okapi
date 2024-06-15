@@ -8,9 +8,8 @@
  *   15.1.0
  */
 
-pub fn is_unicode_id_start(ch: char) -> bool {
-	match ch {
-		'\u{0041}'..='\u{005A}'
+pub fn is_unicode_id_start(ch: &char) -> bool {
+    matches!(ch, '\u{0041}'..='\u{005A}'
 		| '\u{0061}'..='\u{007A}'
 		| '\u{00AA}'
 		| '\u{00B5}'
@@ -749,18 +748,15 @@ pub fn is_unicode_id_start(ch: char) -> bool {
 		| '\u{2EBF0}'..='\u{2EE5D}'
 		| '\u{2F800}'..='\u{2FA1D}'
 		| '\u{30000}'..='\u{3134A}'
-		| '\u{31350}'..='\u{323AF}' => true,
-		_ => false,
-	}
+		| '\u{31350}'..='\u{323AF}')
 }
 
-pub fn is_unicode_id_continue(ch: char) -> bool {
-	if is_unicode_id_start(ch) {
-		return true;
-	}
-	  
-	match ch {
-		'\u{0030}'..='\u{0039}'
+pub fn is_unicode_id_continue(ch: &char) -> bool {
+    if is_unicode_id_start(ch) {
+        return true;
+    }
+
+    matches!(ch, '\u{0030}'..='\u{0039}'
 		| '\u{005F}'
 		| '\u{00B7}'
 		| '\u{0300}'..='\u{036F}'
@@ -1363,8 +1359,5 @@ pub fn is_unicode_id_continue(ch: char) -> bool {
 		| '\u{1E944}'..='\u{1E94A}'
 		| '\u{1E950}'..='\u{1E959}'
 		| '\u{1FBF0}'..='\u{1FBF9}'
-		| '\u{E0100}'..='\u{E01EF}' => true,
-		_ => false,
-	}
+		| '\u{E0100}'..='\u{E01EF}')
 }
-  

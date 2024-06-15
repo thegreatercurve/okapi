@@ -108,7 +108,7 @@ impl Parser {
             id: None,
             expression: false,
             generator: true,
-            is_async: is_async,
+            is_async,
             params: formal_parameters,
             body: function_body,
         };

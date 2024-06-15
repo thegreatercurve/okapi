@@ -105,7 +105,7 @@ impl Parser {
 
         let node = self.end_node(start_index)?;
 
-        let literal = match token_kind {
+        match token_kind {
             TokenKind::StringLiteral => Ok(self.parse_string_literal(token_value, node)?),
             TokenKind::NumberLiteral => Ok(self.parse_number_literal(token_value, node)?),
             TokenKind::Keyword(KeywordKind::Null) => Ok(Literal {
@@ -124,9 +124,7 @@ impl Parser {
                 raw: "false".to_string(),
             }),
             _ => Err(self.unexpected_current_token_kind()),
-        };
-
-        literal
+        }
     }
 
     // https://tc39.es/ecma262/#prod-NumberLiteral
@@ -143,7 +141,7 @@ impl Parser {
         Ok(Literal {
             node,
             value: LiteralValue::Number(value),
-            raw: raw,
+            raw,
         })
     }
 

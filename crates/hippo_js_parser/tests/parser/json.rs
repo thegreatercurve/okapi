@@ -7,7 +7,7 @@ fn sort_array(value: Value) -> Result<Value, serde_json::Error> {
     for json_value in list.into_iter() {
         new_list.push(sort_json_keys(json_value)?)
     }
-    Ok(serde_json::to_value(new_list)?)
+    serde_json::to_value(new_list)
 }
 
 fn sort_object_keys(value: Value) -> Result<Value, serde_json::Error> {
@@ -17,7 +17,7 @@ fn sort_object_keys(value: Value) -> Result<Value, serde_json::Error> {
         new_map.insert(key, sort_json_keys(value)?);
     }
     let btree_map: BTreeMap<_, _> = new_map.iter().collect();
-    Ok(serde_json::to_value(btree_map)?)
+    serde_json::to_value(btree_map)
 }
 
 pub(crate) fn sort_json_keys(value: Value) -> Result<Value, serde_json::Error> {

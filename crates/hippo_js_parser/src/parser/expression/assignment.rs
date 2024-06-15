@@ -301,7 +301,7 @@ impl Parser {
             self.end_node(start_index)?; // End potential assignment pattern node.
         }
 
-        let assignment_property = match self.token_kind() {
+        match self.token_kind() {
             TokenKind::Colon => {
                 self.expect_and_advance(TokenKind::Colon)?; // Eat ':' token.
 
@@ -347,9 +347,7 @@ impl Parser {
                 kind: PropertyKind::Init,
                 value: PropertyValue::Pattern(Pattern::try_from(left_hand_expression)?),
             })),
-        };
-
-        assignment_property
+        }
     }
 
     // https://tc39.es/ecma262/#prod-AssignmentElement

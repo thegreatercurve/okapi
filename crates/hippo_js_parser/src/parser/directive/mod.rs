@@ -3,7 +3,7 @@ use crate::{
         DirectiveStatement, Expression, ExpressionStatement, Literal, LiteralValue, Statement,
         StatementListItem,
     },
-    Parser, ParserError, TokenKind, TokenValue,
+    Parser, ParserError, TokenKind,
 };
 
 // 11 ECMAScript Language: Source Text

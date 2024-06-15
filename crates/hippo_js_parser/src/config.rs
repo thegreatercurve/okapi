@@ -17,11 +17,3 @@ enum ECMAVersion {
 pub struct Config {
     ecma_version: ECMAVersion,
 }
-
-impl Config {
-    pub fn default() -> Self {
-        Self {
-            ecma_version: ECMAVersion::TwentyTwentyThree,
-        }
-    }
-}

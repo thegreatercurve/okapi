@@ -20,13 +20,10 @@ impl Parser {
         let parameters = if self.token_kind().is_binding_identifier() {
             vec![Pattern::Identifier(self.parse_binding_identifier()?)]
         } else {
-            let formal_parameters = self
-                .parse_parenthesized_formal_parameters()?
+            self.parse_parenthesized_formal_parameters()?
                 .into_iter()
                 .map(Pattern::try_from)
-                .collect::<Result<Vec<Pattern>, ParserError>>()?;
-
-            formal_parameters
+                .collect::<Result<Vec<Pattern>, ParserError>>()?
         };
 
         if self.has_previous_token_line_terminator() {

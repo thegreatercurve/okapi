@@ -13,7 +13,7 @@ pub(crate) trait Test<'a> {
     fn read_file(path: &PathBuf) -> Result<String, ErrorKind> {
         use std::io::Read;
 
-        let file = File::open(&path).map_err(ErrorKind::Io)?;
+        let file = File::open(path).map_err(ErrorKind::Io)?;
 
         let mut reader = BufReader::new(file);
         let mut contents = String::new();
@@ -27,7 +27,7 @@ pub(crate) trait Test<'a> {
     fn parse_module(&self) -> Result<bool, ErrorKind> {
         let source = &self.source();
 
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
 
         match parser.parse_module() {
             Ok(_) => Ok(true),
@@ -38,7 +38,7 @@ pub(crate) trait Test<'a> {
     fn parse_script(&self) -> Result<bool, ErrorKind> {
         let source = &self.source();
 
-        let mut parser = Parser::new(&source);
+        let mut parser = Parser::new(source);
 
         match parser.parse_script() {
             Ok(_) => Ok(true),

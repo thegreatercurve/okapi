@@ -74,7 +74,7 @@ impl Lexer {
 
             match self.current_char() {
                 ch if ch.is_line_terminator() => return Err(ParserError::UnterminatedRegExLiteral),
-                '\\' => in_backslash_sequence = if in_backslash_sequence { false } else { true },
+                '\\' => in_backslash_sequence = !in_backslash_sequence,
                 '[' if !in_backslash_sequence => in_class = true,
                 ']' if !in_backslash_sequence => in_class = false,
                 ch if ch.is_line_terminator() => return Err(ParserError::UnterminatedRegExLiteral),
@@ -89,7 +89,7 @@ impl Lexer {
         }
 
         Ok(self.chars[start_index..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>())
     }
 
@@ -102,7 +102,7 @@ impl Lexer {
         }
 
         self.chars[start_index..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>()
     }
 }

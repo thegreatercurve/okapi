@@ -44,13 +44,9 @@ fn read_tests(test_path: &str) -> Result<Vec<PathBuf>, ErrorKind> {
                     return false;
                 };
 
-                if file_name.ends_with("_FIXTURE.js") {
-                    return false;
-                } else {
-                    return true;
-                }
+                !file_name.ends_with("_FIXTURE.js")
             } else {
-                return false;
+                false
             }
         })
         .map(|entry| entry.path().to_path_buf())

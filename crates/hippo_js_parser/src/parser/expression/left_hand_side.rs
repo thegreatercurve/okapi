@@ -64,7 +64,7 @@ impl Parser {
             TokenKind::OptionalChaining => {
                 // Handle `OptionalExpression > MemberExpression OptionalChain`.
                 return Ok(Some(
-                    self.parse_optional_chain(&member_expression, start_index)?,
+                    self.parse_optional_chain(member_expression, start_index)?,
                 ));
             }
             TokenKind::Dot => {
@@ -308,7 +308,7 @@ impl Parser {
         match self.token_kind() {
             TokenKind::OptionalChaining => {
                 // Handle `OptionalExpression > CallExpression OptionalChain`.
-                return self.parse_optional_chain(&next_call_expression, start_index);
+                self.parse_optional_chain(&next_call_expression, start_index)
             }
             TokenKind::LeftParenthesis => {
                 // Handle `CallExpression Arguments`.
@@ -475,7 +475,7 @@ impl Parser {
 
             self.parse_optional_chain(&next_optional_expression, start_index)
         } else {
-            return Ok(optional_expression.clone());
+            Ok(optional_expression.clone())
         }
     }
 
@@ -497,7 +497,7 @@ impl Parser {
             TokenKind::PrivateIdentifier => Ok(MemberExpressionProperty::PrivateIdentifier(
                 self.parse_private_identifier()?,
             )),
-            _ => return Err(self.unexpected_current_token_kind()),
+            _ => Err(self.unexpected_current_token_kind()),
         }
     }
 

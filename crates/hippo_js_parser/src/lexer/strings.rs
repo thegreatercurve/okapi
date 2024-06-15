@@ -18,7 +18,7 @@ fn is_trailing_surrogate(ch: u32) -> bool {
 }
 
 fn format_invalid_code_point_string(code_point_u32: u32) -> String {
-    format!(r"\u{{{}}}", code_point_u32.to_string())
+    format!(r"\u{{{}}}", code_point_u32)
 }
 
 // 12.9.4 String Literals
@@ -44,12 +44,12 @@ impl Lexer {
                         '\'' | '"' => {
                             string_literal.push(self.current_char());
                         }
-                        'b' => string_literal.push_str("\u{0008}"),
-                        'f' => string_literal.push_str("\u{000C}"),
-                        'n' => string_literal.push_str("\n"),
-                        'r' => string_literal.push_str("\r"),
-                        't' => string_literal.push_str("\t"),
-                        'v' => string_literal.push_str("\u{000B}"),
+                        'b' => string_literal.push('\u{0008}'),
+                        'f' => string_literal.push('\u{000C}'),
+                        'n' => string_literal.push('\n'),
+                        'r' => string_literal.push('\r'),
+                        't' => string_literal.push('\t'),
+                        'v' => string_literal.push('\u{000B}'),
                         'x' => {
                             self.read_char(); // Eat 'x' char.
 
@@ -121,7 +121,7 @@ impl Lexer {
                                     trailing_code_point_u32,
                                 ) => {
                                     for code_point_u32 in
-                                        vec![leading_code_point_u32, trailing_code_point_u32]
+                                        [leading_code_point_u32, trailing_code_point_u32]
                                     {
                                         if let Some(ch) = char::from_u32(code_point_u32) {
                                             string_literal.push(ch);
@@ -186,7 +186,7 @@ impl Lexer {
         self.read_char(); // Eat end quote char.
 
         let raw_string_literal = self.chars[start_index..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>();
 
         Token::new(
@@ -215,7 +215,7 @@ impl Lexer {
         }
 
         let hex_str = &self.chars[start_index..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>();
 
         match u32::from_str_radix(hex_str, 16) {
@@ -262,7 +262,7 @@ impl Lexer {
 
             SurrogatePair::AstralCodePoint(astral_code_point)
         } else {
-            return SurrogatePair::LeadingInvalid(leading_surrogate);
+            SurrogatePair::LeadingInvalid(leading_surrogate)
         }
     }
 
@@ -279,7 +279,7 @@ impl Lexer {
         }
 
         let unicode_str = &self.chars[start_index..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>();
 
         if unicode_str.len() < 4 {
@@ -315,7 +315,7 @@ impl Lexer {
         }
 
         let code_point_str = &self.chars[start_index..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>();
 
         if code_point_str.len() < 4 {
@@ -357,7 +357,7 @@ impl Lexer {
         self.read_char();
 
         let octal_str = &self.chars[start_index..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>();
 
         match u32::from_str_radix(octal_str, 8) {

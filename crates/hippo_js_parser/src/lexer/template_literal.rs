@@ -105,7 +105,7 @@ impl Lexer {
         }
 
         let raw_string_literal = self.chars[start_index..end_index]
-            .into_iter()
+            .iter()
             .collect::<String>();
 
         let token_kind = match (is_head, is_tail) {

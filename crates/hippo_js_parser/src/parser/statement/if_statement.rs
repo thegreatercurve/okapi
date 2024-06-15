@@ -29,7 +29,7 @@ impl Parser {
 
         Ok(IfStatement {
             node: self.end_node(start_index)?,
-            test: test,
+            test,
             consequent: Box::new(consequent),
             alternate,
         })

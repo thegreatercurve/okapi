@@ -224,7 +224,7 @@ impl Parser {
             _ => Expression::Identifier(self.parse_binding_identifier()?),
         };
 
-        let binding_property = match self.token_kind() {
+        match self.token_kind() {
             TokenKind::Colon => {
                 self.expect_and_advance(TokenKind::Colon)?; // Eat ':' token.
 
@@ -270,9 +270,7 @@ impl Parser {
                 kind: PropertyKind::Init,
                 value: PropertyValue::Pattern(Pattern::try_from(left_hand_expression)?),
             })),
-        };
-
-        binding_property
+        }
     }
 
     // https://tc39.es/ecma262/#prod-BindingElement

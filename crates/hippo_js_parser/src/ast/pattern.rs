@@ -147,11 +147,7 @@ impl TryFrom<ArrayExpression> for ArrayPattern {
             .elements
             .into_iter()
             .filter_map(|element| {
-                if let Some(element) = element {
-                    Some(ArrayPatternElement::try_from(element).ok())
-                } else {
-                    None
-                }
+                element.map(|element| ArrayPatternElement::try_from(element).ok())
             })
             .collect::<Vec<Option<ArrayPatternElement>>>();
 

@@ -94,7 +94,7 @@ impl Lexer {
                     self.column,
                     TokenValue::BigInt(
                         self.chars[start_index..self.read_index]
-                            .into_iter()
+                            .iter()
                             .collect::<String>(),
                     ),
                 ),
@@ -114,7 +114,7 @@ impl Lexer {
                         self.column,
                         TokenValue::Number {
                             raw: self.chars[start_index..self.read_index]
-                                .into_iter()
+                                .iter()
                                 .collect::<String>(),
                             value: Number::from_str(&number_literal_f64.to_string()).unwrap(),
                         },
@@ -256,11 +256,11 @@ impl Lexer {
         start_index: usize,
     ) -> Result<f64, ParserError> {
         let number_literal_str = &self.chars[start_index..self.read_index]
-            .into_iter()
+            .iter()
             .collect::<String>()
             .replace(NUMERIC_LITERAL_SEPARATOR, "");
 
-        let radix = match_num_kind_to_radix(&num_kind);
+        let radix = match_num_kind_to_radix(num_kind);
 
         match num_kind {
             NumKind::Int
@@ -268,15 +268,15 @@ impl Lexer {
             | NumKind::Octal
             | NumKind::Hexadecimal
             | NumKind::LegacyOctal => match u64::from_str_radix(number_literal_str, radix) {
-                Ok(number_literal) => return Ok(number_literal as f64),
-                Err(_) => return Err(match_num_kind_to_parse_error(&num_kind)),
+                Ok(number_literal) => Ok(number_literal as f64),
+                Err(_) => Err(match_num_kind_to_parse_error(num_kind)),
             },
             NumKind::Decimal | NumKind::PositiveExponent | NumKind::NegativeExponent => {
                 number_literal_str
                     .parse()
-                    .map_err(|_| match_num_kind_to_parse_error(&num_kind))
+                    .map_err(|_| match_num_kind_to_parse_error(num_kind))
             }
-            NumKind::BigInt => Err(match_num_kind_to_parse_error(&num_kind)),
+            NumKind::BigInt => Err(match_num_kind_to_parse_error(num_kind)),
         }
     }
 }

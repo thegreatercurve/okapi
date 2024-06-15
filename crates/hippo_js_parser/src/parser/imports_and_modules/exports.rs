@@ -19,7 +19,7 @@ impl Parser {
 
                 self.expect_optional_semicolon_and_advance();
 
-                Ok(ExportDeclaration::ExportAll(ExportAllDeclaration {
+                Ok(ExportDeclaration::All(ExportAllDeclaration {
                     node: self.end_node(start_index)?,
                     source: from_clause,
                     exported: export_from_clause,
@@ -36,7 +36,7 @@ impl Parser {
 
                 self.expect_optional_semicolon_and_advance();
 
-                Ok(ExportDeclaration::ExportNamed(ExportNamedDeclaration {
+                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
                     node: self.end_node(start_index)?,
                     declaration: None,
                     specifiers: named_exports,
@@ -46,7 +46,7 @@ impl Parser {
             token_kind if token_kind.is_declaration_start() => {
                 let variable_declaration = self.parse_lexical_declaration(true)?;
 
-                Ok(ExportDeclaration::ExportNamed(ExportNamedDeclaration {
+                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
                     node: self.end_node(start_index)?,
                     declaration: Some(ExportNamedDeclarationDeclaration::Variable(
                         variable_declaration,
@@ -58,7 +58,7 @@ impl Parser {
             TokenKind::Keyword(KeywordKind::Var) => {
                 let variable_declaration = self.parse_lexical_declaration(true)?;
 
-                Ok(ExportDeclaration::ExportNamed(ExportNamedDeclaration {
+                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
                     node: self.end_node(start_index)?,
                     declaration: Some(ExportNamedDeclarationDeclaration::Variable(
                         variable_declaration,
@@ -72,7 +72,7 @@ impl Parser {
 
                 self.expect_optional_semicolon_and_advance();
 
-                Ok(ExportDeclaration::ExportNamed(ExportNamedDeclaration {
+                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
                     node: self.end_node(start_index)?,
                     declaration: Some(ExportNamedDeclarationDeclaration::Function(
                         function_declaration,
@@ -84,7 +84,7 @@ impl Parser {
             TokenKind::Keyword(KeywordKind::Class) => {
                 let class_declaration = self.parse_class_declaration()?;
 
-                Ok(ExportDeclaration::ExportNamed(ExportNamedDeclaration {
+                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
                     node: self.end_node(start_index)?,
                     declaration: Some(ExportNamedDeclarationDeclaration::Class(class_declaration)),
                     specifiers: vec![],
@@ -110,7 +110,7 @@ impl Parser {
             return Ok(Some(module_export_name));
         }
 
-        return Ok(None);
+        Ok(None)
     }
 
     fn parse_named_exports(&mut self) -> Result<Vec<ExportSpecifier>, ParserError> {
