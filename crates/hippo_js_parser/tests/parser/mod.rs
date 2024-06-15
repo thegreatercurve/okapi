@@ -1,4 +1,4 @@
-// mod acorn;
+mod acorn;
 mod error;
 mod json;
 mod ok;

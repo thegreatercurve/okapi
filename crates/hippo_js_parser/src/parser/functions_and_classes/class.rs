@@ -7,6 +7,11 @@ impl Parser {
     // 15.7 Class Definitions
     // https://tc39.es/ecma262/#prod-ClassExpression
     pub(crate) fn parse_class_declaration(&mut self) -> Result<ClassDeclaration, ParserError> {
+        // All parts of a ClassDeclaration or a ClassExpression are strict mode code.
+        // https://tc39.es/ecma262/#sec-strict-mode-code
+        let previous_strict_mode = self.context.strict_mode;
+        self.context.strict_mode = true;
+
         let start_index = self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Class))?;
@@ -21,6 +26,8 @@ impl Parser {
 
         let class_tail = self.parse_class_tail()?;
 
+        self.context.strict_mode = previous_strict_mode;
+
         Ok(ClassDeclaration {
             node: self.end_node(start_index)?,
             // TODO Handle default exports properly which don't have an identifier.
@@ -32,6 +39,11 @@ impl Parser {
 
     // https://tc39.es/ecma262/#prod-ClassExpression
     pub(crate) fn parse_class_expression(&mut self) -> Result<ClassExpression, ParserError> {
+        // All parts of a ClassDeclaration or a ClassExpression are strict mode code.
+        // https://tc39.es/ecma262/#sec-strict-mode-code
+        let previous_strict_mode = self.context.strict_mode;
+        self.context.strict_mode = true;
+
         let start_index = self.start_node();
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Class))?;
@@ -43,6 +55,8 @@ impl Parser {
         };
 
         let class_tail = self.parse_class_tail()?;
+
+        self.context.strict_mode = previous_strict_mode;
 
         Ok(ClassExpression {
             node: self.end_node(start_index)?,
