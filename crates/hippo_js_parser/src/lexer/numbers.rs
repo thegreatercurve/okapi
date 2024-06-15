@@ -116,7 +116,7 @@ impl Lexer {
                             raw: self.chars[start_index..self.read_index]
                                 .iter()
                                 .collect::<String>(),
-                            value: Number::from_str(&number_literal_f64.to_string()).unwrap(),
+                            value: Some(Number::from_str(&number_literal_f64.to_string()).unwrap()),
                         },
                     )
                 }

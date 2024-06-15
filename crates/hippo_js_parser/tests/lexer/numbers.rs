@@ -205,7 +205,7 @@ fn numbers_exponent() {
             column: 1,
             value: TokenValue::Number {
                 raw: "123123123e+6".to_string(),
-                value: Number::from_str("123123123000000").unwrap()
+                value: Some(Number::from_str("123123123000000").unwrap())
             },
             line_terminator: false
         }]
@@ -221,7 +221,7 @@ fn numbers_exponent() {
             column: 1,
             value: TokenValue::Number {
                 raw: "123.123123E+6".to_string(),
-                value: Number::from_str("123123123").unwrap()
+                value: Some(Number::from_str("123123123").unwrap())
             },
             line_terminator: false
         }]
@@ -237,7 +237,7 @@ fn numbers_exponent() {
             column: 1,
             value: TokenValue::Number {
                 raw: "123123123e6".to_string(),
-                value: Number::from_str("123123123000000").unwrap()
+                value: Some(Number::from_str("123123123000000").unwrap())
             },
             line_terminator: false
         }]
@@ -253,7 +253,7 @@ fn numbers_exponent() {
             column: 1,
             value: TokenValue::Number {
                 raw: "123.123123E6".to_string(),
-                value: Number::from(123123123)
+                value: Some(Number::from(123123123))
             },
             line_terminator: false
         }]
@@ -270,7 +270,7 @@ fn numbers_exponent() {
             column: 1,
             value: TokenValue::Number {
                 raw: "123123123e-15".to_string(),
-                value: Number::from_f64(0.000000123123123).unwrap()
+                value: Number::from_f64(0.000000123123123)
             },
             line_terminator: false
         }]
@@ -286,7 +286,7 @@ fn numbers_exponent() {
             column: 1,
             value: TokenValue::Number {
                 raw: "123.123123E-15".to_string(),
-                value: Number::from_f64(0.000000000000123123123).unwrap()
+                value: Number::from_f64(0.000000000000123123123)
             },
             line_terminator: false
         }]
@@ -335,7 +335,7 @@ fn numbers_big_int_invalid() {
                 column: 1,
                 value: TokenValue::Number {
                     raw: "123.123".to_string(),
-                    value: Number::from_f64(123.123).unwrap()
+                    value: Number::from_f64(123.123)
                 },
                 line_terminator: false
             },

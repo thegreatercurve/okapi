@@ -126,7 +126,7 @@ impl std::fmt::Display for KeywordKind {
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenValue {
     String { raw: String, value: String },
-    Number { raw: String, value: Number },
+    Number { raw: String, value: Option<Number> },
     Boolean(bool),
     BigInt(String),
     RegularExpression { pattern: String, flags: String },

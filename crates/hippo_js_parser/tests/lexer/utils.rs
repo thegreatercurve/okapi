@@ -68,7 +68,7 @@ pub fn number_literal(
         column,
         value: TokenValue::Number {
             raw: raw_value.to_string(),
-            value: Number::from_str(parsed_value).unwrap(),
+            value: Some(Number::from_str(parsed_value).unwrap()),
         },
         line_terminator: false,
     }

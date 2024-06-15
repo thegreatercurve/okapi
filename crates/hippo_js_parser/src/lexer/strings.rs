@@ -137,7 +137,8 @@ impl Lexer {
                                 }
                             }
                         }
-                        '0'..='7' => {
+                        '0' => string_literal.push('\0'),
+                        '1'..='7' => {
                             let escape_sequence_u32 = self.read_octal_escape_sequence().unwrap();
 
                             match char::from_u32(escape_sequence_u32) {
@@ -341,7 +342,7 @@ impl Lexer {
 
         let start_index = self.read_index;
 
-        self.read_char(); // Eat start 0..=7 char.
+        self.read_char(); // Eat start 1..=7 char.
 
         match self.current_char() {
             '1'..='3' if self.current_char().is_ascii_octaldigit() => self.read_char(),

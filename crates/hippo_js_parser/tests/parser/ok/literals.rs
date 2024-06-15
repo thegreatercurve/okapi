@@ -7,6 +7,11 @@ fn literals_number() {
         r#"{"type":"Program","start":0,"end":1,"body":[{"type":"ExpressionStatement","start":0,"end":1,"expression":{"type":"Literal","start":0,"end":1,"value":5,"raw":"5"}}],"sourceType":"script"}"#
     );
 
+    // assert_parser_script_eq!(
+    //     r#""\u{00000000034}""#,
+    //     r#"{"type":"Program","start":0,"end":1,"body":[{"type":"ExpressionStatement","start":0,"end":1,"expression":{"type":"Literal","start":0,"end":1,"value":5,"raw":"5"}}],"sourceType":"script"}"#
+    // );
+
     assert_parser_script_eq!(
         r#"0, 0.0, 0e00"#,
         r#"{"type":"Program","start":0,"end":12,"body":[{"type":"ExpressionStatement","start":0,"end":12,"expression":{"type":"SequenceExpression","start":0,"end":12,"expressions":[{"type":"Literal","start":0,"end":1,"value":0,"raw":"0"},{"type":"Literal","start":3,"end":6,"value":0,"raw":"0.0"},{"type":"Literal","start":8,"end":12,"value":0,"raw":"0e00"}]}}],"sourceType":"script"}"#

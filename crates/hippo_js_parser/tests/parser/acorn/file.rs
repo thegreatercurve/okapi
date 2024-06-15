@@ -5,7 +5,7 @@ use std::{
 };
 
 pub(crate) fn read_file(path: &PathBuf) -> io::Result<String> {
-    let file = File::open(&path)
+    let file = File::open(path)
         .map_err(|e| io::Error::new(io::ErrorKind::NotFound, format!("File not found: {:?}", e)))?;
 
     let mut reader = BufReader::new(file);
