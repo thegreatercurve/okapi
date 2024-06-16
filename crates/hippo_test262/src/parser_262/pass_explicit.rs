@@ -11,6 +11,9 @@ pub fn run_tests() -> Result<(), ErrorKind> {
 
     let tests = harness.tests;
 
+    let mut passed = 0;
+    let mut failed = 0;
+
     for test_path in tests {
         let source = ParserTest::read_file(&test_path)?;
 
@@ -38,22 +41,29 @@ pub fn run_tests() -> Result<(), ErrorKind> {
         println!("Running test: {}", test.description());
 
         match test.run() {
-            Ok(true) => println!("✅ Test passed: {}", test.description()),
-            Ok(false) => println!(
-                "
+            Ok(true) => {
+                passed += 1;
+
+                println!("✅ Test passed: {}", test.description())
+            }
+            _ => {
+                failed += 1;
+
+                println!(
+                    "
 ⛔ Test failed: {}
 ```
 {}
 ```
 ",
-                test.description(),
-                test.source()
-            ),
-            Err(e) => {
-                eprintln!("Error: {}", e);
+                    test.description(),
+                    test.source()
+                )
             }
         };
     }
+
+    println!("Passed: {}. Failed: {}", passed, failed);
 
     Ok(())
 }
