@@ -25,7 +25,7 @@ fn format_invalid_code_point_string(code_point_u32: u32) -> String {
 // https://tc39.es/ecma262/#sec-literals-string-literals
 impl Lexer {
     // https://tc39.es/ecma262/#prod-StringLiteral
-    pub(crate) fn scan_string_literal(&mut self) -> Token {
+    pub(crate) fn scan_string_literal(&mut self) -> Result<Token, ParserError> {
         let start_index = self.read_index;
 
         let start_quote_character = self.current_char(); // '\'' | '"'
@@ -54,7 +54,7 @@ impl Lexer {
                             self.read_char(); // Eat 'x' char.
 
                             let escape_sequence_u32 =
-                                self.read_hexadecimal_escape_sequence_u32().unwrap();
+                                self.read_hexadecimal_escape_sequence_u32()?;
 
                             match char::from_u32(escape_sequence_u32) {
                                 Some(ch) => {
@@ -62,29 +62,14 @@ impl Lexer {
 
                                     continue;
                                 }
-                                _ => {
-                                    let error_str =
-                                        ParserError::InvalidHexadecimalEscapeSequence.to_string();
-
-                                    return Token::new(
-                                        TokenKind::Illegal,
-                                        start_index,
-                                        self.read_index,
-                                        self.line,
-                                        self.column,
-                                        TokenValue::String {
-                                            raw: error_str.clone(),
-                                            value: error_str,
-                                        },
-                                    );
-                                }
+                                _ => return Err(ParserError::InvalidHexadecimalEscapeSequence),
                             }
                         }
                         'u' => {
                             self.read_char(); // Eat 'u' char.
 
                             let escape_sequence_u32 =
-                                self.read_potential_unicode_or_code_point_surrogate_pairs();
+                                self.read_potential_unicode_or_code_point_surrogate_pairs()?;
 
                             match escape_sequence_u32 {
                                 SurrogatePair::LeadingInvalid(code_point_u32) => {
@@ -101,20 +86,18 @@ impl Lexer {
                                 }
                                 SurrogatePair::LeadingValidMissingTrailing(code_point_u32)
                                 | SurrogatePair::AstralCodePoint(code_point_u32) => {
-                                    if let Some(ch) = char::from_u32(code_point_u32) {
-                                        string_literal.push(ch);
+                                    match char::from_u32(code_point_u32) {
+                                        Some(ch) => {
+                                            string_literal.push(ch);
 
-                                        continue;
+                                            continue;
+                                        }
+                                        _ => {
+                                            return Err(
+                                                ParserError::InvalidUnicodeCodePointEscapeSequence,
+                                            )
+                                        }
                                     }
-
-                                    return Token::new(
-                                        TokenKind::Illegal,
-                                        start_index,
-                                        self.read_index,
-                                        self.line,
-                                        self.column,
-                                        TokenValue::Null,
-                                    );
                                 }
                                 SurrogatePair::LeadingValidTrailingInvalid(
                                     leading_code_point_u32,
@@ -139,7 +122,7 @@ impl Lexer {
                         }
                         '0' => string_literal.push('\0'),
                         '1'..='7' => {
-                            let escape_sequence_u32 = self.read_octal_escape_sequence().unwrap();
+                            let escape_sequence_u32 = self.read_octal_escape_sequence()?;
 
                             match char::from_u32(escape_sequence_u32) {
                                 Some(ch) => {
@@ -147,37 +130,14 @@ impl Lexer {
 
                                     continue;
                                 }
-                                _ => {
-                                    return Token::new(
-                                        TokenKind::Illegal,
-                                        start_index,
-                                        self.read_index,
-                                        self.line,
-                                        self.column,
-                                        TokenValue::Null,
-                                    );
-                                }
+                                _ => return Err(ParserError::InvalidLegacyOctalEscapeSequence),
                             }
                         }
                         _ => string_literal.push(self.current_char()),
                     }
                 }
                 // Invalid line terminator chars.
-                CR | LF => {
-                    let error_str = ParserError::UnterminatedStringLiteral.to_string();
-
-                    return Token::new(
-                        TokenKind::Illegal,
-                        start_index,
-                        self.read_index,
-                        self.line,
-                        self.column,
-                        TokenValue::String {
-                            raw: error_str.clone(),
-                            value: error_str,
-                        },
-                    );
-                }
+                CR | LF => return Err(ParserError::UnterminatedStringLiteral),
                 _ => string_literal.push(self.current_char()),
             }
 
@@ -190,7 +150,7 @@ impl Lexer {
             .iter()
             .collect::<String>();
 
-        Token::new(
+        Ok(Token::new(
             TokenKind::StringLiteral,
             start_index,
             self.read_index,
@@ -200,7 +160,7 @@ impl Lexer {
                 raw: raw_string_literal,
                 value: string_literal,
             },
-        )
+        ))
     }
 
     // https://tc39.es/ecma262/#prod-HexEscapeSequence
@@ -230,16 +190,19 @@ impl Lexer {
     // "A sequence of two code units, where the first code unit c1 is a leading surrogate
     // and the second code unit c2 a trailing surrogate, is a surrogate pair and is interpreted
     // as a code point with the value (c1 - 0xD800) × 0x400 + (c2 - 0xDC00) + 0x10000."
-    fn read_potential_unicode_or_code_point_surrogate_pairs(&mut self) -> SurrogatePair {
+    fn read_potential_unicode_or_code_point_surrogate_pairs(
+        &mut self,
+    ) -> Result<SurrogatePair, ParserError> {
         let leading_surrogate = match self.current_char() {
             '{' => self.read_code_point_escape_sequence(),
             _ => self.read_unicode_escape_sequence(),
-        }
-        .unwrap();
+        }?;
 
         if is_leading_surrogate(leading_surrogate) {
             if self.current_char() != '\\' && self.peek_char() != 'u' {
-                return SurrogatePair::LeadingValidMissingTrailing(leading_surrogate);
+                return Ok(SurrogatePair::LeadingValidMissingTrailing(
+                    leading_surrogate,
+                ));
             }
 
             self.read_char(); // Eat '\' char.
@@ -248,22 +211,21 @@ impl Lexer {
             let trailing_surrogate = match self.current_char() {
                 '{' => self.read_code_point_escape_sequence(),
                 _ => self.read_unicode_escape_sequence(),
-            }
-            .unwrap();
+            }?;
 
             if !is_trailing_surrogate(trailing_surrogate) {
-                return SurrogatePair::LeadingValidTrailingInvalid(
+                return Ok(SurrogatePair::LeadingValidTrailingInvalid(
                     leading_surrogate,
                     trailing_surrogate,
-                );
+                ));
             }
 
             let astral_code_point =
                 (leading_surrogate - 55296) * 1024 + trailing_surrogate - 56320 + 65536;
 
-            SurrogatePair::AstralCodePoint(astral_code_point)
+            Ok(SurrogatePair::AstralCodePoint(astral_code_point))
         } else {
-            SurrogatePair::LeadingInvalid(leading_surrogate)
+            Ok(SurrogatePair::LeadingInvalid(leading_surrogate))
         }
     }
 

@@ -5,35 +5,18 @@ use crate::{Lexer, ParserError, Token, TokenKind, TokenValue};
 // https://tc39.es/ecma262/#sec-literals-regular-expression-literals
 impl Lexer {
     // https://tc39.es/ecma262/#prod-RegularExpressionLiteral
-    pub(crate) fn scan_regular_expression_literal(&mut self) -> Token {
+    pub(crate) fn scan_regular_expression_literal(&mut self) -> Result<Token, ParserError> {
         let start_index = self.read_index;
 
         self.read_char(); // Eat '/' char.
 
-        let regular_expression_body = match self.read_regular_expression_body() {
-            Ok(body) => body,
-            Err(error) => {
-                let error_str = error.to_string();
-
-                return Token::new(
-                    TokenKind::Illegal,
-                    start_index,
-                    self.read_index,
-                    self.line,
-                    self.column,
-                    TokenValue::String {
-                        raw: error_str.clone(),
-                        value: error_str,
-                    },
-                );
-            }
-        };
+        let regular_expression_body = self.read_regular_expression_body()?;
 
         self.read_char(); // Eat '/' char.
 
         let regular_expression_flags = self.read_regular_expression_flags();
 
-        Token::new(
+        Ok(Token::new(
             TokenKind::RegularExpressionLiteral,
             start_index,
             self.read_index,
@@ -43,7 +26,7 @@ impl Lexer {
                 pattern: regular_expression_body.to_string(),
                 flags: regular_expression_flags.to_string(),
             },
-        )
+        ))
     }
 
     // https://tc39.es/ecma262/#prod-RegularExpressionBody

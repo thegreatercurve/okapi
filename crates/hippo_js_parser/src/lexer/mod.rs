@@ -140,24 +140,21 @@ impl Lexer {
                     TokenValue::Null,
                 );
             }
-            _ => {
-                self.read_char(); // Eat illegal char.
-
-                let error_str = ParserError::SyntaxError.to_string();
-
-                Token::new(
-                    TokenKind::Illegal,
-                    start_index,
-                    self.read_index,
-                    self.line,
-                    self.column,
-                    TokenValue::String {
-                        raw: error_str.clone(),
-                        value: error_str,
-                    },
-                )
-            }
-        };
+            _ => Err(ParserError::SyntaxError),
+        }
+        .unwrap_or_else(|err| {
+            Token::new(
+                TokenKind::Illegal,
+                start_index,
+                self.read_index,
+                self.line,
+                self.column,
+                TokenValue::String {
+                    raw: err.to_string(),
+                    value: err.to_string(),
+                },
+            )
+        });
 
         token.start = start_index;
         token.end = self.read_index;

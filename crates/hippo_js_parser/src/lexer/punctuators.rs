@@ -1,10 +1,10 @@
-use crate::{Lexer, Token, TokenKind, TokenValue};
+use crate::{Lexer, ParserError, Token, TokenKind, TokenValue};
 
 // 12.8 Punctuators
 // https://tc39.es/ecma262/#sec-punctuators
 impl Lexer {
     // https://tc39.es/ecma262/#prod-Punctuator
-    pub(crate) fn scan_punctuator(&mut self) -> Token {
+    pub(crate) fn scan_punctuator(&mut self) -> Result<Token, ParserError> {
         let start_index = self.read_index;
 
         let token_kind = match self.current_char() {
@@ -249,18 +249,18 @@ impl Lexer {
                 }
             }
             ':' => TokenKind::Colon,
-            _ => TokenKind::Illegal,
+            _ => return Err(ParserError::SyntaxError),
         };
 
         self.read_char();
 
-        Token::new(
+        Ok(Token::new(
             token_kind,
             start_index,
             self.read_index,
             self.line,
             self.column,
             TokenValue::Null,
-        )
+        ))
     }
 }

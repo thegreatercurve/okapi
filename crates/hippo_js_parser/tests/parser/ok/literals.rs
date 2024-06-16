@@ -7,10 +7,10 @@ fn literals_number() {
         r#"{"type":"Program","start":0,"end":1,"body":[{"type":"ExpressionStatement","start":0,"end":1,"expression":{"type":"Literal","start":0,"end":1,"value":5,"raw":"5"}}],"sourceType":"script"}"#
     );
 
-    // assert_parser_script_eq!(
-    //     r#""\u{00000000034}""#,
-    //     r#"{"type":"Program","start":0,"end":1,"body":[{"type":"ExpressionStatement","start":0,"end":1,"expression":{"type":"Literal","start":0,"end":1,"value":5,"raw":"5"}}],"sourceType":"script"}"#
-    // );
+    assert_parser_script_eq!(
+        r#""\u{00000000034}""#,
+        r#"{"type":"Program","start":0,"end":1,"body":[{"type":"ExpressionStatement","start":0,"end":1,"expression":{"type":"Literal","start":0,"end":1,"value":5,"raw":"5"}}],"sourceType":"script"}"#
+    );
 
     assert_parser_script_eq!(
         r#"0, 0.0, 0e00"#,

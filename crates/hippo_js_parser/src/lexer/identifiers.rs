@@ -7,26 +7,10 @@ use crate::{KeywordKind, Lexer, ParserError, Token, TokenKind, TokenValue};
 // https://tc39.es/ecma262/#sec-names-and-keywords
 impl Lexer {
     // https://tc39.es/ecma262/#sec-names-and-keywords
-    pub(crate) fn scan_identifier_name_or_keyword(&mut self) -> Token {
+    pub(crate) fn scan_identifier_name_or_keyword(&mut self) -> Result<Token, ParserError> {
         let start_index = self.read_index;
 
-        let identifier = self.read_identifier_start();
-
-        if identifier.is_err() {
-            let identifier_err = identifier.unwrap_err().to_string();
-
-            return Token::new(
-                TokenKind::Illegal,
-                start_index,
-                self.read_index,
-                self.line,
-                self.column,
-                TokenValue::String {
-                    raw: identifier_err.clone(),
-                    value: identifier_err,
-                },
-            );
-        };
+        self.read_identifier_start()?;
 
         let keyword_or_identifer_name = &self.chars[start_index..self.read_index]
             .iter()
@@ -36,7 +20,7 @@ impl Lexer {
             Some(keyword_token) => {
                 let keyword_or_identifier_name_str = keyword_or_identifer_name.to_string();
 
-                Token::new(
+                Ok(Token::new(
                     keyword_token,
                     start_index,
                     self.read_index,
@@ -46,12 +30,12 @@ impl Lexer {
                         raw: keyword_or_identifier_name_str.clone(),
                         value: keyword_or_identifier_name_str,
                     },
-                )
+                ))
             }
             None => {
                 let keyword_or_identifier_name_str = keyword_or_identifer_name.to_string();
 
-                Token::new(
+                Ok(Token::new(
                     TokenKind::Identifier,
                     start_index,
                     self.read_index,
@@ -61,7 +45,7 @@ impl Lexer {
                         raw: keyword_or_identifier_name_str.clone(),
                         value: keyword_or_identifier_name_str,
                     },
-                )
+                ))
             }
         }
     }
@@ -178,7 +162,7 @@ impl Lexer {
     }
 
     // https://tc39.es/ecma262/#prod-PrivateIdentifier
-    pub(crate) fn scan_private_identifier(&mut self) -> Token {
+    pub(crate) fn scan_private_identifier(&mut self) -> Result<Token, ParserError> {
         let start_index = self.read_index;
 
         self.read_char(); // Eat the '#' char.
@@ -194,7 +178,7 @@ impl Lexer {
             Ok(_) => {
                 let identifer_name_str = identifer_name.to_string();
 
-                Token::new(
+                Ok(Token::new(
                     TokenKind::PrivateIdentifier,
                     start_index,
                     self.read_index,
@@ -204,23 +188,9 @@ impl Lexer {
                         raw: identifer_name_str.clone(),
                         value: identifer_name_str,
                     },
-                )
+                ))
             }
-            Err(error) => {
-                let error_str = error.to_string();
-
-                Token::new(
-                    TokenKind::Illegal,
-                    start_index,
-                    self.read_index,
-                    self.line,
-                    self.column,
-                    TokenValue::String {
-                        raw: error_str.clone(),
-                        value: error_str,
-                    },
-                )
-            }
+            Err(error) => Err(error),
         }
     }
 }

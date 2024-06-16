@@ -6,7 +6,7 @@ use super::char::LexerChar;
 // https://tc39.es/ecma262/#sec-template-literal-lexical-components
 impl Lexer {
     // https://tc39.es/ecma262/#prod-Template
-    pub(crate) fn scan_template_literal(&mut self) -> Token {
+    pub(crate) fn scan_template_literal(&mut self) -> Result<Token, ParserError> {
         let is_head = self.current_char() == '`';
         let mut is_tail = false;
 
@@ -70,22 +70,7 @@ impl Lexer {
 
                                     continue;
                                 }
-                                None => {
-                                    let error_str =
-                                        ParserError::InvalidHexadecimalEscapeSequence.to_string();
-
-                                    return Token::new(
-                                        TokenKind::Illegal,
-                                        start_index,
-                                        self.read_index,
-                                        self.line,
-                                        self.column,
-                                        TokenValue::String {
-                                            raw: error_str.clone(),
-                                            value: error_str,
-                                        },
-                                    );
-                                }
+                                None => return Err(ParserError::InvalidHexadecimalEscapeSequence),
                             }
                         }
                         ch if ch.is_line_terminator() => {
@@ -120,7 +105,7 @@ impl Lexer {
             self.goal_symbol = GoalSymbol::InputElementDiv;
         }
 
-        Token::new(
+        Ok(Token::new(
             token_kind,
             start_index,
             end_index,
@@ -130,6 +115,6 @@ impl Lexer {
                 raw: raw_string_literal,
                 cooked: cooked_string_literal,
             },
-        )
+        ))
     }
 }

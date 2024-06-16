@@ -68,7 +68,7 @@ fn match_num_kind_to_parse_error(num_kind: &NumKind) -> ParserError {
 // https://tc39.es/ecma262/#sec-literals-numeric-literals
 impl Lexer {
     // https://tc39.es/ecma262/#prod-NumericLiteral
-    pub(crate) fn scan_number_literal(&mut self) -> Token {
+    pub(crate) fn scan_number_literal(&mut self) -> Result<Token, ParserError> {
         let start_index: usize = self.read_index;
 
         let num_kind = match (self.current_char(), self.peek_char()) {
@@ -82,59 +82,43 @@ impl Lexer {
             }
             ('0', _) => self.read_decimal_literal(),
             (_, _) => Err(ParserError::SyntaxError),
-        };
+        }?;
 
         match num_kind {
-            Ok(num_kind) => match num_kind {
-                NumKind::BigInt => Token::new(
-                    TokenKind::BigIntLiteral,
+            NumKind::BigInt => Ok(Token::new(
+                TokenKind::BigIntLiteral,
+                start_index,
+                self.read_index,
+                self.line,
+                self.column,
+                TokenValue::BigInt(
+                    self.chars[start_index..self.read_index]
+                        .iter()
+                        .collect::<String>(),
+                ),
+            )),
+            _ => {
+                let number_literal_f64 = self.parse_num_str_to_f64(
+                    &num_kind,
+                    start_index + match_num_kind_to_start_index_offset(&num_kind),
+                )?;
+
+                Ok(Token::new(
+                    TokenKind::NumberLiteral,
                     start_index,
                     self.read_index,
                     self.line,
                     self.column,
-                    TokenValue::BigInt(
-                        self.chars[start_index..self.read_index]
+                    TokenValue::Number {
+                        raw: self.chars[start_index..self.read_index]
                             .iter()
                             .collect::<String>(),
-                    ),
-                ),
-                _ => {
-                    let number_literal_f64 = self
-                        .parse_num_str_to_f64(
-                            &num_kind,
-                            start_index + match_num_kind_to_start_index_offset(&num_kind),
-                        )
-                        .unwrap();
-
-                    Token::new(
-                        TokenKind::NumberLiteral,
-                        start_index,
-                        self.read_index,
-                        self.line,
-                        self.column,
-                        TokenValue::Number {
-                            raw: self.chars[start_index..self.read_index]
-                                .iter()
-                                .collect::<String>(),
-                            value: Some(Number::from_str(&number_literal_f64.to_string()).unwrap()),
-                        },
-                    )
-                }
-            },
-            Err(error) => {
-                let error_str = error.to_string();
-
-                Token::new(
-                    TokenKind::Illegal,
-                    start_index,
-                    self.read_index,
-                    self.line,
-                    self.column,
-                    TokenValue::String {
-                        raw: error_str.clone(),
-                        value: error_str,
+                        value: Some(
+                            Number::from_str(&number_literal_f64.to_string())
+                                .map_err(|_| ParserError::SyntaxError)?,
+                        ),
                     },
-                )
+                ))
             }
         }
     }
