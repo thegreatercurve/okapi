@@ -1,5 +1,3 @@
-use serde_json::Number;
-
 // 12.7.2 Keywords and Reserved Words
 // https://tc39.es/ecma262/#sec-keywords-and-reserved-words
 #[derive(Clone, Debug, PartialEq)]
@@ -126,7 +124,7 @@ impl std::fmt::Display for KeywordKind {
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenValue {
     String { raw: String, value: String },
-    Number { raw: String, value: Option<Number> },
+    Number { raw: String, value: f64 },
     Boolean(bool),
     BigInt(String),
     RegularExpression { pattern: String, flags: String },

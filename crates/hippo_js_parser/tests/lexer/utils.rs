@@ -1,7 +1,4 @@
-use std::str::FromStr;
-
 use hippo_js_parser::{ParserError, Token, TokenKind, TokenValue};
-use serde_json::Number;
 
 pub fn string_literal(
     value: &str,
@@ -54,7 +51,7 @@ pub fn punctuator(kind: TokenKind, start: usize, end: usize, line: usize, column
 
 pub fn number_literal(
     raw_value: &str,
-    parsed_value: &str,
+    parsed_value: f64,
     start: usize,
     end: usize,
     line: usize,
@@ -68,7 +65,7 @@ pub fn number_literal(
         column,
         value: TokenValue::Number {
             raw: raw_value.to_string(),
-            value: Some(Number::from_str(parsed_value).unwrap()),
+            value: parsed_value,
         },
         line_terminator: false,
     }

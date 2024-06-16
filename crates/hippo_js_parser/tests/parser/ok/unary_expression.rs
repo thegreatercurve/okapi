@@ -19,17 +19,17 @@ fn unary_expression() {
 
     assert_parser_script_eq!(
         r#"+1;"#,
-        r#"{"type":"Program","start":0,"end":3,"body":[{"type":"ExpressionStatement","start":0,"end":3,"expression":{"type":"UnaryExpression","start":0,"end":2,"operator":"+","prefix":true,"argument":{"type":"Literal","start":1,"end":2,"value":1,"raw":"1"}}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":3,"body":[{"type":"ExpressionStatement","start":0,"end":3,"expression":{"type":"UnaryExpression","start":0,"end":2,"operator":"+","prefix":true,"argument":{"type":"Literal","start":1,"end":2,"value":1.0,"raw":"1"}}}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(
         r#"-1;"#,
-        r#"{"type":"Program","start":0,"end":3,"body":[{"type":"ExpressionStatement","start":0,"end":3,"expression":{"type":"UnaryExpression","start":0,"end":2,"operator":"-","prefix":true,"argument":{"type":"Literal","start":1,"end":2,"value":1,"raw":"1"}}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":3,"body":[{"type":"ExpressionStatement","start":0,"end":3,"expression":{"type":"UnaryExpression","start":0,"end":2,"operator":"-","prefix":true,"argument":{"type":"Literal","start":1,"end":2,"value":1.0,"raw":"1"}}}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(
         r#"~1;"#,
-        r#"{"type":"Program","start":0,"end":3,"body":[{"type":"ExpressionStatement","start":0,"end":3,"expression":{"type":"UnaryExpression","start":0,"end":2,"operator":"~","prefix":true,"argument":{"type":"Literal","start":1,"end":2,"value":1,"raw":"1"}}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":3,"body":[{"type":"ExpressionStatement","start":0,"end":3,"expression":{"type":"UnaryExpression","start":0,"end":2,"operator":"~","prefix":true,"argument":{"type":"Literal","start":1,"end":2,"value":1.0,"raw":"1"}}}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(

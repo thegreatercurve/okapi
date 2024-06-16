@@ -14,7 +14,7 @@ fn paren_or_arrow_expression() {
 
     assert_parser_script_eq!(
         r#"(5 + 5);"#,
-        r#"{"type":"Program","start":0,"end":8,"body":[{"type":"ExpressionStatement","start":0,"end":8,"expression":{"type":"BinaryExpression","start":1,"end":6,"left":{"type":"Literal","start":1,"end":2,"value":5,"raw":"5"},"operator":"+","right":{"type":"Literal","start":5,"end":6,"value":5,"raw":"5"}}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":8,"body":[{"type":"ExpressionStatement","start":0,"end":8,"expression":{"type":"BinaryExpression","start":1,"end":6,"left":{"type":"Literal","start":1,"end":2,"value":5.0,"raw":"5"},"operator":"+","right":{"type":"Literal","start":5,"end":6,"value":5.0,"raw":"5"}}}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(

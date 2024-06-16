@@ -4,7 +4,7 @@ use crate::parser::assert_parser_script_eq;
 fn assignment_target() {
     assert_parser_script_eq!(
         r#"foo += bar = b ??= 3;"#,
-        r#"{"type":"Program","start":0,"end":21,"body":[{"type":"ExpressionStatement","start":0,"end":21,"expression":{"type":"AssignmentExpression","start":0,"end":20,"operator":"+=","left":{"type":"Identifier","start":0,"end":3,"name":"foo"},"right":{"type":"AssignmentExpression","start":7,"end":20,"operator":"=","left":{"type":"Identifier","start":7,"end":10,"name":"bar"},"right":{"type":"AssignmentExpression","start":13,"end":20,"operator":"??=","left":{"type":"Identifier","start":13,"end":14,"name":"b"},"right":{"type":"Literal","start":19,"end":20,"value":3,"raw":"3"}}}}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":21,"body":[{"type":"ExpressionStatement","start":0,"end":21,"expression":{"type":"AssignmentExpression","start":0,"end":20,"operator":"+=","left":{"type":"Identifier","start":0,"end":3,"name":"foo"},"right":{"type":"AssignmentExpression","start":7,"end":20,"operator":"=","left":{"type":"Identifier","start":7,"end":10,"name":"bar"},"right":{"type":"AssignmentExpression","start":13,"end":20,"operator":"??=","left":{"type":"Identifier","start":13,"end":14,"name":"b"},"right":{"type":"Literal","start":19,"end":20,"value":3.0,"raw":"3"}}}}}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(
@@ -34,7 +34,7 @@ fn assignment_target() {
 
     assert_parser_script_eq!(
         r#"++count === 3"#,
-        r#"{"type":"Program","start":0,"end":13,"body":[{"type":"ExpressionStatement","start":0,"end":13,"expression":{"type":"BinaryExpression","start":0,"end":13,"left":{"type":"UpdateExpression","start":0,"end":7,"operator":"++","prefix":true,"argument":{"type":"Identifier","start":2,"end":7,"name":"count"}},"operator":"===","right":{"type":"Literal","start":12,"end":13,"value":3,"raw":"3"}}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":13,"body":[{"type":"ExpressionStatement","start":0,"end":13,"expression":{"type":"BinaryExpression","start":0,"end":13,"left":{"type":"UpdateExpression","start":0,"end":7,"operator":"++","prefix":true,"argument":{"type":"Identifier","start":2,"end":7,"name":"count"}},"operator":"===","right":{"type":"Literal","start":12,"end":13,"value":3.0,"raw":"3"}}}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(

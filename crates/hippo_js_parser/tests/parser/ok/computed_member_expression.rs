@@ -9,7 +9,7 @@ fn computed_member_expression() {
 
     assert_parser_script_eq!(
         r#"foo[5 + 5]"#,
-        r#"{"type":"Program","start":0,"end":10,"body":[{"type":"ExpressionStatement","start":0,"end":10,"expression":{"type":"MemberExpression","start":0,"end":10,"object":{"type":"Identifier","start":0,"end":3,"name":"foo"},"property":{"type":"BinaryExpression","start":4,"end":9,"left":{"type":"Literal","start":4,"end":5,"value":5,"raw":"5"},"operator":"+","right":{"type":"Literal","start":8,"end":9,"value":5,"raw":"5"}},"computed":true,"optional":false}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":10,"body":[{"type":"ExpressionStatement","start":0,"end":10,"expression":{"type":"MemberExpression","start":0,"end":10,"object":{"type":"Identifier","start":0,"end":3,"name":"foo"},"property":{"type":"BinaryExpression","start":4,"end":9,"left":{"type":"Literal","start":4,"end":5,"value":5.0,"raw":"5"},"operator":"+","right":{"type":"Literal","start":8,"end":9,"value":5.0,"raw":"5"}},"computed":true,"optional":false}}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(

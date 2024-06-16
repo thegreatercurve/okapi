@@ -1,5 +1,3 @@
-
-
 use crate::parser::assert_parser_script_eq;
 
 #[test]
@@ -14,7 +12,7 @@ fn assignment_expression() {
 fn assignment_expression_with_nested_assignment_expression() {
     assert_parser_script_eq!(
         r#"foo += bar = b ??= 3;"#,
-        r#"{"type":"Program","start":0,"end":21,"body":[{"type":"ExpressionStatement","start":0,"end":21,"expression":{"type":"AssignmentExpression","start":0,"end":20,"operator":"+=","left":{"type":"Identifier","start":0,"end":3,"name":"foo"},"right":{"type":"AssignmentExpression","start":7,"end":20,"operator":"=","left":{"type":"Identifier","start":7,"end":10,"name":"bar"},"right":{"type":"AssignmentExpression","start":13,"end":20,"operator":"??=","left":{"type":"Identifier","start":13,"end":14,"name":"b"},"right":{"type":"Literal","start":19,"end":20,"value":3,"raw":"3"}}}}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":21,"body":[{"type":"ExpressionStatement","start":0,"end":21,"expression":{"type":"AssignmentExpression","start":0,"end":20,"operator":"+=","left":{"type":"Identifier","start":0,"end":3,"name":"foo"},"right":{"type":"AssignmentExpression","start":7,"end":20,"operator":"=","left":{"type":"Identifier","start":7,"end":10,"name":"bar"},"right":{"type":"AssignmentExpression","start":13,"end":20,"operator":"??=","left":{"type":"Identifier","start":13,"end":14,"name":"b"},"right":{"type":"Literal","start":19,"end":20,"value":3.0,"raw":"3"}}}}}],"sourceType":"script"}"#
     );
 }
 

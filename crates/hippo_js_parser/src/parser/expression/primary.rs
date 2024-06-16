@@ -134,7 +134,7 @@ impl Parser {
         node: Node,
     ) -> Result<Literal, ParserError> {
         let (raw, value) = match token_value {
-            TokenValue::Number { raw, value } if value.is_some() => (raw, value.unwrap()),
+            TokenValue::Number { raw, value } => (raw, value),
             _ => return Err(self.unexpected_current_token_value()),
         };
 
@@ -566,7 +566,7 @@ impl Parser {
                 self.advance_any(); // Eat number literal token.
 
                 let (raw, value) = match token_value {
-                    TokenValue::Number { raw, value } if value.is_some() => (raw, value.unwrap()),
+                    TokenValue::Number { raw, value } => (raw, value),
                     _ => return Err(self.unexpected_current_token_value()),
                 };
 

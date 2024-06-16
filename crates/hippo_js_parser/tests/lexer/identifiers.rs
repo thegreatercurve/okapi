@@ -37,7 +37,7 @@ fn complex_keywords_and_identifiers() {
             ),
             identifier("foo", 6, 9, 1, 7),
             punctuator(TokenKind::Assignment, 10, 11, 1, 11),
-            number_literal("1", "1", 12, 13, 1, 13),
+            number_literal("1", 1.0, 12, 13, 1, 13),
             punctuator(TokenKind::Semicolon, 13, 14, 1, 14),
         ]
     );
@@ -60,7 +60,7 @@ fn complex_keywords_and_identifiers() {
             identifier("foo", 7, 10, 1, 8),
             punctuator(TokenKind::RightParenthesis, 10, 11, 1, 11),
             punctuator(TokenKind::LeftCurlyBrace, 12, 13, 1, 13),
-            number_literal("11", "11", 14, 16, 1, 15),
+            number_literal("11", 11.0, 14, 16, 1, 15),
             punctuator(TokenKind::Semicolon, 16, 17, 1, 17),
             punctuator(TokenKind::RightCurlyBrace, 18, 19, 1, 19),
             punctuator(TokenKind::Semicolon, 19, 20, 1, 20),
@@ -85,7 +85,7 @@ fn complex_keywords_and_identifiers() {
             identifier("foo", 7, 10, 1, 8),
             punctuator(TokenKind::RightParenthesis, 10, 11, 1, 11),
             punctuator(TokenKind::LeftCurlyBrace, 12, 13, 1, 13),
-            number_literal("11", "11", 14, 16, 1, 15),
+            number_literal("11", 11.0, 14, 16, 1, 15),
             punctuator(TokenKind::Semicolon, 16, 17, 1, 17),
             punctuator(TokenKind::RightCurlyBrace, 18, 19, 1, 19),
             punctuator(TokenKind::Semicolon, 19, 20, 1, 20),
@@ -108,7 +108,7 @@ fn complex_keywords_and_identifiers() {
             ),
             identifier("baz", 4, 7, 1, 5),
             punctuator(TokenKind::Assignment, 8, 9, 1, 9),
-            number_literal("1", "1", 10, 11, 1, 11),
+            number_literal("1", 1.0, 10, 11, 1, 11),
             punctuator(TokenKind::Semicolon, 11, 12, 1, 12),
         ]
     );
@@ -129,7 +129,7 @@ fn complex_keywords_and_identifiers() {
             ),
             identifier("baz", 4, 7, 1, 5),
             punctuator(TokenKind::Assignment, 8, 9, 1, 9),
-            number_literal("1", "1", 10, 11, 1, 11),
+            number_literal("1", 1.0, 10, 11, 1, 11),
             punctuator(TokenKind::Semicolon, 11, 12, 1, 12),
         ]
     );
@@ -176,7 +176,7 @@ fn complex_keywords_and_identifiers() {
                 line_terminator: false
             },
             punctuator(TokenKind::Assignment, 17, 18, 1, 18),
-            number_literal("1", "1", 19, 20, 1, 20),
+            number_literal("1", 1.0, 19, 20, 1, 20),
             punctuator(TokenKind::Semicolon, 20, 21, 1, 21),
             punctuator(TokenKind::RightCurlyBrace, 22, 23, 1, 23),
             punctuator(TokenKind::Semicolon, 23, 24, 1, 24),

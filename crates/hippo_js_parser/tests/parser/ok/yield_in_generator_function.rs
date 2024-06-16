@@ -4,7 +4,7 @@ use crate::parser::assert_parser_script_eq;
 fn yield_in_generator_function() {
     assert_parser_script_eq!(
         r#"function* foo() { yield 10; }"#,
-        r#"{"type":"Program","start":0,"end":29,"body":[{"type":"FunctionDeclaration","start":0,"end":29,"id":{"type":"Identifier","start":10,"end":13,"name":"foo"},"expression":false,"generator":true,"async":false,"params":[],"body":{"type":"BlockStatement","start":16,"end":29,"body":[{"type":"ExpressionStatement","start":18,"end":27,"expression":{"type":"YieldExpression","start":18,"end":26,"delegate":false,"argument":{"type":"Literal","start":24,"end":26,"value":10,"raw":"10"}}}]}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":29,"body":[{"type":"FunctionDeclaration","start":0,"end":29,"id":{"type":"Identifier","start":10,"end":13,"name":"foo"},"expression":false,"generator":true,"async":false,"params":[],"body":{"type":"BlockStatement","start":16,"end":29,"body":[{"type":"ExpressionStatement","start":18,"end":27,"expression":{"type":"YieldExpression","start":18,"end":26,"delegate":false,"argument":{"type":"Literal","start":24,"end":26,"value":10.0,"raw":"10"}}}]}}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(

@@ -4,12 +4,12 @@ use crate::parser::assert_parser_script_eq;
 fn array_binding() {
     assert_parser_script_eq!(
         r#"let [,,foo] = [1, 2, 3];"#,
-        r#"{"type":"Program","start":0,"end":24,"body":[{"type":"VariableDeclaration","start":0,"end":24,"declarations":[{"type":"VariableDeclarator","start":4,"end":23,"id":{"type":"ArrayPattern","start":4,"end":11,"elements":[null,null,{"type":"Identifier","start":7,"end":10,"name":"foo"}]},"init":{"type":"ArrayExpression","start":14,"end":23,"elements":[{"type":"Literal","start":15,"end":16,"value":1,"raw":"1"},{"type":"Literal","start":18,"end":19,"value":2,"raw":"2"},{"type":"Literal","start":21,"end":22,"value":3,"raw":"3"}]}}],"kind":"let"}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":24,"body":[{"type":"VariableDeclaration","start":0,"end":24,"declarations":[{"type":"VariableDeclarator","start":4,"end":23,"id":{"type":"ArrayPattern","start":4,"end":11,"elements":[null,null,{"type":"Identifier","start":7,"end":10,"name":"foo"}]},"init":{"type":"ArrayExpression","start":14,"end":23,"elements":[{"type":"Literal","start":15,"end":16,"value":1.0,"raw":"1"},{"type":"Literal","start":18,"end":19,"value":2.0,"raw":"2"},{"type":"Literal","start":21,"end":22,"value":3.0,"raw":"3"}]}}],"kind":"let"}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(
         r#"let [foo, bar] = [1, 2, 3];"#,
-        r#"{"type":"Program","start":0,"end":27,"body":[{"type":"VariableDeclaration","start":0,"end":27,"declarations":[{"type":"VariableDeclarator","start":4,"end":26,"id":{"type":"ArrayPattern","start":4,"end":14,"elements":[{"type":"Identifier","start":5,"end":8,"name":"foo"},{"type":"Identifier","start":10,"end":13,"name":"bar"}]},"init":{"type":"ArrayExpression","start":17,"end":26,"elements":[{"type":"Literal","start":18,"end":19,"value":1,"raw":"1"},{"type":"Literal","start":21,"end":22,"value":2,"raw":"2"},{"type":"Literal","start":24,"end":25,"value":3,"raw":"3"}]}}],"kind":"let"}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":27,"body":[{"type":"VariableDeclaration","start":0,"end":27,"declarations":[{"type":"VariableDeclarator","start":4,"end":26,"id":{"type":"ArrayPattern","start":4,"end":14,"elements":[{"type":"Identifier","start":5,"end":8,"name":"foo"},{"type":"Identifier","start":10,"end":13,"name":"bar"}]},"init":{"type":"ArrayExpression","start":17,"end":26,"elements":[{"type":"Literal","start":18,"end":19,"value":1.0,"raw":"1"},{"type":"Literal","start":21,"end":22,"value":2.0,"raw":"2"},{"type":"Literal","start":24,"end":25,"value":3.0,"raw":"3"}]}}],"kind":"let"}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(
@@ -22,7 +22,7 @@ fn array_binding() {
 fn array_binding_with_rest_element() {
     assert_parser_script_eq!(
         r#"let [foo, ...bar] = [1];"#,
-        r#"{"type":"Program","start":0,"end":24,"body":[{"type":"VariableDeclaration","start":0,"end":24,"declarations":[{"type":"VariableDeclarator","start":4,"end":23,"id":{"type":"ArrayPattern","start":4,"end":17,"elements":[{"type":"Identifier","start":5,"end":8,"name":"foo"},{"type":"RestElement","start":10,"end":16,"argument":{"type":"Identifier","start":13,"end":16,"name":"bar"}}]},"init":{"type":"ArrayExpression","start":20,"end":23,"elements":[{"type":"Literal","start":21,"end":22,"value":1,"raw":"1"}]}}],"kind":"let"}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":24,"body":[{"type":"VariableDeclaration","start":0,"end":24,"declarations":[{"type":"VariableDeclarator","start":4,"end":23,"id":{"type":"ArrayPattern","start":4,"end":17,"elements":[{"type":"Identifier","start":5,"end":8,"name":"foo"},{"type":"RestElement","start":10,"end":16,"argument":{"type":"Identifier","start":13,"end":16,"name":"bar"}}]},"init":{"type":"ArrayExpression","start":20,"end":23,"elements":[{"type":"Literal","start":21,"end":22,"value":1.0,"raw":"1"}]}}],"kind":"let"}],"sourceType":"script"}"#
     );
 
     assert_parser_script_eq!(
@@ -45,7 +45,7 @@ fn array_binding_with_rest_element() {
 fn array_binding_with_array_binding_pattern() {
     assert_parser_script_eq!(
         r#"let [foo, [bar]] = [1, 2, 3];"#,
-        r#"{"type":"Program","start":0,"end":29,"body":[{"type":"VariableDeclaration","start":0,"end":29,"declarations":[{"type":"VariableDeclarator","start":4,"end":28,"id":{"type":"ArrayPattern","start":4,"end":16,"elements":[{"type":"Identifier","start":5,"end":8,"name":"foo"},{"type":"ArrayPattern","start":10,"end":15,"elements":[{"type":"Identifier","start":11,"end":14,"name":"bar"}]}]},"init":{"type":"ArrayExpression","start":19,"end":28,"elements":[{"type":"Literal","start":20,"end":21,"value":1,"raw":"1"},{"type":"Literal","start":23,"end":24,"value":2,"raw":"2"},{"type":"Literal","start":26,"end":27,"value":3,"raw":"3"}]}}],"kind":"let"}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":29,"body":[{"type":"VariableDeclaration","start":0,"end":29,"declarations":[{"type":"VariableDeclarator","start":4,"end":28,"id":{"type":"ArrayPattern","start":4,"end":16,"elements":[{"type":"Identifier","start":5,"end":8,"name":"foo"},{"type":"ArrayPattern","start":10,"end":15,"elements":[{"type":"Identifier","start":11,"end":14,"name":"bar"}]}]},"init":{"type":"ArrayExpression","start":19,"end":28,"elements":[{"type":"Literal","start":20,"end":21,"value":1.0,"raw":"1"},{"type":"Literal","start":23,"end":24,"value":2.0,"raw":"2"},{"type":"Literal","start":26,"end":27,"value":3.0,"raw":"3"}]}}],"kind":"let"}],"sourceType":"script"}"#
     );
 }
 

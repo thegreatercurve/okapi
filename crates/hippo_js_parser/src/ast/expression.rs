@@ -5,7 +5,6 @@ use crate::{
     ParserError,
 };
 use serde::Serialize;
-use serde_json::Number;
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(untagged)]
@@ -406,7 +405,8 @@ pub enum LiteralValue {
     String(String),
     Boolean(bool),
     Null,
-    Number(Number),
+
+    Number(f64),
     Regex {},
 }
 

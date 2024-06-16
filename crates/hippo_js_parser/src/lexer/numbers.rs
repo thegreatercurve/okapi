@@ -1,7 +1,3 @@
-use std::str::FromStr;
-
-use serde_json::Number;
-
 use super::char::LexerChar;
 
 use crate::{Lexer, ParserError, Token, TokenKind, TokenValue};
@@ -113,10 +109,7 @@ impl Lexer {
                         raw: self.chars[start_index..self.read_index]
                             .iter()
                             .collect::<String>(),
-                        value: Some(
-                            Number::from_str(&number_literal_f64.to_string())
-                                .map_err(|_| ParserError::SyntaxError)?,
-                        ),
+                        value: number_literal_f64,
                     },
                 ))
             }

@@ -40,7 +40,7 @@ fn function_declaration_with_formal_parameters_rest_parameter() {
 fn function_declaration_with_block_statement() {
     assert_parser_script_eq!(
         r#"function foo() { return 1 + 1; }"#,
-        r#"{"type":"Program","start":0,"end":32,"body":[{"type":"FunctionDeclaration","start":0,"end":32,"id":{"type":"Identifier","start":9,"end":12,"name":"foo"},"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":15,"end":32,"body":[{"type":"ReturnStatement","start":17,"end":30,"argument":{"type":"BinaryExpression","start":24,"end":29,"left":{"type":"Literal","start":24,"end":25,"value":1,"raw":"1"},"operator":"+","right":{"type":"Literal","start":28,"end":29,"value":1,"raw":"1"}}}]}}],"sourceType":"script"}"#
+        r#"{"type":"Program","start":0,"end":32,"body":[{"type":"FunctionDeclaration","start":0,"end":32,"id":{"type":"Identifier","start":9,"end":12,"name":"foo"},"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":15,"end":32,"body":[{"type":"ReturnStatement","start":17,"end":30,"argument":{"type":"BinaryExpression","start":24,"end":29,"left":{"type":"Literal","start":24,"end":25,"value":1.0,"raw":"1"},"operator":"+","right":{"type":"Literal","start":28,"end":29,"value":1.0,"raw":"1"}}}]}}],"sourceType":"script"}"#
     );
 }
 

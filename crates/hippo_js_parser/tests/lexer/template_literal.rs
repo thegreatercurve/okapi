@@ -38,7 +38,7 @@ fn template_literal_with_multiple_parts() {
             template_literal_head("123 ", 0, 7, 1, 1),
             identifier("foo", 7, 10, 1, 8),
             template_literal_middle(" bar ", 10, 18, 1, 11),
-            number_literal("456", "456", 18, 21, 1, 19),
+            number_literal("456", 456.0, 18, 21, 1, 19),
             template_literal_tail(" baz", 21, 27, 1, 22),
         ]
     );
@@ -52,13 +52,13 @@ fn template_literal_with_different_goal_symbols() {
             template_literal_head("123 ", 0, 7, 1, 1),
             identifier("foo", 7, 10, 1, 8),
             punctuator(TokenKind::Division, 11, 12, 1, 12),
-            number_literal("2", "2", 13, 14, 1, 14),
+            number_literal("2", 2.0, 13, 14, 1, 14),
             template_literal_middle(" bar ", 14, 22, 1, 15),
-            number_literal("456", "456", 22, 25, 1, 23),
+            number_literal("456", 456.0, 22, 25, 1, 23),
             template_literal_tail(" baz", 25, 31, 1, 26),
-            number_literal("2", "2", 32, 33, 1, 33),
+            number_literal("2", 2.0, 32, 33, 1, 33),
             punctuator(TokenKind::Division, 34, 35, 1, 35),
-            number_literal("2", "2", 36, 37, 1, 37),
+            number_literal("2", 2.0, 36, 37, 1, 37),
         ]
     );
 }

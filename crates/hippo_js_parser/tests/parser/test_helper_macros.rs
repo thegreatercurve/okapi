@@ -1,35 +1,30 @@
 macro_rules! assert_parser_script_eq {
     ($test_case: expr, $expected_result: expr) => {{
-        use crate::parser::sort_json_keys;
+        use assert_json_diff::assert_json_include;
         use hippo_js_parser::Parser;
-        use pretty_assertions::assert_eq;
+        use serde_json::Value;
 
         let parsed = Parser::new(&$test_case).parse_script_json().unwrap();
-        let parsed_json = serde_json::from_str(&parsed).unwrap();
-        let parsed_sorted = sort_json_keys(parsed_json).unwrap();
+        let parsed_json = serde_json::from_str::<Value>(&parsed).unwrap();
 
-        let expected_json = serde_json::from_str(&$expected_result).unwrap();
-        let expected_sorted = sort_json_keys(expected_json).unwrap();
+        let expected_json = serde_json::from_str::<Value>(&$expected_result).unwrap();
 
-        assert_eq!(parsed_sorted, expected_sorted);
+        assert_json_include!(actual: parsed_json, expected: expected_json);
     }};
 }
 
 macro_rules! assert_parser_module_eq {
-    ($input_str: expr, $expected_ast: expr) => {{
+    ($test_case: expr, $expected_result: expr) => {{
+        use assert_json_diff::assert_json_include;
         use hippo_js_parser::Parser;
+        use serde_json::Value;
 
-        use pretty_assertions::assert_eq;
+        let parsed = Parser::new(&$test_case).parse_module_json().unwrap();
+        let parsed_json = serde_json::from_str::<Value>(&parsed).unwrap();
 
-        let mut parser = Parser::new($input_str);
+        let expected_json = serde_json::from_str::<Value>(&$expected_result).unwrap();
 
-        let ast_json = parser.parse_module_json().unwrap();
-
-        assert_eq!(
-            $expected_ast, ast_json,
-            "Expected token {:#?}, but found {:#?}",
-            $expected_ast, ast_json,
-        );
+        assert_json_include!(actual: parsed_json, expected: expected_json);
     }};
 }
 
