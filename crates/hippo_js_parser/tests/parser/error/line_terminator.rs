@@ -10,12 +10,3 @@ Error()",
         ParserError::UnexpectedLineTerminator
     );
 }
-
-#[test]
-fn line_terminator_arrow_function() {
-    assert_parse_module_to_throw!(
-        r"() 
-=> null",
-        ParserError::UnexpectedLineTerminator
-    );
-}

@@ -160,19 +160,4 @@ impl Parser {
             self.advance_any();
         }
     }
-
-    pub(crate) fn try_parse<F>(&mut self, parse_fn: F) -> bool
-    where
-        F: FnOnce(&mut Parser) -> Result<(), ParserError>,
-    {
-        let previous_cursor = self.cursor.clone();
-        let previous_context = self.context.clone();
-
-        let result = parse_fn(self);
-
-        self.cursor = previous_cursor;
-        self.context = previous_context;
-
-        result.is_ok()
-    }
 }

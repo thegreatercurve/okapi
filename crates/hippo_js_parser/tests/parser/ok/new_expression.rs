@@ -1,6 +1,3 @@
-
-
-
 use crate::parser::assert_parser_script_eq;
 
 #[test]

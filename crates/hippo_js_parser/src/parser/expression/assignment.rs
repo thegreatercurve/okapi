@@ -37,27 +37,85 @@ impl Parser {
             return self.parse_yield_as_binding_identifier_or_yield_expression();
         }
 
-        if self.is_arrow_function_start(false) {
-            return self.parse_arrow_function();
-        }
-
-        if self.is_arrow_function_start(true) {
-            return self.parse_async_arrow_function_declaration();
-        }
+        let maybe_assignment_pattern = self.token_kind().is_binding_pattern_start();
+        let is_opening_parenthesis = self.token_kind() == TokenKind::LeftParenthesis;
+        let is_binding_identifier = self.token_kind().is_binding_identifier();
+        let maybe_arrow_function_start = is_opening_parenthesis || is_binding_identifier;
 
         let start_index = self.start_node();
 
-        let is_object_or_array_assignment_pattern = self.token_kind().is_binding_pattern_start();
-
         let previous_cursor = self.cursor.clone();
+        let previous_context = self.context.clone();
 
-        let left_expression = self.parse_conditional_expression()?;
+        // Short circuit simple arrow functions.
+        // `( ) [no LineTerminator here] =>`
+        if is_opening_parenthesis
+            && self.peek_token_kind() == TokenKind::RightParenthesis
+            && !self.has_peek_token_line_terminator()
+            && self.peek_nth_kind(2) == TokenKind::ArrowFunction
+        {
+            return self.parse_arrow_function();
+        }
+
+        //  Short circuit simple binding identifier arrow functions.
+        // `BindingIdentifier [no LineTerminator here] =>`
+        if is_binding_identifier
+            && !self.has_current_token_line_terminator()
+            && self.peek_token_kind() == TokenKind::ArrowFunction
+        {
+            return self.parse_arrow_function();
+        }
+
+        // Short circuit simple binding identifier async arrow functions.
+        // `async [no LineTerminator here] BindingIdentifier [no LineTerminator here] =>`
+        if self.token_kind() == TokenKind::Keyword(KeywordKind::Async)
+            && !self.has_current_token_line_terminator()
+            && self.peek_token_kind().is_binding_identifier()
+            && !self.has_peek_token_line_terminator()
+            && self.peek_nth_kind(2) == TokenKind::ArrowFunction
+        {
+            return self.parse_async_arrow_function_declaration();
+        }
+
+        let left_expression = self.parse_conditional_expression();
+
+        if maybe_arrow_function_start && self.token_kind() != TokenKind::EOF {
+            let is_arrow_function = self.token_kind() == TokenKind::ArrowFunction;
+
+            if left_expression.is_err() || is_arrow_function {
+                self.cursor = previous_cursor.clone();
+                self.context = previous_context.clone();
+
+                let is_async = self.token_kind() == TokenKind::Keyword(KeywordKind::Async);
+
+                if is_async {
+                    self.advance_any(); // Eat 'async' token.
+                }
+
+                let formal_parameters = self.parse_parenthesized_formal_parameters();
+
+                if formal_parameters.is_ok()
+                    && !self.has_previous_token_line_terminator()
+                    && is_arrow_function
+                {
+                    self.cursor = previous_cursor;
+                    self.context = previous_context;
+
+                    if is_async {
+                        return self.parse_async_arrow_function_declaration();
+                    } else {
+                        return self.parse_arrow_function();
+                    }
+                }
+            }
+        }
 
         match self.token_kind() {
-            TokenKind::Assignment if is_object_or_array_assignment_pattern => {
+            TokenKind::Assignment if maybe_assignment_pattern => {
                 // If LeftHandSideExpression is either an ObjectLiteral or an ArrayLiteral, it must be reparsed as an AssignmentPattern.
                 // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
                 self.cursor = previous_cursor;
+                self.context = previous_context;
 
                 let left_pattern = self.parse_assignment_pattern()?;
 
@@ -82,7 +140,7 @@ impl Parser {
                 return Ok(Expression::Assignment(AssignmentExpression {
                     node: self.end_node(start_index)?,
                     operator,
-                    left: Box::new(AssignmentExpressionLeft::Expression(left_expression)),
+                    left: Box::new(AssignmentExpressionLeft::Expression(left_expression?)),
                     right: Box::new(right),
                 }));
             }
@@ -91,7 +149,7 @@ impl Parser {
 
         self.end_node(start_index)?;
 
-        Ok(left_expression)
+        left_expression
     }
 
     fn parse_yield_as_binding_identifier_or_yield_expression(
@@ -108,58 +166,6 @@ impl Parser {
         }
 
         Ok(Expression::Yield(self.parse_yield_expression()?))
-    }
-
-    fn is_arrow_function_start(&mut self, is_async: bool) -> bool {
-        if !is_async {
-            // `BindingIdentifier [no LineTerminator here] =>` is valid for arrow functions.
-            if self.token_kind().is_binding_identifier()
-                && !self.has_current_token_line_terminator()
-                && self.peek_token_kind() == TokenKind::ArrowFunction
-            {
-                return true;
-            }
-
-            // https://tc39.es/ecma262/#prod-ArrowFormalParameters
-            // `( UniqueFormalParameters ) =>`
-            if self.token_kind() == TokenKind::LeftParenthesis {
-                return self.try_parse(|parser| {
-                    Parser::parse_parenthesized_formal_parameters(parser)?;
-
-                    Parser::expect_and_advance(parser, TokenKind::ArrowFunction)?;
-
-                    Ok(())
-                });
-            }
-        } else {
-            // `async [no LineTerminator here] BindingIdentifier [no LineTerminator here] => ` is valid for async arrow functions.
-            if self.token_kind() == TokenKind::Keyword(KeywordKind::Async)
-                && !self.has_current_token_line_terminator()
-                && self.peek_token_kind().is_binding_identifier()
-                && !self.has_peek_token_line_terminator()
-                && self.peek_nth_kind(2) == TokenKind::ArrowFunction
-            {
-                return true;
-            }
-
-            // https://tc39.es/ecma262/#prod-AsyncArrowHead
-            // `async ( UniqueFormalParameters ) =>`
-            if self.token_kind() == TokenKind::Keyword(KeywordKind::Async)
-                && self.peek_token_kind() == TokenKind::LeftParenthesis
-            {
-                return self.try_parse(|parser| {
-                    Parser::expect_and_advance(parser, TokenKind::Keyword(KeywordKind::Async))?;
-
-                    Parser::parse_parenthesized_formal_parameters(parser)?;
-
-                    Parser::expect_and_advance(parser, TokenKind::ArrowFunction)?;
-
-                    Ok(())
-                });
-            }
-        }
-
-        false
     }
 
     // 13.15.5 Destructuring Assignment

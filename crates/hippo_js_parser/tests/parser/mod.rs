@@ -1,4 +1,4 @@
-// mod acorn;
+mod acorn;
 mod error;
 mod ok;
 mod test_helper_macros;
