@@ -61,13 +61,10 @@ impl Parser {
     ) -> Result<Expression, ParserError> {
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        // Ensure that parenthezied expression in a `for` statement parses the `in` keyword as a relational expression.
-        let previous_allow_in = self.context.allow_in;
-        self.context.allow_in = true;
-
-        let expression = self.parse_expression()?;
-
-        self.context.allow_in = previous_allow_in;
+        let expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_expression,
+        )?;
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
@@ -170,13 +167,7 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::LeftSquareBracket)?;
 
-        // Ensure that parenthezied expression in a `for` statement parses the `in` keyword as a relational expression.
-        let previous_allow_in = self.context.allow_in;
-        self.context.allow_in = true;
-
         let element_list = self.parse_element_list()?;
-
-        self.context.allow_in = previous_allow_in;
 
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 
@@ -204,18 +195,24 @@ impl Parser {
 
                     self.advance_any(); // Eat '...' token.
 
-                    let assigment_expression = self.parse_assignment_expression()?;
+                    let assignment_expression = self.with_params(
+                        self.params.clone().add_allow_in(false),
+                        Self::parse_assignment_expression,
+                    )?;
 
                     elements.push(Some(ArrayExpressionElement::SpreadElement(SpreadElement {
                         node: self.end_node(start_index)?,
-                        argument: assigment_expression,
+                        argument: assignment_expression,
                     })));
                 }
                 _ => {
-                    let assigment_expression = self.parse_assignment_expression()?;
+                    let assignment_expression = self.with_params(
+                        self.params.clone().add_allow_in(false),
+                        Self::parse_assignment_expression,
+                    )?;
 
                     elements.push(Some(ArrayExpressionElement::Expression(
-                        assigment_expression,
+                        assignment_expression,
                     )));
                 }
             };
@@ -241,13 +238,7 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
 
-        // Ensure that parenthezied expression in a `for` statement parses the `in` keyword as a relational expression.
-        let previous_allow_in = self.context.allow_in;
-        self.context.allow_in = true;
-
         let properties = self.parse_property_definition_list()?;
-
-        self.context.allow_in = previous_allow_in;
 
         self.cursor.lexer.goal_symbol = previous_goal_symbol.clone();
 
@@ -299,11 +290,14 @@ impl Parser {
             (TokenKind::Ellipsis, _) => {
                 self.advance_any(); // Eat '...' token.
 
-                let assigment_expression = self.parse_assignment_expression()?;
+                let assignment_expression = self.with_params(
+                    self.params.clone().add_allow_in(false),
+                    Self::parse_assignment_expression,
+                )?;
 
                 return Ok(ObjectExpressionProperty::SpreadElement(SpreadElement {
                     node: self.end_node(start_index)?,
-                    argument: assigment_expression,
+                    argument: assignment_expression,
                 }));
             }
             // Handle `MethodDefinition > get ClassElementName`.
@@ -418,7 +412,10 @@ impl Parser {
 
                 self.expect_and_advance(TokenKind::Assignment)?;
 
-                let assignment_expression = self.parse_assignment_expression()?;
+                let assignment_expression = self.with_params(
+                    self.params.clone().add_allow_in(false),
+                    Self::parse_assignment_expression,
+                )?;
 
                 property_definition_value = Some(PropertyValue::Expression(assignment_expression));
             }
@@ -428,7 +425,10 @@ impl Parser {
 
                 self.expect_and_advance(TokenKind::Colon)?;
 
-                let assignment_expression = self.parse_assignment_expression()?;
+                let assignment_expression = self.with_params(
+                    self.params.clone().add_allow_in(false),
+                    Self::parse_assignment_expression,
+                )?;
 
                 property_definition_value = Some(PropertyValue::Expression(assignment_expression));
             }
@@ -437,7 +437,7 @@ impl Parser {
             (TokenKind::LeftSquareBracket, _) => {
                 is_computed = true;
 
-                let property_name = self.parse_property_name()?;
+                let property_name = self.parse_computed_property_name()?;
 
                 match self.token_kind() {
                     // Handle `ComputedPropertyName : AssignmentExpression`.
@@ -446,7 +446,10 @@ impl Parser {
 
                         self.expect_and_advance(TokenKind::Colon)?;
 
-                        let assignment_expression = self.parse_assignment_expression()?;
+                        let assignment_expression = self.with_params(
+                            self.params.clone().add_allow_in(false),
+                            Self::parse_assignment_expression,
+                        )?;
 
                         property_definition_value =
                             Some(PropertyValue::Expression(assignment_expression));
@@ -581,11 +584,14 @@ impl Parser {
         }
     }
 
-    // https://tc39.es/ecma262/#prod-PropertyName
-    fn parse_computed_property_name(&mut self) -> Result<Expression, ParserError> {
+    // https://tc39.es/ecma262/#prod-ComputedPropertyName
+    pub(crate) fn parse_computed_property_name(&mut self) -> Result<Expression, ParserError> {
         self.expect_and_advance(TokenKind::LeftSquareBracket)?;
 
-        let assignment_expression = self.parse_assignment_expression()?;
+        let assignment_expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_assignment_expression,
+        )?;
 
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 
@@ -638,13 +644,22 @@ impl Parser {
                 match self.token_kind() {
                     TokenKind::TemplateHead => {
                         quasis.push(self.parse_template_element(false, 1, 2)?);
+                        let expression = self.with_params(
+                            self.params.clone().add_allow_in(false),
+                            Self::parse_expression,
+                        )?;
 
-                        expressions.push(self.parse_expression()?);
+                        expressions.push(expression);
                     }
                     TokenKind::TemplateMiddle => {
                         quasis.push(self.parse_template_element(false, 1, 2)?);
 
-                        expressions.push(self.parse_expression()?);
+                        let expression = self.with_params(
+                            self.params.clone().add_allow_in(false),
+                            Self::parse_expression,
+                        )?;
+
+                        expressions.push(expression);
                     }
                     TokenKind::TemplateTail => {
                         quasis.push(self.parse_template_element(true, 1, 1)?)

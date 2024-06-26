@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::{ast::*, Params};
 use crate::{KeywordKind, Parser, ParserError, TokenKind};
 
 // 13 ECMAScript Language: Expressions
@@ -31,7 +31,10 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
-        let generator_body = self.parse_function_body()?;
+        let generator_body = self.with_params(
+            Params::default().add_allow_yield(true),
+            Self::parse_function_body,
+        )?;
 
         Ok(FunctionDeclaration {
             node: self.end_node(start_index)?,
@@ -60,7 +63,10 @@ impl Parser {
 
         let formal_parameters = self.parse_parenthesized_formal_parameters()?;
 
-        let generator_body = self.parse_function_body()?;
+        let generator_body = self.with_params(
+            Params::default().add_allow_yield(true),
+            Self::parse_function_body,
+        )?;
 
         Ok(FunctionExpression {
             node: self.end_node(start_index)?,
@@ -101,7 +107,10 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
-        let function_body = self.parse_function_body()?;
+        let generator_body = self.with_params(
+            Params::default().add_allow_yield(true),
+            Self::parse_function_body,
+        )?;
 
         let function_expression = FunctionExpression {
             node: self.end_node(function_expression_start_index)?,
@@ -110,7 +119,7 @@ impl Parser {
             generator: true,
             is_async,
             params: formal_parameters,
-            body: function_body,
+            body: generator_body,
         };
 
         Ok(MethodDefinition {

@@ -25,11 +25,12 @@ impl Parser {
     pub(crate) fn parse_statement(&mut self) -> Result<Statement, ParserError> {
         match self.token_kind() {
             TokenKind::Keyword(keyword) => match keyword {
-                KeywordKind::Let | KeywordKind::Const | KeywordKind::Var => {
-                    Ok(Statement::Declaration(Declaration::Variable(
-                        self.parse_lexical_declaration(true)?,
-                    )))
-                }
+                KeywordKind::Let | KeywordKind::Const => Ok(Statement::Declaration(
+                    Declaration::Variable(self.parse_lexical_declaration(true)?),
+                )),
+                KeywordKind::Var => Ok(Statement::Declaration(Declaration::Variable(
+                    self.parse_variable_statement(true)?,
+                ))),
                 KeywordKind::If => Ok(Statement::If(self.parse_if_statement()?)),
                 KeywordKind::For => match self.parse_for_or_for_of_in_statement()? {
                     ForStatementKind::Classic(for_statement) => Ok(Statement::For(for_statement)),
@@ -68,7 +69,12 @@ impl Parser {
                 Ok(Declaration::Class(self.parse_class_declaration()?))
             }
             token_kind if token_kind.is_lexical_declaration_start() => {
-                Ok(Declaration::Variable(self.parse_lexical_declaration(true)?))
+                let lexical_declaration = self
+                    .with_params(self.params.clone().add_allow_in(false), |slf| {
+                        slf.parse_lexical_declaration(true)
+                    })?;
+
+                Ok(Declaration::Variable(lexical_declaration))
             }
             _ => Err(self.unexpected_current_token_kind()),
         }
@@ -130,9 +136,11 @@ impl Parser {
                 )))
             }
             (TokenKind::Keyword(KeywordKind::Let), TokenKind::LeftSquareBracket) => {
+                let lexical_declaration = self.parse_lexical_declaration(true)?;
+
                 return Ok(Statement::Declaration(Declaration::Variable(
-                    self.parse_lexical_declaration(true)?,
-                )))
+                    lexical_declaration,
+                )));
             }
             _ => {}
         };
@@ -142,7 +150,10 @@ impl Parser {
         } else {
             let start_index = self.start_node();
 
-            let expression = self.parse_expression()?;
+            let expression = self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_expression,
+            )?;
 
             self.expect_optional_semicolon_and_advance();
 

@@ -13,13 +13,16 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let test = self.parse_expression()?;
+        let expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_expression,
+        )?;
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
-        let consequent = self.parse_statement()?;
+        let statement = self.parse_statement()?;
 
-        let alternate = if self.token_kind() == TokenKind::Keyword(KeywordKind::Else) {
+        let optional_statement = if self.token_kind() == TokenKind::Keyword(KeywordKind::Else) {
             self.expect_and_advance(TokenKind::Keyword(KeywordKind::Else))?;
 
             Some(Box::new(self.parse_statement()?))
@@ -29,9 +32,9 @@ impl Parser {
 
         Ok(IfStatement {
             node: self.end_node(start_index)?,
-            test,
-            consequent: Box::new(consequent),
-            alternate,
+            test: expression,
+            consequent: Box::new(statement),
+            alternate: optional_statement,
         })
     }
 }

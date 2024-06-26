@@ -308,7 +308,12 @@ impl Parser {
         let optional_assignment_expression = if self.token_kind() == TokenKind::Assignment {
             self.advance_any(); // Eat  '=' token.
 
-            Some(self.parse_assignment_expression()?)
+            let assignment_expression = self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_assignment_expression,
+            )?;
+
+            Some(assignment_expression)
         } else {
             None
         };

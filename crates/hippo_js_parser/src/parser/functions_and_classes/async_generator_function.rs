@@ -1,4 +1,4 @@
-use crate::{ast::*, KeywordKind, TokenKind};
+use crate::{ast::*, KeywordKind, Params, TokenKind};
 use crate::{Parser, ParserError};
 
 // 15 ECMAScript Language: Functions and Classes
@@ -29,7 +29,12 @@ impl Parser {
 
         let formal_parameters = self.parse_parenthesized_formal_parameters()?;
 
-        let generator_body = self.parse_function_body()?;
+        let generator_body = self.with_params(
+            Params::default()
+                .add_allow_yield(true)
+                .add_allow_await(true),
+            Self::parse_function_body,
+        )?;
 
         Ok(FunctionDeclaration {
             node: self.end_node(start_index)?,
@@ -66,7 +71,12 @@ impl Parser {
 
         let formal_parameters = self.parse_parenthesized_formal_parameters()?;
 
-        let generator_body = self.parse_function_body()?;
+        let generator_body = self.with_params(
+            Params::default()
+                .add_allow_yield(true)
+                .add_allow_await(true),
+            Self::parse_function_body,
+        )?;
 
         Ok(FunctionExpression {
             node: self.end_node(start_index)?,

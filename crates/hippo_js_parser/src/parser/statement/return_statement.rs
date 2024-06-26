@@ -14,7 +14,12 @@ impl Parser {
         let argument = if self.token_kind() == TokenKind::Semicolon {
             None
         } else {
-            Some(self.parse_expression()?)
+            let expression = self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_expression,
+            )?;
+
+            Some(expression)
         };
 
         self.expect_optional_semicolon_and_advance();

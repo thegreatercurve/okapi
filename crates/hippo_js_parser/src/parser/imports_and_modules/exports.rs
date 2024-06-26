@@ -56,12 +56,12 @@ impl Parser {
                 }))
             }
             TokenKind::Keyword(KeywordKind::Var) => {
-                let variable_declaration = self.parse_lexical_declaration(true)?;
+                let variable_statement = self.parse_variable_statement(true)?;
 
                 Ok(ExportDeclaration::Named(ExportNamedDeclaration {
                     node: self.end_node(start_index)?,
                     declaration: Some(ExportNamedDeclarationDeclaration::Variable(
-                        variable_declaration,
+                        variable_statement,
                     )),
                     specifiers: vec![],
                     source: None,

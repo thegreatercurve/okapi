@@ -22,7 +22,10 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::For))?;
 
-        if self.token_kind() == TokenKind::Keyword(KeywordKind::Await) {
+        // `for await`
+        if self.params.has_allow_await()
+            && self.token_kind() == TokenKind::Keyword(KeywordKind::Await)
+        {
             is_async = true;
 
             self.advance_any();
@@ -32,40 +35,85 @@ impl Parser {
 
         let previous_cursor = self.cursor.clone();
 
+        // `for ( LexicalDeclaration Expression`
+        let is_head_lexical_declaration = self.token_kind().is_lexical_declaration_start();
+
+        // Early check to see if we potentially have to reparse these as a `AssignmentPattern`.
+        // `for ( {} in|of`
+        // `for ( [] in|of`
         let is_head_object_or_array_literal = self.token_kind().is_binding_pattern_start();
 
-        let optional_lexical_declaration = match self.token_kind() {
-            token_kind if token_kind.is_lexical_declaration_start() => Some(
-                ForStatementInit::VariableDeclaration(self.parse_lexical_declaration(false)?),
-            ),
-            TokenKind::Semicolon => None,
-            _ => {
-                // Prevent the in operator being parsed as a relational expression.
-                self.context.allow_in = false;
-
-                let expression = self.parse_expression()?;
-
-                self.context.allow_in = true;
-
-                Some(ForStatementInit::Expression(expression))
-            }
-        };
-
+        // `for ( ;`
         if self.token_kind() == TokenKind::Semicolon {
+            self.advance_any(); // Eat `;` token.
+
             return Ok(ForStatementKind::Classic(
-                self.parse_classic_for_statement(start_index, optional_lexical_declaration)?,
+                self.parse_classic_for_statement(start_index, None)?,
             ));
         }
+
+        let left_expression_or_lexical_declaration = match self.token_kind() {
+            // `for ( var VariableDeclarationList`
+            token_kind if token_kind.is_variable_declaration_start() => {
+                let variable_statement: VariableDeclaration =
+                    self.parse_variable_statement(false)?;
+
+                ForStatementInit::VariableDeclaration(variable_statement)
+            }
+            // `for ( LexicalDeclaration Expression`
+            token_kind if token_kind.is_lexical_declaration_start() => {
+                let lexical_declaration = self.parse_lexical_declaration(false)?;
+
+                ForStatementInit::VariableDeclaration(lexical_declaration)
+            }
+            _ => {
+                if is_async {
+                    // `for await ( LeftHandSideExpression`
+
+                    let left_hand_side_expression = self.with_params(
+                        self.params.clone().add_allow_in(true),
+                        Self::parse_left_hand_side_expression,
+                    )?;
+
+                    ForStatementInit::Expression(left_hand_side_expression)
+                } else {
+                    // `for ( Expression`
+                    let expression: Expression = self.with_params(
+                        self.params.clone().add_allow_in(true),
+                        Self::parse_expression,
+                    )?;
+
+                    ForStatementInit::Expression(expression)
+                }
+            }
+        };
 
         match self.token_kind() {
             TokenKind::Keyword(KeywordKind::In) | TokenKind::Keyword(KeywordKind::Of) => self
                 .parse_for_in_of_statement(
                     start_index,
-                    optional_lexical_declaration,
-                    previous_cursor,
+                    left_expression_or_lexical_declaration,
                     is_head_object_or_array_literal,
+                    previous_cursor,
                     is_async,
                 ),
+            TokenKind::Semicolon => {
+                self.advance_any(); // Eat `;` token.
+
+                Ok(ForStatementKind::Classic(
+                    self.parse_classic_for_statement(
+                        start_index,
+                        Some(left_expression_or_lexical_declaration),
+                    )?,
+                ))
+            }
+            // `for ( LexicalDeclaration Expression`
+            _ if is_head_lexical_declaration => Ok(ForStatementKind::Classic(
+                self.parse_classic_for_statement(
+                    start_index,
+                    Some(left_expression_or_lexical_declaration),
+                )?,
+            )),
             _ => Err(self.unexpected_current_token_kind()),
         }
     }
@@ -73,12 +121,15 @@ impl Parser {
     fn parse_classic_for_statement(
         &mut self,
         start_index: usize,
-        lexical_declaration_initializer: Option<ForStatementInit>,
+        optional_initializer: Option<ForStatementInit>,
     ) -> Result<ForStatement, ParserError> {
-        self.expect_and_advance(TokenKind::Semicolon)?;
-
         let optional_test_expression = if self.token_kind() != TokenKind::Semicolon {
-            Some(self.parse_expression()?)
+            let expression = self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_expression,
+            )?;
+
+            Some(expression)
         } else {
             None
         };
@@ -86,7 +137,12 @@ impl Parser {
         self.expect_and_advance(TokenKind::Semicolon)?;
 
         let optional_update_expression = if self.token_kind() != TokenKind::RightParenthesis {
-            Some(self.parse_expression()?)
+            let expression = self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_expression,
+            )?;
+
+            Some(expression)
         } else {
             None
         };
@@ -97,7 +153,7 @@ impl Parser {
 
         Ok(ForStatement {
             node: self.end_node(start_index)?,
-            init: lexical_declaration_initializer,
+            init: optional_initializer,
             test: optional_test_expression,
             update: optional_update_expression,
             body: Box::new(statement_body),
@@ -108,13 +164,15 @@ impl Parser {
     fn parse_for_in_of_statement(
         &mut self,
         start_index: usize,
-        optional_lexical_declaration: Option<ForStatementInit>,
+        left_expression_init: ForStatementInit,
+        is_left_assignment_pattern: bool,
         previous_cursor: Cursor,
-        is_head_object_or_array_literal: bool,
         is_async: bool,
     ) -> Result<ForStatementKind, ParserError> {
-        let optional_left_hand_expression = match optional_lexical_declaration {
-            _ if is_head_object_or_array_literal => {
+        let left_expression = match left_expression_init {
+            // `for ( {} in|of`
+            // `for ( [] in|of`
+            _ if is_left_assignment_pattern => {
                 // If LeftHandSideExpression is either an ObjectLiteral or an ArrayLiteral, LeftHandSideExpression must cover an AssignmentPattern.
                 // https://tc39.es/ecma262/#sec-for-in-and-for-of-statements-static-semantics-early-errors
                 self.cursor = previous_cursor;
@@ -126,8 +184,9 @@ impl Parser {
 
                 ForInStatementLeft::Pattern(assignment_pattern)
             }
-            Some(for_statement_init) => ForInStatementLeft::from(for_statement_init),
-            _ => return Err(self.unexpected_current_token_kind()),
+            // `for ( const foo in|of`
+            // `for ( foo.bar in|of`
+            for_statement_init => ForInStatementLeft::from(for_statement_init),
         };
 
         let is_for_in = self.token_kind() == TokenKind::Keyword(KeywordKind::In);
@@ -143,9 +202,15 @@ impl Parser {
         };
 
         let expression_or_assignment_expression = if is_for_in {
-            self.parse_expression()?
+            self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_expression,
+            )?
         } else {
-            self.parse_assignment_expression()?
+            self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_assignment_expression,
+            )?
         };
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
@@ -153,22 +218,21 @@ impl Parser {
         let statement_body = self.parse_statement()?;
 
         let node = self.end_node(start_index)?;
-        let left = optional_left_hand_expression;
-        let right = expression_or_assignment_expression;
+
         let body = Box::new(statement_body);
 
         if is_for_in {
             Ok(ForStatementKind::In(ForInStatement {
                 node,
-                left,
-                right,
+                left: left_expression,
+                right: expression_or_assignment_expression,
                 body,
             }))
         } else {
             Ok(ForStatementKind::Of(ForOfStatement {
                 node,
-                left,
-                right,
+                left: left_expression,
+                right: expression_or_assignment_expression,
                 body,
                 awaiting: is_async,
             }))
@@ -188,7 +252,10 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let expression = self.parse_expression()?;
+        let expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_expression,
+        )?;
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
@@ -210,7 +277,10 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let expression = self.parse_expression()?;
+        let expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_expression,
+        )?;
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 

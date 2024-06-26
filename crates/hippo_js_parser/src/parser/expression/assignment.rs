@@ -33,8 +33,10 @@ impl Parser {
     // 13.15 Assignment Operators
     // https://tc39.es/ecma262/#prod-AssignmentExpression
     pub(crate) fn parse_assignment_expression(&mut self) -> Result<Expression, ParserError> {
-        if self.token_kind() == TokenKind::Keyword(KeywordKind::Yield) {
-            return self.parse_yield_as_binding_identifier_or_yield_expression();
+        if self.params.has_allow_yield()
+            && self.token_kind() == TokenKind::Keyword(KeywordKind::Yield)
+        {
+            return Ok(Expression::Yield(self.parse_yield_expression()?));
         }
 
         let maybe_assignment_pattern = self.token_kind().is_binding_pattern_start();
@@ -150,22 +152,6 @@ impl Parser {
         self.end_node(start_index)?;
 
         left_expression
-    }
-
-    fn parse_yield_as_binding_identifier_or_yield_expression(
-        &mut self,
-    ) -> Result<Expression, ParserError> {
-        if self.token_kind() != TokenKind::Keyword(KeywordKind::Yield) {
-            return Err(self.unexpected_current_token_kind());
-        }
-
-        if !self.has_current_token_line_terminator()
-            && self.peek_token_kind() == TokenKind::ArrowFunction
-        {
-            return self.parse_arrow_function();
-        }
-
-        Ok(Expression::Yield(self.parse_yield_expression()?))
     }
 
     // 13.15.5 Destructuring Assignment
@@ -297,7 +283,7 @@ impl Parser {
             TokenKind::LeftSquareBracket => {
                 is_computed = true;
 
-                self.parse_property_name()?
+                self.parse_computed_property_name()?
             }
             token_kind if token_kind.is_property_name() => self.parse_property_name()?,
             _ => return Err(self.unexpected_current_token_kind()),
@@ -326,7 +312,10 @@ impl Parser {
             TokenKind::Assignment => {
                 self.advance_any(); // Eat '=' token.
 
-                let assignment_expression = self.parse_assignment_expression()?;
+                let assignment_expression = self.with_params(
+                    self.params.clone().add_allow_in(false),
+                    Self::parse_assignment_expression,
+                )?;
 
                 let assignment_pattern = AssignmentPattern {
                     node: self.end_node(start_index)?,
@@ -365,7 +354,10 @@ impl Parser {
         let assignment_element = if self.token_kind() == TokenKind::Assignment {
             self.advance_any(); // Eat '=' token.
 
-            let assignment_expression = self.parse_assignment_expression()?;
+            let assignment_expression = self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_assignment_expression,
+            )?;
 
             ArrayPatternElement::Assignment(AssignmentPattern {
                 node: self.end_node(start_index)?,

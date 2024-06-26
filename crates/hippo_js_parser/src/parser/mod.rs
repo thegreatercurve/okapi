@@ -5,15 +5,14 @@ mod directive;
 mod expression;
 mod functions_and_classes;
 mod imports_and_modules;
+mod params;
 mod statement;
 
 pub use cursor::Cursor;
+pub use params::Params;
 
 #[derive(Clone, Debug)]
 pub struct Context {
-    pub allow_in: bool,
-    pub allow_yield: bool,
-    pub allow_super: bool,
     pub in_optional_chain: bool,
     pub strict_mode: bool,
 }
@@ -21,9 +20,6 @@ pub struct Context {
 impl Context {
     pub fn default() -> Self {
         Self {
-            allow_in: true,
-            allow_yield: true,
-            allow_super: false,
             in_optional_chain: false,
             strict_mode: false,
         }
@@ -34,6 +30,7 @@ impl Context {
 pub struct Parser {
     pub cursor: Cursor,
     pub context: Context,
+    pub params: Params,
 }
 
 impl Parser {
@@ -46,6 +43,7 @@ impl Parser {
         Self {
             cursor: Cursor::new(lexer, current_token, next_token),
             context: Context::default(),
+            params: Params::default(),
         }
     }
 
@@ -159,5 +157,23 @@ impl Parser {
         if self.token_kind() == TokenKind::Semicolon {
             self.advance_any();
         }
+    }
+
+    pub(crate) fn with_params<T, F>(
+        &mut self,
+        params: Params,
+        parse_cb: F,
+    ) -> Result<T, ParserError>
+    where
+        F: Fn(&mut Self) -> Result<T, ParserError>,
+    {
+        let previous_params = self.params;
+        self.params = params;
+
+        let cb = parse_cb(self);
+
+        self.params = previous_params;
+
+        cb
     }
 }

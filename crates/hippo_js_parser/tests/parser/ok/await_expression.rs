@@ -12,5 +12,8 @@ fn await_expression() {
         r#"{"type":"Program","start":0,"end":36,"body":[{"type":"FunctionDeclaration","start":0,"end":36,"id":{"type":"Identifier","start":15,"end":20,"name":"inner"},"expression":false,"generator":false,"async":true,"params":[],"body":{"type":"BlockStatement","start":23,"end":36,"body":[{"type":"ReturnStatement","start":25,"end":34,"argument":{"type":"Literal","start":32,"end":33,"value":4.0,"raw":"4"}}]}}],"sourceType":"script"}"#
     );
 
-    // assert_parser_eq!(r#"await test();"#, r#"{"type":"Program","start":0,"end":13,"body":[{"type":"ExpressionStatement","start":0,"end":5,"expression":{"type":"Identifier","start":0,"end":5,"name":"await"}},{"type":"ExpressionStatement","start":6,"end":13,"expression":{"type":"CallExpression","start":6,"end":12,"callee":{"type":"Identifier","start":6,"end":10,"name":"test"},"arguments":[],"optional":false}}],"sourceType":"script"}"#);
+    assert_parser_script_eq!(
+        r#"await test();"#,
+        r#"{"type":"Program","start":0,"end":13,"body":[{"type":"ExpressionStatement","start":0,"end":5,"expression":{"type":"Identifier","start":0,"end":5,"name":"await"}},{"type":"ExpressionStatement","start":6,"end":13,"expression":{"type":"CallExpression","start":6,"end":12,"callee":{"type":"Identifier","start":6,"end":10,"name":"test"},"arguments":[],"optional":false}}],"sourceType":"script"}"#
+    );
 }

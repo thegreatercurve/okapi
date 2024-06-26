@@ -13,7 +13,10 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let expression = self.parse_expression()?;
+        let expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_expression,
+        )?;
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
@@ -50,7 +53,10 @@ impl Parser {
             TokenKind::Keyword(KeywordKind::Case) => {
                 self.advance_any(); // Eat 'case' token.
 
-                let expression = self.parse_expression()?;
+                let expression = self.with_params(
+                    self.params.clone().add_allow_in(false),
+                    Self::parse_expression,
+                )?;
 
                 Some(expression)
             }

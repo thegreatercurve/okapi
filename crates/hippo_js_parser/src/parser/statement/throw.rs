@@ -15,13 +15,16 @@ impl Parser {
             return Err(ParserError::UnexpectedLineTerminator);
         }
 
-        let argument = self.parse_expression()?;
+        let expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_expression,
+        )?;
 
         self.expect_optional_semicolon_and_advance();
 
         Ok(ThrowStatement {
             node: self.end_node(start_index)?,
-            argument,
+            argument: expression,
         })
     }
 }

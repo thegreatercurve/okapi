@@ -105,7 +105,7 @@ impl Parser {
         let start_token = self.cursor.current_token.clone();
 
         // https://tc39.es/ecma262/#prod-RelationalExpression
-        if self.context.allow_in && self.token_kind() == TokenKind::PrivateIdentifier {
+        if !self.params.has_allow_in() && self.token_kind() == TokenKind::PrivateIdentifier {
             let private_identifier = self.parse_private_identifier()?;
 
             self.expect_and_advance(TokenKind::Keyword(KeywordKind::In))?;
@@ -120,7 +120,7 @@ impl Parser {
                 operator: BinaryOperator::In,
                 right: Box::new(unary_expression),
             }));
-        }
+        };
 
         let unary_expression = self.parse_unary_expression()?;
 
@@ -148,7 +148,9 @@ impl Parser {
 
             // The [In] grammar parameter is needed to avoid confusing the in operator in a relational expression with the in operator in a for statement.
             // https://tc39.es/ecma262/#sec-relational-operators
-            if self.token_kind() == TokenKind::Keyword(KeywordKind::In) && !self.context.allow_in {
+            if self.params.has_allow_in()
+                && self.token_kind() == TokenKind::Keyword(KeywordKind::In)
+            {
                 break;
             }
 

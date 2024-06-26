@@ -65,7 +65,7 @@ fn for_in_statement() {
 #[test]
 fn for_of_async_statement() {
     assert_parser_script_eq!(
-        r#"for await (let a of []) {}"#,
-        r#"{"type":"Program","start":0,"end":26,"body":[{"type":"ForOfStatement","start":0,"end":26,"await":true,"left":{"type":"VariableDeclaration","start":11,"end":16,"declarations":[{"type":"VariableDeclarator","start":15,"end":16,"id":{"type":"Identifier","start":15,"end":16,"name":"a"},"init":null}],"kind":"let"},"right":{"type":"ArrayExpression","start":20,"end":22,"elements":[]},"body":{"type":"BlockStatement","start":24,"end":26,"body":[]}}],"sourceType":"script"}"#
+        r#"async function fn() { for await (let a of []) {} }"#,
+        r#"{"type":"Program","start":0,"end":50,"body":[{"type":"FunctionDeclaration","start":0,"end":50,"id":{"type":"Identifier","start":15,"end":17,"name":"fn"},"expression":false,"generator":false,"async":true,"params":[],"body":{"type":"BlockStatement","start":20,"end":50,"body":[{"type":"ForOfStatement","start":22,"end":48,"await":true,"left":{"type":"VariableDeclaration","start":33,"end":38,"declarations":[{"type":"VariableDeclarator","start":37,"end":38,"id":{"type":"Identifier","start":37,"end":38,"name":"a"},"init":null}],"kind":"let"},"right":{"type":"ArrayExpression","start":42,"end":44,"elements":[]},"body":{"type":"BlockStatement","start":46,"end":48,"body":[]}}]}}],"sourceType":"script"}"#
     );
 }

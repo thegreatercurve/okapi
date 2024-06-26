@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::{ast::*, Params};
 use crate::{KeywordKind, Parser, ParserError, TokenKind};
 
 // 15 ECMAScript Language: Functions and Classes
@@ -27,7 +27,10 @@ impl Parser {
 
         let formal_parameters = self.parse_parenthesized_formal_parameters()?;
 
-        let body = self.parse_function_body()?;
+        let body = self.with_params(
+            Params::default().add_allow_await(true),
+            Self::parse_function_body,
+        )?;
 
         Ok(FunctionDeclaration {
             node: self.end_node(start_index)?,
@@ -58,7 +61,10 @@ impl Parser {
 
         let formal_parameters = self.parse_parenthesized_formal_parameters()?;
 
-        let body = self.parse_function_body()?;
+        let body = self.with_params(
+            Params::default().add_allow_await(true),
+            Self::parse_function_body,
+        )?;
 
         Ok(FunctionExpression {
             node: self.end_node(start_index)?,

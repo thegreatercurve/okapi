@@ -356,7 +356,10 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::LeftParenthesis)?;
 
-        let assignment_expression = self.parse_assignment_expression()?;
+        let assignment_expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_assignment_expression,
+        )?;
 
         self.expect_and_advance(TokenKind::RightParenthesis)?;
 
@@ -384,15 +387,18 @@ impl Parser {
                 false
             };
 
-            let argument = self.parse_assignment_expression()?;
+            let assignment_expression = self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_assignment_expression,
+            )?;
 
             if is_spread {
                 arguments_list.push(CallExpressionArgument::SpreadElement(SpreadElement {
                     node: self.end_node(start_index)?,
-                    argument,
+                    argument: assignment_expression,
                 }));
             } else {
-                arguments_list.push(CallExpressionArgument::Expression(argument));
+                arguments_list.push(CallExpressionArgument::Expression(assignment_expression));
             }
 
             if self.token_kind() != TokenKind::Comma {
@@ -507,13 +513,10 @@ impl Parser {
     ) -> Result<MemberExpressionProperty, ParserError> {
         self.expect_and_advance(TokenKind::LeftSquareBracket)?;
 
-        // Ensure that parenthezied expression in a `for` statement parses the `in` keyword as a relational expression.
-        let previous_allow_in = self.context.allow_in;
-        self.context.allow_in = true;
-
-        let computed_expression = self.parse_expression()?;
-
-        self.context.allow_in = previous_allow_in;
+        let computed_expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_expression,
+        )?;
 
         self.expect_and_advance(TokenKind::RightSquareBracket)?;
 

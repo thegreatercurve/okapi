@@ -97,7 +97,10 @@ impl Parser {
 
         let formal_parameters = self.parse_parenthesized_formal_parameters()?;
 
-        let function_body = self.parse_function_body()?;
+        let function_body = self.with_params(
+            self.params.clone().add_allow_await(true),
+            Self::parse_function_body,
+        )?;
 
         let function_expression = FunctionExpression {
             node: self.end_node(function_expression_start_index)?,

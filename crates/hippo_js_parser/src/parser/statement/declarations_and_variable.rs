@@ -15,7 +15,6 @@ impl Parser {
         let kind = match self.token_kind() {
             TokenKind::Keyword(KeywordKind::Let) => VariableKind::Let,
             TokenKind::Keyword(KeywordKind::Const) => VariableKind::Const,
-            TokenKind::Keyword(KeywordKind::Var) => VariableKind::Var,
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
@@ -24,7 +23,7 @@ impl Parser {
             VariableKind::Const => {
                 self.expect_and_advance(TokenKind::Keyword(KeywordKind::Const))?
             }
-            VariableKind::Var => self.expect_and_advance(TokenKind::Keyword(KeywordKind::Var))?,
+            VariableKind::Var => return Err(self.unexpected_current_token_kind()),
         };
 
         let binding_list = self.parse_binding_list()?;
@@ -57,6 +56,30 @@ impl Parser {
         Ok(declarations)
     }
 
+    // 14.3.2 Variable Statement
+    // https://tc39.es/ecma262/#prod-VariableStatement
+    pub(crate) fn parse_variable_statement(
+        &mut self,
+        include_optional_semicolon: bool,
+    ) -> Result<VariableDeclaration, ParserError> {
+        let start_index = self.start_node();
+
+        self.expect_and_advance(TokenKind::Keyword(KeywordKind::Var))?;
+
+        // `VariableDeclaration` is the same grammar as `LexicalDeclaration`.
+        let binding_list = self.parse_binding_list()?;
+
+        if include_optional_semicolon {
+            self.expect_optional_semicolon_and_advance();
+        }
+
+        Ok(VariableDeclaration {
+            node: self.end_node(start_index)?,
+            declarations: binding_list,
+            kind: VariableKind::Var,
+        })
+    }
+
     // 14.3.3 Destructuring Binding Patterns
     // https://tc39.es/ecma262/#prod-BindingIdentifier
     // https://tc39.es/ecma262/#prod-BindingPattern
@@ -77,7 +100,12 @@ impl Parser {
         let initializer = if self.token_kind() == TokenKind::Assignment {
             self.advance_any(); // Eat '=' token.
 
-            Some(self.parse_assignment_expression()?)
+            let assignment_expression = self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_assignment_expression,
+            )?;
+
+            Some(assignment_expression)
         } else {
             None
         };
@@ -243,7 +271,10 @@ impl Parser {
             TokenKind::Assignment => {
                 self.advance_any(); // Eat '=' token.
 
-                let assignment_expression = self.parse_assignment_expression()?;
+                let assignment_expression = self.with_params(
+                    self.params.clone().add_allow_in(false),
+                    Self::parse_assignment_expression,
+                )?;
 
                 let assignment_pattern = AssignmentPattern {
                     node: self.end_node(start_index)?,
@@ -284,7 +315,10 @@ impl Parser {
                 if self.token_kind() == TokenKind::Assignment {
                     self.advance_any(); // Eat '=' token.
 
-                    let assignment_expression = self.parse_assignment_expression()?;
+                    let assignment_expression = self.with_params(
+                        self.params.clone().add_allow_in(false),
+                        Self::parse_assignment_expression,
+                    )?;
 
                     ArrayPatternElement::Assignment(AssignmentPattern {
                         node: self.end_node(start_index)?,

@@ -454,9 +454,7 @@ impl TokenKind {
     pub(crate) fn is_declaration_start(&self) -> bool {
         matches!(
             self,
-            TokenKind::Keyword(KeywordKind::Function)
-                | TokenKind::Keyword(KeywordKind::Class)
-                | TokenKind::Keyword(KeywordKind::Var)
+            TokenKind::Keyword(KeywordKind::Function) | TokenKind::Keyword(KeywordKind::Class)
         ) | self.is_lexical_declaration_start()
     }
 
@@ -474,10 +472,14 @@ impl TokenKind {
     pub(crate) fn is_lexical_declaration_start(&self) -> bool {
         matches!(
             self,
-            TokenKind::Keyword(KeywordKind::Let)
-                | TokenKind::Keyword(KeywordKind::Const)
-                | TokenKind::Keyword(KeywordKind::Var)
+            TokenKind::Keyword(KeywordKind::Let) | TokenKind::Keyword(KeywordKind::Const)
         )
+    }
+
+    // 14.3.2 Variable Statement
+    // https://tc39.es/ecma262/#prod-VariableStatement
+    pub(crate) fn is_variable_declaration_start(&self) -> bool {
+        matches!(self, TokenKind::Keyword(KeywordKind::Var))
     }
 
     // 14.3.3 Destructuring Binding Patterns

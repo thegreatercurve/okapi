@@ -14,7 +14,10 @@ impl Parser {
         if self.token_kind() == TokenKind::QuestionMark {
             self.advance_any(); // Eat '?' token.
 
-            let consequent = self.parse_assignment_expression()?;
+            let consequent = self.with_params(
+                self.params.clone().add_allow_in(false),
+                Self::parse_assignment_expression,
+            )?;
 
             self.expect_and_advance(TokenKind::Colon)?;
 

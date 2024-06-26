@@ -81,6 +81,7 @@ name = "hippo_js_parser"
 version = "0.0.1"
 dependencies = [
  "assert-json-diff",
+ "bitflags",
  "hippo_unicode",
  "pretty_assertions",
  "serde",

@@ -47,7 +47,7 @@ impl Parser {
                     argument: Box::new(unary_argument),
                 }))
             }
-            TokenKind::Keyword(KeywordKind::Await) => {
+            TokenKind::Keyword(KeywordKind::Await) if self.params.has_allow_await() => {
                 let start_index = self.start_node();
 
                 self.advance_any(); // Eat `await` token.
