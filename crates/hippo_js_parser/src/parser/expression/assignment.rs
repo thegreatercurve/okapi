@@ -39,10 +39,13 @@ impl Parser {
             return Ok(Expression::Yield(self.parse_yield_expression()?));
         }
 
-        let maybe_assignment_pattern = self.token_kind().is_binding_pattern_start();
-        let is_opening_parenthesis = self.token_kind() == TokenKind::LeftParenthesis;
+        let is_maybe_assignment_pattern = self.token_kind().is_binding_pattern_start();
         let is_binding_identifier = self.token_kind().is_binding_identifier();
-        let maybe_arrow_function_start = is_opening_parenthesis || is_binding_identifier;
+
+        let is_maybe_parenthesized_arrow_function = self.token_kind() == TokenKind::LeftParenthesis;
+        let is_maybe_async_parenthesized_arrow_function = self.token_kind()
+            == TokenKind::Keyword(KeywordKind::Async)
+            && self.peek_token_kind() == TokenKind::LeftParenthesis;
 
         let start_index = self.start_node();
 
@@ -51,7 +54,7 @@ impl Parser {
 
         // Short circuit simple arrow functions.
         // `( ) [no LineTerminator here] =>`
-        if is_opening_parenthesis
+        if is_maybe_parenthesized_arrow_function
             && self.peek_token_kind() == TokenKind::RightParenthesis
             && !self.has_peek_token_line_terminator()
             && self.peek_nth_kind(2) == TokenKind::ArrowFunction
@@ -79,41 +82,40 @@ impl Parser {
             return self.parse_async_arrow_function_declaration();
         }
 
+        let is_arrow_function = if is_maybe_parenthesized_arrow_function
+            || is_maybe_async_parenthesized_arrow_function
+        {
+            if is_maybe_async_parenthesized_arrow_function {
+                self.expect_and_advance(TokenKind::Keyword(KeywordKind::Async))?;
+                // Eat 'async' token.
+            }
+
+            let is_arrow_function = self.maybe_arrow_function();
+
+            self.cursor = previous_cursor.clone();
+            self.context = previous_context.clone();
+
+            is_arrow_function
+        } else {
+            false
+        };
+
+        if is_arrow_function {
+            if !self.has_previous_token_line_terminator() {
+                if is_maybe_async_parenthesized_arrow_function {
+                    return self.parse_async_arrow_function_declaration();
+                } else {
+                    return self.parse_arrow_function();
+                }
+            } else {
+                return Err(ParserError::UnexpectedLineTerminator);
+            }
+        };
+
         let left_expression = self.parse_conditional_expression();
 
-        if maybe_arrow_function_start && self.token_kind() != TokenKind::EOF {
-            let is_arrow_function = self.token_kind() == TokenKind::ArrowFunction;
-
-            if left_expression.is_err() || is_arrow_function {
-                self.cursor = previous_cursor.clone();
-                self.context = previous_context.clone();
-
-                let is_async = self.token_kind() == TokenKind::Keyword(KeywordKind::Async);
-
-                if is_async {
-                    self.advance_any(); // Eat 'async' token.
-                }
-
-                let formal_parameters = self.parse_parenthesized_formal_parameters();
-
-                if formal_parameters.is_ok()
-                    && !self.has_previous_token_line_terminator()
-                    && is_arrow_function
-                {
-                    self.cursor = previous_cursor;
-                    self.context = previous_context;
-
-                    if is_async {
-                        return self.parse_async_arrow_function_declaration();
-                    } else {
-                        return self.parse_arrow_function();
-                    }
-                }
-            }
-        }
-
         match self.token_kind() {
-            TokenKind::Assignment if maybe_assignment_pattern => {
+            TokenKind::Assignment if is_maybe_assignment_pattern => {
                 // If LeftHandSideExpression is either an ObjectLiteral or an ArrayLiteral, it must be reparsed as an AssignmentPattern.
                 // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
                 self.cursor = previous_cursor;
@@ -152,6 +154,28 @@ impl Parser {
         self.end_node(start_index)?;
 
         left_expression
+    }
+
+    fn maybe_arrow_function(&mut self) -> bool {
+        let mut parentheses_depth = 0;
+
+        while !matches!(self.token_kind(), TokenKind::Illegal | TokenKind::EOF) {
+            match self.token_kind() {
+                TokenKind::LeftParenthesis => parentheses_depth += 1,
+                TokenKind::RightParenthesis => parentheses_depth -= 1,
+                _ => {}
+            }
+
+            match self.peek_token_kind() {
+                TokenKind::ArrowFunction if parentheses_depth == 0 => return true,
+                _ if parentheses_depth < 1 => return false,
+                _ => {}
+            }
+
+            self.advance_any();
+        }
+
+        false
     }
 
     // 13.15.5 Destructuring Assignment

@@ -6,7 +6,7 @@ use crate::parser_262::{ParserTest, ParserTestMetaData};
 
 const TEST_PATH: &str = "test262-parser-tests/pass-explicit";
 
-pub fn run_tests() -> Result<(), ErrorKind> {
+pub fn run_pass_explicit_tests() -> Result<(), ErrorKind> {
     let harness = Harness::new(TEST_PATH)?;
 
     let tests = harness.tests;
@@ -38,13 +38,11 @@ pub fn run_tests() -> Result<(), ErrorKind> {
 
         let test = ParserTest::new(&source, meta_data);
 
-        println!("Running test: {}", test.description());
-
         match test.run() {
             Ok(true) => {
                 passed += 1;
 
-                println!("✅ Test passed: {}", test.description())
+                // println!("✅ Test passed: {}", test.description())
             }
             _ => {
                 failed += 1;
