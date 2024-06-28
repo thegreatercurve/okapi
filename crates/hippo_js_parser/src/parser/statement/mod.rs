@@ -63,7 +63,7 @@ impl Parser {
     fn parse_declaration(&mut self) -> Result<Declaration, ParserError> {
         match self.token_kind() {
             token_kind if token_kind.is_hoistable_declaration_start() => {
-                self.parse_hoistable_declaration()
+                Ok(Declaration::Function(self.parse_hoistable_declaration()?))
             }
             TokenKind::Keyword(KeywordKind::Class) => {
                 Ok(Declaration::Class(self.parse_class_declaration()?))
@@ -81,23 +81,19 @@ impl Parser {
     }
 
     // https://tc39.es/ecma262/#prod-HoistableDeclaration
-    fn parse_hoistable_declaration(&mut self) -> Result<Declaration, ParserError> {
+    pub(crate) fn parse_hoistable_declaration(
+        &mut self,
+    ) -> Result<FunctionDeclaration, ParserError> {
         // An ExpressionStatement cannot start with '{', 'function', 'async [no LineTerminator here] function', 'class', or 'let ['
         match (self.token_kind(), self.peek_token_kind()) {
             (TokenKind::Keyword(KeywordKind::Function), TokenKind::Multiplication) => {
-                Ok(Declaration::Function(self.parse_generator_declaration()?))
+                self.parse_generator_declaration()
             }
-            (TokenKind::Keyword(KeywordKind::Function), _) => {
-                Ok(Declaration::Function(self.parse_function_declaration()?))
-            }
+            (TokenKind::Keyword(KeywordKind::Function), _) => self.parse_function_declaration(),
             (TokenKind::Keyword(KeywordKind::Async), TokenKind::Keyword(KeywordKind::Function)) => {
                 match self.peek_nth_kind(2) {
-                    TokenKind::Multiplication => Ok(Declaration::Function(
-                        self.parse_async_generator_declaration()?,
-                    )),
-                    _ => Ok(Declaration::Function(
-                        self.parse_async_function_declaration()?,
-                    )),
+                    TokenKind::Multiplication => self.parse_async_generator_declaration(),
+                    _ => self.parse_async_function_declaration(),
                 }
             }
 

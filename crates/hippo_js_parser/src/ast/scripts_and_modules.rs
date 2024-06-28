@@ -102,7 +102,7 @@ pub struct ExportDefaultDeclaration {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(untagged)]
 pub enum ExportDefaultDeclarationDeclaration {
     Identifier(Identifier),
     BindingPattern(BindingPattern),

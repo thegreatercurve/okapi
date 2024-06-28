@@ -105,7 +105,7 @@ impl Parser {
         let start_token = self.cursor.current_token.clone();
 
         // https://tc39.es/ecma262/#prod-RelationalExpression
-        if !self.params.has_allow_in() && self.token_kind() == TokenKind::PrivateIdentifier {
+        if !self.params.has_allow_in() && self.token_kind().is_private_identifier() {
             let private_identifier = self.parse_private_identifier()?;
 
             self.expect_and_advance(TokenKind::Keyword(KeywordKind::In))?;

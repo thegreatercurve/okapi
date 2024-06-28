@@ -452,7 +452,7 @@ impl Parser {
                 let member_expression_property = match self.token_kind() {
                     token_kind
                         if token_kind.is_identifier_name()
-                            || token_kind == TokenKind::PrivateIdentifier =>
+                            || token_kind.is_private_identifier() =>
                     {
                         // Handle `OptionalExpression . IdentifierName`.
                         // Handle `OptionalExpression . PrivateIdentifier`.
@@ -500,9 +500,9 @@ impl Parser {
                     Expression::Identifier(self.parse_identifier_name()?),
                 )))
             }
-            TokenKind::PrivateIdentifier => Ok(MemberExpressionProperty::PrivateIdentifier(
-                self.parse_private_identifier()?,
-            )),
+            token_kind if token_kind.is_private_identifier() => Ok(
+                MemberExpressionProperty::PrivateIdentifier(self.parse_private_identifier()?),
+            ),
             _ => Err(self.unexpected_current_token_kind()),
         }
     }
@@ -537,34 +537,6 @@ impl Parser {
             node: self.end_node(start_index)?,
             tag: Box::new(member_expression.clone()),
             quasi: template_literal,
-        })
-    }
-
-    // https://tc39.es/ecma262/#prod-IdentifierName
-    fn parse_identifier_name(&mut self) -> Result<Identifier, ParserError> {
-        let start_index = self.start_node();
-
-        let identifier_name = self.token_value();
-
-        self.advance_any(); // Eat identifier or reserved keyword token.
-
-        Ok(Identifier {
-            node: self.end_node(start_index)?,
-            name: String::from(identifier_name),
-        })
-    }
-
-    // Helper function to parse private identifiers (e.g. `#foo`).
-    // https://tc39.es/ecma262/#prod-PrivateIdentifier
-    pub(crate) fn parse_private_identifier(&mut self) -> Result<PrivateIdentifier, ParserError> {
-        let start_index = self.start_node();
-        let token_value = self.token_value();
-
-        self.advance_any(); // Eat private identifier token.
-
-        Ok(PrivateIdentifier {
-            node: self.end_node(start_index)?,
-            name: String::from(token_value),
         })
     }
 }

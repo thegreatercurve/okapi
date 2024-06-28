@@ -12,6 +12,7 @@ impl Parser {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Export))?;
 
         match self.token_kind() {
+            // `export ExportFromClause FromClause ;`
             TokenKind::Multiplication => {
                 let export_from_clause = self.parse_export_from_clause_export_all_declaration()?;
 
@@ -19,12 +20,13 @@ impl Parser {
 
                 self.expect_optional_semicolon_and_advance();
 
-                Ok(ExportDeclaration::All(ExportAllDeclaration {
+                return Ok(ExportDeclaration::All(ExportAllDeclaration {
                     node: self.end_node(start_index)?,
                     source: from_clause,
                     exported: export_from_clause,
-                }))
+                }));
             }
+            // `export NamedExports ;`
             TokenKind::LeftCurlyBrace => {
                 let named_exports = self.parse_named_exports()?;
 
@@ -36,64 +38,83 @@ impl Parser {
 
                 self.expect_optional_semicolon_and_advance();
 
-                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
+                return Ok(ExportDeclaration::Named(ExportNamedDeclaration {
                     node: self.end_node(start_index)?,
                     declaration: None,
                     specifiers: named_exports,
                     source: from_clause,
-                }))
+                }));
             }
-            token_kind if token_kind.is_declaration_start() => {
-                let variable_declaration = self.parse_lexical_declaration(true)?;
+            _ => {}
+        }
 
-                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
-                    node: self.end_node(start_index)?,
-                    declaration: Some(ExportNamedDeclarationDeclaration::Variable(
-                        variable_declaration,
-                    )),
-                    specifiers: vec![],
-                    source: None,
-                }))
+        let optional_declaration = match self.token_kind() {
+            // `export VariableStatement`
+            TokenKind::Keyword(KeywordKind::Var) => Some(
+                ExportNamedDeclarationDeclaration::Variable(self.parse_variable_statement(true)?),
+            ),
+            // `export Declaration > HoistableDeclaration`
+            token_kind if token_kind.is_hoistable_declaration_start() => Some(
+                ExportNamedDeclarationDeclaration::Function(self.parse_function_declaration()?),
+            ),
+            // `export Declaration > ClassDeclaration`
+            TokenKind::Keyword(KeywordKind::Class) => Some(
+                ExportNamedDeclarationDeclaration::Class(self.parse_class_declaration()?),
+            ),
+            // `export Declaration > LexicalDeclaration`
+            token_kind if token_kind.is_lexical_declaration_start() => Some(
+                ExportNamedDeclarationDeclaration::Variable(self.parse_lexical_declaration(true)?),
+            ),
+            _ => None,
+        };
+
+        if optional_declaration.is_some() {
+            return Ok(ExportDeclaration::Named(ExportNamedDeclaration {
+                node: self.end_node(start_index)?,
+                declaration: optional_declaration,
+                specifiers: vec![],
+                source: None,
+            }));
+        };
+
+        match self.token_kind() {
+            // `export default HoistableDeclaration`
+            // `export default ClassDeclaration`
+            // `export default AssignmentExpression`
+            TokenKind::Keyword(KeywordKind::Default) => {
+                self.parse_default_export_declaration(start_index)
             }
-            TokenKind::Keyword(KeywordKind::Var) => {
-                let variable_statement = self.parse_variable_statement(true)?;
-
-                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
-                    node: self.end_node(start_index)?,
-                    declaration: Some(ExportNamedDeclarationDeclaration::Variable(
-                        variable_statement,
-                    )),
-                    specifiers: vec![],
-                    source: None,
-                }))
-            }
-            TokenKind::Keyword(KeywordKind::Function) => {
-                let function_declaration = self.parse_function_declaration()?;
-
-                self.expect_optional_semicolon_and_advance();
-
-                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
-                    node: self.end_node(start_index)?,
-                    declaration: Some(ExportNamedDeclarationDeclaration::Function(
-                        function_declaration,
-                    )),
-                    specifiers: vec![],
-                    source: None,
-                }))
-            }
-            TokenKind::Keyword(KeywordKind::Class) => {
-                let class_declaration = self.parse_class_declaration()?;
-
-                Ok(ExportDeclaration::Named(ExportNamedDeclaration {
-                    node: self.end_node(start_index)?,
-                    declaration: Some(ExportNamedDeclarationDeclaration::Class(class_declaration)),
-                    specifiers: vec![],
-                    source: None,
-                }))
-            }
-            // TODO Handle default exports properly.
             _ => Err(self.unexpected_current_token_kind()),
         }
+    }
+
+    // https://tc39.es/ecma262/#prod-ExportDeclaration
+    fn parse_default_export_declaration(
+        &mut self,
+        start_index: usize,
+    ) -> Result<ExportDeclaration, ParserError> {
+        self.expect_and_advance(TokenKind::Keyword(KeywordKind::Default))?;
+
+        let export_declaration = match self.token_kind() {
+            token_kind if token_kind.is_class_declaration_start() => {
+                ExportDefaultDeclarationDeclaration::ClassDeclaration(
+                    self.parse_class_declaration()?,
+                )
+            }
+            token_kind if token_kind.is_hoistable_declaration_start() => {
+                ExportDefaultDeclarationDeclaration::FunctionDeclaration(
+                    self.parse_hoistable_declaration()?,
+                )
+            }
+            _ => {
+                ExportDefaultDeclarationDeclaration::Expression(self.parse_assignment_expression()?)
+            }
+        };
+
+        Ok(ExportDeclaration::Default(ExportDefaultDeclaration {
+            node: self.end_node(start_index)?,
+            declaration: export_declaration,
+        }))
     }
 
     // https://tc39.es/ecma262/#prod-ExportFromClause

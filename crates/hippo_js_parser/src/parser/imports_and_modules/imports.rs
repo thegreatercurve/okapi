@@ -53,10 +53,8 @@ impl Parser {
         let start_index = self.start_node();
 
         match self.token_kind() {
-            token_kind if token_kind.is_binding_identifier() => {
-                let identifier = self.parse_binding_identifier()?;
-
-                Ok(ModuleExportName::Identifier(identifier))
+            token_kind if token_kind.is_identifier_name() => {
+                Ok(ModuleExportName::Identifier(self.parse_identifier_name()?))
             }
             TokenKind::StringLiteral => {
                 let current_token_value = self.token_value();

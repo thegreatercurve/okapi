@@ -334,7 +334,7 @@ impl Parser {
         &mut self,
     ) -> Result<PropertyDefinitionKey, ParserError> {
         match self.token_kind() {
-            TokenKind::PrivateIdentifier => {
+            token_kind if token_kind.is_private_identifier() => {
                 let private_identifier = self.parse_private_identifier()?;
 
                 Ok(PropertyDefinitionKey::PrivateIdentifier(private_identifier))

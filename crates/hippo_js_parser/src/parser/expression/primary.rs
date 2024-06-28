@@ -20,10 +20,12 @@ impl Parser {
                     (TokenKind::Keyword(KeywordKind::Function), _) => Ok(Expression::Function(
                         self.parse_async_function_expression()?,
                     )),
-                    _ => self.parse_identifier_reference(),
+                    _ => Ok(Expression::Identifier(self.parse_identifier_reference()?)),
                 }
             }
-            token_kind if token_kind.is_identifier_reference() => self.parse_identifier_reference(),
+            token_kind if token_kind.is_identifier_reference() => {
+                Ok(Expression::Identifier(self.parse_identifier_reference()?))
+            }
             TokenKind::StringLiteral
             | TokenKind::NumberLiteral
             | TokenKind::Keyword(KeywordKind::Null)
@@ -103,8 +105,8 @@ impl Parser {
         let node = self.end_node(start_index)?;
 
         match token_kind {
-            TokenKind::StringLiteral => Ok(self.parse_string_literal(token_value, node)?),
-            TokenKind::NumberLiteral => Ok(self.parse_number_literal(token_value, node)?),
+            TokenKind::StringLiteral => self.parse_string_literal(token_value, node),
+            TokenKind::NumberLiteral => self.parse_number_literal(token_value, node),
             TokenKind::Keyword(KeywordKind::Null) => Ok(Literal {
                 node,
                 value: LiteralValue::Null,
@@ -408,7 +410,8 @@ impl Parser {
             }
             // Handle `CoverInitializedName > IdentifierReference Initializer`.
             (token_kind, TokenKind::Assignment) if token_kind.is_identifier_reference() => {
-                property_definition_key = Some(self.parse_identifier_reference()?);
+                property_definition_key =
+                    Some(Expression::Identifier(self.parse_identifier_reference()?));
 
                 self.expect_and_advance(TokenKind::Assignment)?;
 
@@ -481,11 +484,12 @@ impl Parser {
             {
                 is_shorthand = true;
 
-                let identifier = self.parse_identifier_reference()?;
+                let identifier_reference =
+                    Expression::Identifier(self.parse_identifier_reference()?);
 
-                property_definition_key = Some(identifier.clone());
+                property_definition_key = Some(identifier_reference.clone());
 
-                property_definition_value = Some(PropertyValue::Expression(identifier));
+                property_definition_value = Some(PropertyValue::Expression(identifier_reference));
             }
             // Handle `MethodDefinition > ClassElementName ( UniqueFormalParameters )`.
             (token_kind, _) if token_kind.is_class_element_name() => {

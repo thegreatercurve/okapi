@@ -49,20 +49,31 @@ fn module_export_with_declaration() {
         r#"{"type":"Program","start":0,"end":23,"body":[{"type":"ExportNamedDeclaration","start":0,"end":23,"declaration":{"type":"VariableDeclaration","start":7,"end":23,"declarations":[{"type":"VariableDeclarator","start":11,"end":22,"id":{"type":"Identifier","start":11,"end":14,"name":"foo"},"init":{"type":"Literal","start":17,"end":22,"value":"bar","raw":"\"bar\""}}],"kind":"let"},"specifiers":[],"source":null}],"sourceType":"module"}"#
     );
 
-    // assert_parser_eq!(
-    //     r#"export function foo() {};"#,
-    //     r#"{"type":"Program","start":0,"end":25,"body":[{"type":"ExportNamedDeclaration","start":0,"end":24,"declaration":{"type":"FunctionDeclaration","start":7,"end":24,"id":{"type":"Identifier","start":16,"end":19,"name":"foo"},"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":22,"end":24,"body":[]}},"specifiers":[],"source":null},{"type":"EmptyStatement","start":24,"end":25}],"sourceType":"module"}"#
-    // );
+    assert_parser_module_eq!(
+        r#"export function foo() {}"#,
+        r#"{"type":"Program","start":0,"end":24,"body":[{"type":"ExportNamedDeclaration","start":0,"end":24,"declaration":{"type":"FunctionDeclaration","start":7,"end":24,"id":{"type":"Identifier","start":16,"end":19,"name":"foo"},"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":22,"end":24,"body":[]}},"specifiers":[],"source":null}],"sourceType":"module"}"#
+    );
 
-    // assert_parser_eq!(
-    //     r#"export class Foo () {};"#,
-    //     r#"{"type":"Program","start":0,"end":20,"body":[{"type":"ExportNamedDeclaration","start":0,"end":19,"declaration":{"type":"ClassDeclaration","start":7,"end":19,"id":{"type":"Identifier","start":13,"end":16,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":17,"end":19,"body":[]}},"specifiers":[],"source":null},{"type":"EmptyStatement","start":19,"end":20}],"sourceType":"module"}"#
-    // );
+    assert_parser_module_eq!(
+        r#"export class Foo {}"#,
+        r#"{"type":"Program","start":0,"end":19,"body":[{"type":"ExportNamedDeclaration","start":0,"end":19,"declaration":{"type":"ClassDeclaration","start":7,"end":19,"id":{"type":"Identifier","start":13,"end":16,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":17,"end":19,"body":[]}},"specifiers":[],"source":null}],"sourceType":"module"}"#
+    );
+
+    assert_parser_module_eq!(
+        r#"export {a as default} from "foo";"#,
+        r#"{"type":"Program","start":0,"end":33,"body":[{"type":"ExportNamedDeclaration","start":0,"end":33,"declaration":null,"specifiers":[{"type":"ExportSpecifier","start":8,"end":20,"local":{"type":"Identifier","start":8,"end":9,"name":"a"},"exported":{"type":"Identifier","start":13,"end":20,"name":"default"}}],"source":{"type":"Literal","start":27,"end":32,"value":"foo","raw":"\"foo\""}}],"sourceType":"module"}"#
+    );
 }
 
-// #[test]
-// fn module_export_with_default_declaration() {
-//     assert_parser_eq!(r#"export default function foo() {};"#, r#""#);
+#[test]
+fn module_export_with_default_declaration() {
+    assert_parser_module_eq!(
+        r#"export default function foo() {}"#,
+        r#"{"type":"Program","start":0,"end":32,"body":[{"type":"ExportDefaultDeclaration","start":0,"end":32,"declaration":{"type":"FunctionDeclaration","start":15,"end":32,"id":{"type":"Identifier","start":24,"end":27,"name":"foo"},"expression":false,"generator":false,"async":false,"params":[],"body":{"type":"BlockStatement","start":30,"end":32,"body":[]}}}],"sourceType":"module"}"#
+    );
 
-//     assert_parser_eq!(r#"export default class Foo () {};"#, r#""#);
-// }
+    assert_parser_module_eq!(
+        r#"export default class Foo {}"#,
+        r#"{"type":"Program","start":0,"end":27,"body":[{"type":"ExportDefaultDeclaration","start":0,"end":27,"declaration":{"type":"ClassDeclaration","start":15,"end":27,"id":{"type":"Identifier","start":21,"end":24,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":25,"end":27,"body":[]}}}],"sourceType":"module"}"#
+    );
+}

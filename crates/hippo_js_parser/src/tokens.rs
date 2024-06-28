@@ -263,9 +263,31 @@ pub enum TokenKind {
 
 impl TokenKind {
     // 12.7 Names and Keywords
-    // https://tc39.es/ecma262/#prod-IdentifierName
+    // https://tc39.es/ecma262/#prod-PrivateIdentifier
+    pub(crate) fn is_private_identifier(&self) -> bool {
+        matches!(self, TokenKind::PrivateIdentifier)
+    }
+
     pub(crate) fn is_identifier_name(&self) -> bool {
         matches!(self, TokenKind::Identifier | TokenKind::Keyword(_))
+    }
+
+    // 12.9.6 Template Literal Lexical Components
+    pub(crate) fn is_template_start(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::TemplateNoSubstitution | TokenKind::TemplateHead
+        )
+    }
+
+    pub(crate) fn is_template_part(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::TemplateNoSubstitution
+                | TokenKind::TemplateHead
+                | TokenKind::TemplateMiddle
+                | TokenKind::TemplateTail
+        )
     }
 
     // 13.1 Identifiers
@@ -493,25 +515,12 @@ impl TokenKind {
 
     // 15.7 Class Definitions
     // https://tc39.es/ecma262/#prod-ClassElementName
+    pub(crate) fn is_class_declaration_start(&self) -> bool {
+        matches!(self, TokenKind::Keyword(KeywordKind::Class))
+    }
+
     pub(crate) fn is_class_element_name(&self) -> bool {
         matches!(self, TokenKind::PrivateIdentifier) || self.is_property_name()
-    }
-
-    pub(crate) fn is_template_start(&self) -> bool {
-        matches!(
-            self,
-            TokenKind::TemplateNoSubstitution | TokenKind::TemplateHead
-        )
-    }
-
-    pub(crate) fn is_template_part(&self) -> bool {
-        matches!(
-            self,
-            TokenKind::TemplateNoSubstitution
-                | TokenKind::TemplateHead
-                | TokenKind::TemplateMiddle
-                | TokenKind::TemplateTail
-        )
     }
 }
 
