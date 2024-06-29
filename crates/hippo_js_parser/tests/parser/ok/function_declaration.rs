@@ -24,6 +24,19 @@ fn function_declaration_with_formal_parameters_identifiers() {
 }
 
 #[test]
+fn function_declaration_with_array_or_object_literal_parameters() {
+    assert_parser_script_eq!(
+        r#"function a([b] = [1]) {}"#,
+        r#"{"type":"Program","start":0,"end":24,"body":[{"type":"FunctionDeclaration","start":0,"end":24,"id":{"type":"Identifier","start":9,"end":10,"name":"a"},"expression":false,"generator":false,"async":false,"params":[{"type":"AssignmentPattern","start":11,"end":20,"left":{"type":"ArrayPattern","start":11,"end":14,"elements":[{"type":"Identifier","start":12,"end":13,"name":"b"}]},"right":{"type":"ArrayExpression","start":17,"end":20,"elements":[{"type":"Literal","start":18,"end":19,"value":1.0,"raw":"1"}]}}],"body":{"type":"BlockStatement","start":22,"end":24,"body":[]}}],"sourceType":"script"}"#
+    );
+
+    assert_parser_script_eq!(
+        r#"function a({b} = {b: 1}) {}"#,
+        r#"{"type":"Program","start":0,"end":27,"body":[{"type":"FunctionDeclaration","start":0,"end":27,"id":{"type":"Identifier","start":9,"end":10,"name":"a"},"expression":false,"generator":false,"async":false,"params":[{"type":"AssignmentPattern","start":11,"end":23,"left":{"type":"ObjectPattern","start":11,"end":14,"properties":[{"type":"Property","start":12,"end":13,"method":false,"shorthand":true,"computed":false,"key":{"type":"Identifier","start":12,"end":13,"name":"b"},"kind":"init","value":{"type":"Identifier","start":12,"end":13,"name":"b"}}]},"right":{"type":"ObjectExpression","start":17,"end":23,"properties":[{"type":"Property","start":18,"end":22,"method":false,"shorthand":false,"computed":false,"key":{"type":"Identifier","start":18,"end":19,"name":"b"},"value":{"type":"Literal","start":21,"end":22,"value":1.0,"raw":"1"},"kind":"init"}]}}],"body":{"type":"BlockStatement","start":25,"end":27,"body":[]}}],"sourceType":"script"}"#
+    );
+}
+
+#[test]
 fn function_declaration_with_formal_parameters_rest_parameter() {
     assert_parser_script_eq!(
         r#"function foo(...bar) {}"#,

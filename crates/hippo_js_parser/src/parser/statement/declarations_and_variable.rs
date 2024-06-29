@@ -306,43 +306,39 @@ impl Parser {
 
     // https://tc39.es/ecma262/#prod-BindingElement
     pub(crate) fn parse_binding_element(&mut self) -> Result<ArrayPatternElement, ParserError> {
-        let binding_element = match self.token_kind() {
+        let start_index = self.start_node();
+
+        let left_hand_idenfitier_or_binding_pattern = match self.token_kind() {
             token_kind if token_kind.is_binding_identifier() => {
-                let start_index = self.start_node();
-
-                let binding_identifier = self.parse_binding_identifier()?;
-
-                if self.token_kind() == TokenKind::Assignment {
-                    self.advance_any(); // Eat '=' token.
-
-                    let assignment_expression = self.with_params(
-                        self.params.clone().add_allow_in(false),
-                        Self::parse_assignment_expression,
-                    )?;
-
-                    ArrayPatternElement::Assignment(AssignmentPattern {
-                        node: self.end_node(start_index)?,
-                        left: Box::new(Pattern::Identifier(binding_identifier)),
-                        right: assignment_expression,
-                    })
-                } else {
-                    ArrayPatternElement::Identifier(binding_identifier)
-                }
+                ArrayPatternElement::Identifier(self.parse_binding_identifier()?)
             }
             TokenKind::LeftSquareBracket => {
-                let array_binding_pattern = self.parse_array_binding_pattern()?;
-
-                ArrayPatternElement::Array(array_binding_pattern)
+                ArrayPatternElement::Array(self.parse_array_binding_pattern()?)
             }
             TokenKind::LeftCurlyBrace => {
-                let object_binding_pattern = self.parse_object_binding_pattern()?;
-
-                ArrayPatternElement::Object(object_binding_pattern)
+                ArrayPatternElement::Object(self.parse_object_binding_pattern()?)
             }
             _ => return Err(self.unexpected_current_token_kind()),
         };
 
-        Ok(binding_element)
+        if self.token_kind() == TokenKind::Assignment {
+            self.advance_any(); // Eat '=' token.
+        } else {
+            return Ok(left_hand_idenfitier_or_binding_pattern);
+        }
+
+        let assignment_expression = self.with_params(
+            self.params.clone().add_allow_in(false),
+            Self::parse_assignment_expression,
+        )?;
+
+        let left_hand_pattern = Pattern::try_from(left_hand_idenfitier_or_binding_pattern)?;
+
+        Ok(ArrayPatternElement::Assignment(AssignmentPattern {
+            node: self.end_node(start_index)?,
+            left: Box::new(left_hand_pattern),
+            right: assignment_expression,
+        }))
     }
 
     // https://tc39.es/ecma262/#prod-BindingElement
