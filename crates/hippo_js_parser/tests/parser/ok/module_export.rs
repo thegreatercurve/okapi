@@ -76,4 +76,9 @@ fn module_export_with_default_declaration() {
         r#"export default class Foo {}"#,
         r#"{"type":"Program","start":0,"end":27,"body":[{"type":"ExportDefaultDeclaration","start":0,"end":27,"declaration":{"type":"ClassDeclaration","start":15,"end":27,"id":{"type":"Identifier","start":21,"end":24,"name":"Foo"},"superClass":null,"body":{"type":"ClassBody","start":25,"end":27,"body":[]}}}],"sourceType":"module"}"#
     );
+
+    assert_parser_module_eq!(
+        r#"export default class {}"#,
+        r#"{"type":"Program","start":0,"end":23,"body":[{"type":"ExportDefaultDeclaration","start":0,"end":23,"declaration":{"type":"ClassDeclaration","start":15,"end":23,"id":null,"superClass":null,"body":{"type":"ClassBody","start":21,"end":23,"body":[]}}}],"sourceType":"module"}"#
+    );
 }

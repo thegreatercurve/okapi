@@ -6,6 +6,7 @@ bitflags! {
         const ALLOW_IN = 1 << 0;
         const ALLOW_YIELD = 1 << 1;
         const ALLOW_AWAIT = 1 << 2;
+        const ALLOW_DEFAULT = 1 << 3;
     }
 }
 
@@ -38,6 +39,14 @@ impl Params {
 
     pub fn add_allow_await(&mut self, value: bool) -> Self {
         self.set_value(Self::ALLOW_AWAIT, value)
+    }
+
+    pub fn has_allow_default(self) -> bool {
+        self.contains(Self::ALLOW_DEFAULT)
+    }
+
+    pub fn add_allow_default(&mut self, value: bool) -> Self {
+        self.set_value(Self::ALLOW_DEFAULT, value)
     }
 
     fn set_value(&mut self, flag: Self, value: bool) -> Self {

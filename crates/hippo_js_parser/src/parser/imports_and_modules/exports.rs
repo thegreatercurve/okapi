@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::{ast::*, Params};
 use crate::{KeywordKind, Parser, ParserError, TokenKind};
 
 // 16 ECMAScript Language: Scripts and Modules
@@ -96,16 +96,22 @@ impl Parser {
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Default))?;
 
         let export_declaration = match self.token_kind() {
+            // `export default ClassDeclaration`
             token_kind if token_kind.is_class_declaration_start() => {
-                ExportDefaultDeclarationDeclaration::ClassDeclaration(
-                    self.parse_class_declaration()?,
-                )
+                let class_declaration = self.with_params(
+                    Params::default().add_allow_default(true),
+                    Self::parse_class_declaration,
+                )?;
+
+                ExportDefaultDeclarationDeclaration::ClassDeclaration(class_declaration)
             }
+            // `export default HoistableDeclaration`
             token_kind if token_kind.is_hoistable_declaration_start() => {
                 ExportDefaultDeclarationDeclaration::FunctionDeclaration(
                     self.parse_hoistable_declaration()?,
                 )
             }
+            // `export default AssignmentExpression`
             _ => {
                 ExportDefaultDeclarationDeclaration::Expression(self.parse_assignment_expression()?)
             }

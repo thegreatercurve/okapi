@@ -16,7 +16,13 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Class))?;
 
-        let binding_identifier = self.parse_binding_identifier()?;
+        let optional_binding_identifier = match self.token_kind() {
+            token_kind if token_kind.is_binding_identifier() => {
+                Some(self.parse_binding_identifier()?)
+            }
+            _ if self.params.has_allow_default() => None,
+            _ => return Err(self.unexpected_current_token_kind()),
+        };
 
         let super_class = if self.token_kind() == TokenKind::Keyword(KeywordKind::Extends) {
             Some(self.parse_class_heritage()?)
@@ -30,8 +36,7 @@ impl Parser {
 
         Ok(ClassDeclaration {
             node: self.end_node(start_index)?,
-            // TODO Handle default exports properly which don't have an identifier.
-            id: Some(binding_identifier),
+            id: optional_binding_identifier,
             super_class,
             body: class_tail,
         })
