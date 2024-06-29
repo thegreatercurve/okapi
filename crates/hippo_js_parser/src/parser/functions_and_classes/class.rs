@@ -59,6 +59,12 @@ impl Parser {
             None
         };
 
+        let super_class = if self.token_kind() == TokenKind::Keyword(KeywordKind::Extends) {
+            Some(Box::new(self.parse_class_heritage()?))
+        } else {
+            None
+        };
+
         let class_tail = self.parse_class_tail()?;
 
         self.context.strict_mode = previous_strict_mode;
@@ -66,7 +72,7 @@ impl Parser {
         Ok(ClassExpression {
             node: self.end_node(start_index)?,
             id: binding_identifier,
-            super_class: None,
+            super_class,
             body: class_tail,
         })
     }

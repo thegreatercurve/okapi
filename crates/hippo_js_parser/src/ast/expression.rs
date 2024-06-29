@@ -281,7 +281,7 @@ pub struct ClassExpression {
     pub node: Node,
     pub id: Option<Identifier>,
     #[serde(rename = "superClass")]
-    pub super_class: Option<Identifier>,
+    pub super_class: Option<Box<Expression>>,
     pub body: ClassBody,
 }
 
