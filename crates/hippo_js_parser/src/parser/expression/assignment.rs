@@ -101,14 +101,10 @@ impl Parser {
         };
 
         if is_arrow_function {
-            if !self.has_previous_token_line_terminator() {
-                if is_maybe_async_parenthesized_arrow_function {
-                    return self.parse_async_arrow_function_declaration();
-                } else {
-                    return self.parse_arrow_function();
-                }
+            if is_maybe_async_parenthesized_arrow_function {
+                return self.parse_async_arrow_function_declaration();
             } else {
-                return Err(ParserError::UnexpectedLineTerminator);
+                return self.parse_arrow_function();
             }
         };
 
