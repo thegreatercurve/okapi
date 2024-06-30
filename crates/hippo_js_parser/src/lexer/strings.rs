@@ -121,7 +121,7 @@ impl Lexer {
                             }
                         }
                         '0' => string_literal.push('\0'),
-                        '1'..='7' => {
+                        '1'..='7' if self.peek_char().is_ascii_octaldigit() => {
                             let escape_sequence_u32 = self.read_octal_escape_sequence()?;
 
                             match char::from_u32(escape_sequence_u32) {
@@ -265,11 +265,7 @@ impl Lexer {
 
         let start_index = self.read_index;
 
-        for _ in 0..6 {
-            if self.current_char() == '}' {
-                break;
-            }
-
+        while self.current_char() != '}' {
             if !self.current_char().is_ascii_hexdigit() {
                 return Err(ParserError::InvalidUnicodeCodePointEscapeSequence);
             }
@@ -304,20 +300,19 @@ impl Lexer {
 
         let start_index = self.read_index;
 
-        self.read_char(); // Eat start 1..=7 char.
+        self.read_char(); // Eat '0'..='7' char.
 
         match self.current_char() {
-            '1'..='3' if self.current_char().is_ascii_octaldigit() => self.read_char(),
-            '4'..='7'
-                if self.current_char().is_ascii_octaldigit()
-                    || self.peek_char().is_ascii_octaldigit() =>
-            {
-                self.read_char_nth(2)
+            '1'..='3' if self.peek_char().is_ascii_octaldigit() => {
+                self.read_char();
+
+                if self.current_char().is_ascii_octaldigit() {
+                    self.read_char();
+                }
             }
+            '4'..='7' if self.peek_char().is_ascii_octaldigit() => self.read_char(),
             _ => return Err(ParserError::InvalidLegacyOctalEscapeSequence),
         }
-
-        self.read_char();
 
         let octal_str = &self.chars[start_index..self.read_index]
             .iter()
