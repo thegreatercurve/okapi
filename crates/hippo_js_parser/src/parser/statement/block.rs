@@ -1,5 +1,5 @@
 use crate::ast::*;
-use crate::{Parser, ParserError, TokenKind};
+use crate::{KeywordKind, Parser, ParserError, TokenKind};
 
 // 14 ECMAScript Language: Statements and Declarations
 // https://tc39.es/ecma262/#prod-Statement
@@ -35,6 +35,13 @@ impl Parser {
     // https://tc39.es/ecma262/#prod-StatementListItem
     pub(crate) fn parse_statement_list_item(&mut self) -> Result<StatementListItem, ParserError> {
         match self.token_kind() {
+            TokenKind::Keyword(KeywordKind::Let) => {
+                if self.peek_token_kind().is_lexical_declaration_start() {
+                    Ok(StatementListItem::Declaration(self.parse_declaration()?))
+                } else {
+                    Ok(StatementListItem::Statement(self.parse_statement()?))
+                }
+            }
             token_kind if token_kind.is_declaration_start() => {
                 Ok(StatementListItem::Declaration(self.parse_declaration()?))
             }

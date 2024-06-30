@@ -34,9 +34,7 @@ impl Parser {
     fn parse_formal_parameter_list(&mut self) -> Result<Vec<ArrayPatternElement>, ParserError> {
         let mut parameter_list = vec![];
 
-        while self.token_kind().is_binding_identifier()
-            || self.token_kind().is_binding_pattern_start()
-        {
+        while self.token_kind().is_lexical_binding_start() {
             let formal_parameter = self.parse_formal_parameter()?;
 
             parameter_list.push(formal_parameter);

@@ -24,35 +24,55 @@ impl Parser {
     // https://tc39.es/ecma262/#prod-Statement
     pub(crate) fn parse_statement(&mut self) -> Result<Statement, ParserError> {
         match self.token_kind() {
-            TokenKind::Keyword(keyword) => match keyword {
-                KeywordKind::Let | KeywordKind::Const => Ok(Statement::Declaration(
-                    Declaration::Variable(self.parse_lexical_declaration(true)?),
-                )),
-                KeywordKind::Var => Ok(Statement::Declaration(Declaration::Variable(
-                    self.parse_variable_statement(true)?,
-                ))),
-                KeywordKind::If => Ok(Statement::If(self.parse_if_statement()?)),
-                KeywordKind::For => match self.parse_for_or_for_of_in_statement()? {
-                    ForStatementKind::Classic(for_statement) => Ok(Statement::For(for_statement)),
-                    ForStatementKind::In(for_in_statement) => {
-                        Ok(Statement::ForIn(for_in_statement))
+            token_kind if token_kind.is_reserved_keyword() => {
+                let TokenKind::Keyword(token_kind) = token_kind else {
+                    return Err(self.unexpected_current_token_kind());
+                };
+
+                match token_kind {
+                    KeywordKind::Const => Ok(Statement::Declaration(Declaration::Variable(
+                        self.parse_lexical_declaration(true)?,
+                    ))),
+                    KeywordKind::Var => Ok(Statement::Declaration(Declaration::Variable(
+                        self.parse_variable_statement(true)?,
+                    ))),
+                    KeywordKind::If => Ok(Statement::If(self.parse_if_statement()?)),
+                    KeywordKind::For => match self.parse_for_or_for_of_in_statement()? {
+                        ForStatementKind::Classic(for_statement) => {
+                            Ok(Statement::For(for_statement))
+                        }
+                        ForStatementKind::In(for_in_statement) => {
+                            Ok(Statement::ForIn(for_in_statement))
+                        }
+                        ForStatementKind::Of(for_of_statement) => {
+                            Ok(Statement::ForOf(for_of_statement))
+                        }
+                    },
+                    KeywordKind::Do => Ok(Statement::DoWhile(self.parse_do_while_statement()?)),
+                    KeywordKind::While => Ok(Statement::While(self.parse_while_statement()?)),
+                    KeywordKind::Continue => {
+                        Ok(Statement::Continue(self.parse_continue_statement()?))
                     }
-                    ForStatementKind::Of(for_of_statement) => {
-                        Ok(Statement::ForOf(for_of_statement))
+                    KeywordKind::Break => Ok(Statement::Break(self.parse_break_statement()?)),
+                    KeywordKind::Return => Ok(Statement::Return(self.parse_return_statement()?)),
+                    KeywordKind::With => Ok(Statement::With(self.parse_with_statement()?)),
+                    KeywordKind::Throw => Ok(Statement::Throw(self.parse_throw_statement()?)),
+                    KeywordKind::Try => Ok(Statement::Try(self.parse_try_statement()?)),
+                    KeywordKind::Switch => Ok(Statement::Switch(self.parse_switch_statement()?)),
+                    KeywordKind::Debugger => {
+                        Ok(Statement::Debugger(self.parse_debugger_statement()?))
                     }
-                },
-                KeywordKind::Do => Ok(Statement::DoWhile(self.parse_do_while_statement()?)),
-                KeywordKind::While => Ok(Statement::While(self.parse_while_statement()?)),
-                KeywordKind::Continue => Ok(Statement::Continue(self.parse_continue_statement()?)),
-                KeywordKind::Break => Ok(Statement::Break(self.parse_break_statement()?)),
-                KeywordKind::Return => Ok(Statement::Return(self.parse_return_statement()?)),
-                KeywordKind::With => Ok(Statement::With(self.parse_with_statement()?)),
-                KeywordKind::Throw => Ok(Statement::Throw(self.parse_throw_statement()?)),
-                KeywordKind::Try => Ok(Statement::Try(self.parse_try_statement()?)),
-                KeywordKind::Switch => Ok(Statement::Switch(self.parse_switch_statement()?)),
-                KeywordKind::Debugger => Ok(Statement::Debugger(self.parse_debugger_statement()?)),
-                _ => self.parse_expression_statement_or_labelled_statement(),
-            },
+                    _ => self.parse_expression_statement_or_labelled_statement(),
+                }
+            }
+            // Check peek token is valid otherwise parse `let` as a statement.
+            TokenKind::Keyword(KeywordKind::Let)
+                if self.peek_token_kind().is_lexical_binding_start() =>
+            {
+                Ok(Statement::Declaration(Declaration::Variable(
+                    self.parse_lexical_declaration(true)?,
+                )))
+            }
             TokenKind::LeftCurlyBrace => Ok(Statement::Block(self.parse_block_statement()?)),
             TokenKind::Semicolon => self.parse_empty_statement(),
             _ => self.parse_expression_statement_or_labelled_statement(),

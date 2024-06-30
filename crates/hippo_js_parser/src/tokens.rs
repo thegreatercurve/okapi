@@ -507,6 +507,12 @@ impl TokenKind {
         )
     }
 
+    // 14.3.1 Let and Const Declarations
+    // https://tc39.es/ecma262/#prod-LexicalBinding
+    pub(crate) fn is_lexical_binding_start(&self) -> bool {
+        self.is_binding_identifier() || self.is_binding_pattern_start()
+    }
+
     // 14.3.2 Variable Statement
     // https://tc39.es/ecma262/#prod-VariableStatement
     pub(crate) fn is_variable_declaration_start(&self) -> bool {

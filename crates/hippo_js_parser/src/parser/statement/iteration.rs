@@ -61,7 +61,11 @@ impl Parser {
                 ForStatementInit::VariableDeclaration(variable_statement)
             }
             // `for ( LexicalDeclaration Expression`
-            token_kind if token_kind.is_lexical_declaration_start() => {
+            // Check peek token is valid otherwise parse `let` as a statement.
+            token_kind
+                if token_kind.is_lexical_declaration_start()
+                    && self.peek_token_kind().is_lexical_binding_start() =>
+            {
                 let lexical_declaration = self.parse_lexical_declaration(false)?;
 
                 ForStatementInit::VariableDeclaration(lexical_declaration)

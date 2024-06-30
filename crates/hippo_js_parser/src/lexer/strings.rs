@@ -1,6 +1,6 @@
 use crate::{Lexer, ParserError, Token, TokenKind, TokenValue};
 
-use super::char::{LexerChar, CR, LF};
+use super::char::LexerChar;
 
 enum SurrogatePair {
     LeadingInvalid(u32),
