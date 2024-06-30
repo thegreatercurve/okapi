@@ -138,31 +138,41 @@ impl Parser {
 
         self.expect_and_advance(TokenKind::Keyword(KeywordKind::Yield))?;
 
-        if self.token_kind() == TokenKind::Semicolon {
-            let node = self.end_node(start_index)?;
-
-            self.expect_optional_semicolon_and_advance(); // Eat ';' token.
-
-            return Ok(YieldExpression {
-                node,
-                argument: None,
-                delegate: false,
-            });
+        if !self.params.has_allow_yield() {
+            return Err(ParserError::InvalidYieldExpression);
         }
 
-        if self.has_previous_token_line_terminator() {
-            return Err(ParserError::UnexpectedLineTerminator);
+        let invalid_assignment_expression_start = matches!(
+            self.token_kind(),
+            TokenKind::RightCurlyBrace
+                | TokenKind::RightParenthesis
+                | TokenKind::RightSquareBracket
+                | TokenKind::Colon
+                | TokenKind::Comma
+                | TokenKind::Semicolon
+        );
+
+        let mut is_generator = false;
+        let mut assignment_expression = None;
+
+        if !invalid_assignment_expression_start {
+            if self.has_previous_token_line_terminator() {
+                return Err(ParserError::UnexpectedLineTerminator);
+            }
+
+            is_generator = if self.token_kind() == TokenKind::Multiplication {
+                self.advance_any(); // Eat '*' token.
+
+                true
+            } else {
+                false
+            };
+
+            assignment_expression = Some(Box::new(self.with_params(
+                self.params.clone().add_allow_yield(true),
+                Self::parse_assignment_expression,
+            )?));
         }
-
-        let is_generator = if self.token_kind() == TokenKind::Multiplication {
-            self.advance_any(); // Eat '*' token.
-
-            true
-        } else {
-            false
-        };
-
-        let assignment_expression = self.parse_assignment_expression()?;
 
         let node = self.end_node(start_index)?;
 
@@ -170,7 +180,7 @@ impl Parser {
 
         Ok(YieldExpression {
             node,
-            argument: Some(Box::new(assignment_expression)),
+            argument: assignment_expression,
             delegate: is_generator,
         })
     }
