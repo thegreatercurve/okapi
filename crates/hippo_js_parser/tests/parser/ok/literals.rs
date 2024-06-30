@@ -86,4 +86,9 @@ fn literals_regex() {
         r#"/^[a-z][^\s:/?#]$/i"#,
         r#"{"type":"Program","start":0,"end":19,"body":[{"type":"ExpressionStatement","start":0,"end":19,"expression":{"type":"Literal","start":0,"end":19,"regex":{"pattern":"^[a-z][^\\s:/?#]$","flags":"i"},"value":{},"raw":"/^[a-z][^\\s:/?#]$/i"}}],"sourceType":"script"}"#
     );
+
+    assert_parser_script_eq!(
+        r#"/=.*/;"#,
+        r#"{"type":"Program","start":0,"end":6,"body":[{"type":"ExpressionStatement","start":0,"end":6,"expression":{"type":"Literal","start":0,"end":5,"value":{},"raw":"/=.*/","regex":{"pattern":"=.*","flags":""}}}],"sourceType":"script"}"#
+    );
 }

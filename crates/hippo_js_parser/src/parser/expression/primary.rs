@@ -46,7 +46,7 @@ impl Parser {
                 Ok(Expression::Class(self.parse_class_expression()?))
             }
             TokenKind::LeftParenthesis => self.parse_cover_parenthesized_expression(),
-            TokenKind::Division => Ok(Expression::RegExpLiteral(
+            TokenKind::Division | TokenKind::DivisionAssignment => Ok(Expression::RegExpLiteral(
                 self.parse_regular_expression_literal()?,
             )),
             token_kind if token_kind.is_template_part() => {
