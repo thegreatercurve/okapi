@@ -117,19 +117,6 @@ impl Parser {
         })
     }
 
-    // https://tc39.es/ecma262/#prod-BindingPattern
-    pub(crate) fn parse_binding_pattern(&mut self) -> Result<BindingPattern, ParserError> {
-        match self.token_kind() {
-            TokenKind::LeftCurlyBrace => {
-                Ok(BindingPattern::Object(self.parse_object_binding_pattern()?))
-            }
-            TokenKind::LeftSquareBracket => {
-                Ok(BindingPattern::Array(self.parse_array_binding_pattern()?))
-            }
-            _ => Err(self.unexpected_current_token_kind()),
-        }
-    }
-
     // https://tc39.es/ecma262/#prod-ObjectBindingPattern
     pub(crate) fn parse_object_binding_pattern(&mut self) -> Result<ObjectPattern, ParserError> {
         let start_index = self.start_node();

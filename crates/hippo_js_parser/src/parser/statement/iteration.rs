@@ -41,7 +41,7 @@ impl Parser {
         // Early check to see if we potentially have to reparse these as a `AssignmentPattern`.
         // `for ( {} in|of`
         // `for ( [] in|of`
-        let is_head_object_or_array_literal = self.token_kind().is_binding_pattern_start();
+        let is_head_object_or_array_literal = self.token_kind().is_assignment_pattern_start();
 
         // `for ( ;`
         if self.token_kind() == TokenKind::Semicolon {
@@ -177,10 +177,7 @@ impl Parser {
                 // https://tc39.es/ecma262/#sec-for-in-and-for-of-statements-static-semantics-early-errors
                 self.cursor = previous_cursor;
 
-                let assignment_pattern = match self.parse_binding_pattern()? {
-                    BindingPattern::Object(object_pattern) => Pattern::Object(object_pattern),
-                    BindingPattern::Array(array_pattern) => Pattern::Array(array_pattern),
-                };
+                let assignment_pattern = self.parse_assignment_pattern()?;
 
                 ForInStatementLeft::Pattern(assignment_pattern)
             }

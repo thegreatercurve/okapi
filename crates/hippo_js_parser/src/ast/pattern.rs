@@ -166,7 +166,7 @@ pub enum ArrayPatternElement {
     Array(ArrayPattern),
     RestElement(RestElement),
     Assignment(AssignmentPattern),
-    MemberExpression(MemberExpression), // There is an open issue within ESTree (https://github.com/estree/estree/issues/162) whether or not this is a Pattern. For now, we will treat it as such, similat to Rollup: https://github.com/rollup/rollup/pull/2760
+    MemberExpression(MemberExpression), // There is an open issue within ESTree (https://github.com/estree/estree/issues/162) whether or not this is a Pattern. For now, we will treat it as such, similar to Rollup: https://github.com/rollup/rollup/pull/2760
 }
 
 impl TryFrom<Expression> for ArrayPatternElement {
@@ -188,6 +188,27 @@ impl TryFrom<Expression> for ArrayPatternElement {
                 AssignmentPattern::try_from(assignment_expression)?,
             )),
             _ => Err(ParserError::InvalidExpressionToArrayPatternElementConversion),
+        }
+    }
+}
+
+impl TryFrom<Pattern> for ArrayPatternElement {
+    type Error = ParserError;
+
+    fn try_from(expression: Pattern) -> Result<Self, Self::Error> {
+        match expression {
+            Pattern::Identifier(identifier) => Ok(ArrayPatternElement::Identifier(identifier)),
+            Pattern::Object(object_pattern) => Ok(ArrayPatternElement::Object(object_pattern)),
+            Pattern::Array(array_pattern) => Ok(ArrayPatternElement::Array(array_pattern)),
+            Pattern::RestElement(rest_element) => {
+                Ok(ArrayPatternElement::RestElement(rest_element))
+            }
+            Pattern::Assignment(assignment_pattern) => {
+                Ok(ArrayPatternElement::Assignment(assignment_pattern))
+            }
+            Pattern::MemberExpression(member_expression) => {
+                Ok(ArrayPatternElement::MemberExpression(member_expression))
+            }
         }
     }
 }

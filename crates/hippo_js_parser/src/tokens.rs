@@ -471,6 +471,15 @@ impl TokenKind {
         )
     }
 
+    // 13.15.5 Destructuring Assignment
+    // https://tc39.es/ecma262/#prod-DestructuringAssignment
+    pub(crate) fn is_assignment_pattern_start(&self) -> bool {
+        matches!(
+            self,
+            TokenKind::LeftSquareBracket | TokenKind::LeftCurlyBrace
+        )
+    }
+
     // 14 ECMAScript Language: Statements and Declarations
     // https://tc39.es/ecma262/#prod-Declaration
     pub(crate) fn is_declaration_start(&self) -> bool {

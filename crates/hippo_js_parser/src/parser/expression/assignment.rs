@@ -39,7 +39,7 @@ impl Parser {
             return Ok(Expression::Yield(self.parse_yield_expression()?));
         }
 
-        let is_maybe_assignment_pattern = self.token_kind().is_binding_pattern_start();
+        let is_maybe_assignment_pattern = self.token_kind().is_assignment_pattern_start();
         let is_binding_identifier = self.token_kind().is_binding_identifier();
 
         let is_maybe_parenthesized_arrow_function = self.token_kind() == TokenKind::LeftParenthesis;
@@ -177,7 +177,7 @@ impl Parser {
     // 13.15.5 Destructuring Assignment
     // Supplemental Syntax
     // https://tc39.es/ecma262/#prod-AssignmentPattern
-    fn parse_assignment_pattern(&mut self) -> Result<Pattern, ParserError> {
+    pub(crate) fn parse_assignment_pattern(&mut self) -> Result<Pattern, ParserError> {
         let assignment_pattern = match self.token_kind() {
             TokenKind::LeftCurlyBrace => Pattern::Object(self.parse_object_assignment_pattern()?),
             TokenKind::LeftSquareBracket => Pattern::Array(self.parse_array_assignment_pattern()?),
@@ -369,7 +369,12 @@ impl Parser {
     fn parse_assignment_element(&mut self) -> Result<ArrayPatternElement, ParserError> {
         let start_index = self.start_node();
 
-        let left_hand_side_expression = self.parse_left_hand_side_expression()?;
+        let left_hand_side_expression_or_assignment_pattern =
+            if self.token_kind().is_assignment_pattern_start() {
+                self.parse_assignment_pattern()?
+            } else {
+                Pattern::try_from(self.parse_left_hand_side_expression()?)?
+            };
 
         let assignment_element = if self.token_kind() == TokenKind::Assignment {
             self.advance_any(); // Eat '=' token.
@@ -381,13 +386,13 @@ impl Parser {
 
             ArrayPatternElement::Assignment(AssignmentPattern {
                 node: self.end_node(start_index)?,
-                left: Box::new(Pattern::try_from(left_hand_side_expression)?),
+                left: Box::new(left_hand_side_expression_or_assignment_pattern),
                 right: assignment_expression,
             })
         } else {
             self.end_node(start_index)?;
 
-            ArrayPatternElement::try_from(left_hand_side_expression)?
+            ArrayPatternElement::try_from(left_hand_side_expression_or_assignment_pattern)?
         };
 
         Ok(assignment_element)
