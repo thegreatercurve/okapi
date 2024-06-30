@@ -15,7 +15,7 @@ impl Parser {
     ) -> Result<Expression, ParserError> {
         let next_member_expression = match member_expression {
             _ if self.token_kind() == TokenKind::Keyword(KeywordKind::New) => {
-                // Handle `new MemberExpression[?Yield, ?Await] Arguments[?Yield, ?Await]`.
+                // `new MemberExpression[?Yield, ?Await] Arguments[?Yield, ?Await]`.
                 self.advance_any(); // Eat 'new' token.
 
                 let callee_start_index = self.start_node();
@@ -36,10 +36,10 @@ impl Parser {
 
         match self.parse_member_expression_tail(&next_member_expression, start_index)? {
             Some(member_expression) => {
-                // Handle `MemberExpression . IdentifierName`.
-                // Handle `MemberExpression . PrivateIdentifier`.
-                // Handle `MemberExpression [ Expression ]`.
-                // Handle `MemberExpression TemplateLiteral`.
+                // `MemberExpression . IdentifierName`.
+                // `MemberExpression . PrivateIdentifier`.
+                // `MemberExpression [ Expression ]`.
+                // `MemberExpression TemplateLiteral`.
                 self.parse_member_expression(Some(member_expression), start_index)
             }
             None => Ok(next_member_expression),
@@ -54,7 +54,7 @@ impl Parser {
         let mut is_computed = false;
 
         if self.token_kind().is_template_start() {
-            // Handle `MemberExpression TemplateLiteral`.
+            // `MemberExpression TemplateLiteral`.
             return Ok(Some(Expression::TaggedTemplate(
                 self.parse_tagged_template(member_expression, start_index)?,
             )));
@@ -62,18 +62,18 @@ impl Parser {
 
         let member_expression_property = match self.token_kind() {
             TokenKind::OptionalChaining => {
-                // Handle `OptionalExpression > MemberExpression OptionalChain`.
+                // `OptionalExpression > MemberExpression OptionalChain`.
                 return Ok(Some(
                     self.parse_optional_chain(member_expression, start_index)?,
                 ));
             }
             TokenKind::Dot => {
-                // Handle `MemberExpression . IdentifierName`.
-                // Handle `MemberExpression . PrivateIdentifier`.
+                // `MemberExpression . IdentifierName`.
+                // `MemberExpression . PrivateIdentifier`.
                 Ok(Some(self.parse_static_member_expression(false)?))
             }
             TokenKind::LeftSquareBracket => {
-                // Handle `MemberExpression [ Expression ]`.
+                // `MemberExpression [ Expression ]`.
                 is_computed = true;
 
                 Ok(Some(self.parse_computed_member_expression()?))
@@ -197,31 +197,31 @@ impl Parser {
                 TokenKind::Keyword(KeywordKind::Super),
                 TokenKind::LeftSquareBracket | TokenKind::Dot,
             ) => {
-                // Handle `super . IdentifierName`.
-                // Handle `super [ Expression ]`.
+                // `super . IdentifierName`.
+                // `super [ Expression ]`.
                 self.parse_super_property()
             }
             (TokenKind::Keyword(KeywordKind::New), TokenKind::Dot) => {
-                // Handle `new.target`.
+                // `new.target`.
                 self.parse_new_target()
             }
             (TokenKind::Keyword(KeywordKind::Import), TokenKind::Dot) => {
-                // Handle `import.meta`.
+                // `import.meta`.
                 self.parse_import_meta()
             }
             (TokenKind::Keyword(KeywordKind::Super), TokenKind::LeftParenthesis) => {
-                // Handle `super Arguments`.
+                // `super Arguments`.
                 self.parse_super_call()
             }
             (TokenKind::Keyword(KeywordKind::Import), TokenKind::LeftParenthesis) => {
-                // Handle `import ( AssignmentExpression )`.
+                // `import ( AssignmentExpression )`.
                 self.parse_import_call()
             }
             (TokenKind::Keyword(KeywordKind::New), _) => self.parse_new_expression(),
             _ => self.parse_call_expression(None),
         }?;
 
-        // Handle `CallExpression Arguments`, which are initially parsed as a `NewExpression` (e.g. `new Foo()()` is a `CallExpression` but `new Foo()` is a `NewExpression`). This is a special case where a `NewExpression` is refined to a `CallExpression` when followed by `Arguments`.
+        // `CallExpression Arguments`, which are initially parsed as a `NewExpression` (e.g. `new Foo()()` is a `CallExpression` but `new Foo()` is a `NewExpression`). This is a special case where a `NewExpression` is refined to a `CallExpression` when followed by `Arguments`.
         if self.token_kind() == TokenKind::LeftParenthesis {
             let optional_arguments = self.parse_arguments()?;
 
@@ -307,19 +307,19 @@ impl Parser {
 
         match self.token_kind() {
             TokenKind::OptionalChaining => {
-                // Handle `OptionalExpression > CallExpression OptionalChain`.
+                // `OptionalExpression > CallExpression OptionalChain`.
                 self.parse_optional_chain(&next_call_expression, start_index)
             }
             TokenKind::LeftParenthesis => {
-                // Handle `CallExpression Arguments`.
+                // `CallExpression Arguments`.
                 self.parse_call_expression_tail(Some(next_call_expression), start_index)
             }
             _ => match self.parse_member_expression_tail(&next_call_expression, start_index)? {
                 Some(member_expression) => {
-                    // Handle `CallExpression . IdentifierName`.
-                    // Handle `CallExpression . PrivateIdentifier`.
-                    // Handle `CallExpression [ Expression ]`.
-                    // Handle `CallExpression TemplateLiteral`.
+                    // `CallExpression . IdentifierName`.
+                    // `CallExpression . PrivateIdentifier`.
+                    // `CallExpression [ Expression ]`.
+                    // `CallExpression TemplateLiteral`.
                     self.parse_call_expression_tail(Some(member_expression), start_index)
                 }
                 None => Ok(next_call_expression),
@@ -439,7 +439,7 @@ impl Parser {
 
         if is_current_token_optional {
             let next_optional_expression = if self.token_kind() == TokenKind::LeftParenthesis {
-                // Handle `OptionalExpression  Arguments`.
+                // `OptionalExpression  Arguments`.
                 let arguments = self.parse_arguments()?;
 
                 Expression::Call(CallExpression {
@@ -454,12 +454,12 @@ impl Parser {
                         if token_kind.is_identifier_name()
                             || token_kind.is_private_identifier() =>
                     {
-                        // Handle `OptionalExpression . IdentifierName`.
-                        // Handle `OptionalExpression . PrivateIdentifier`.
+                        // `OptionalExpression . IdentifierName`.
+                        // `OptionalExpression . PrivateIdentifier`.
                         Ok(Some(self.parse_static_member_expression(true)?))
                     }
                     TokenKind::LeftSquareBracket => {
-                        // Handle `OptionalExpression [ Expression ]`.
+                        // `OptionalExpression [ Expression ]`.
                         is_computed = true;
 
                         Ok(Some(self.parse_computed_member_expression()?))

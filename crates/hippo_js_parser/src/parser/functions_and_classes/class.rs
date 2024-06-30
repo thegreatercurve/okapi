@@ -124,34 +124,32 @@ impl Parser {
         let start_index = start_index.unwrap_or(self.start_node());
 
         match (self.token_kind(), self.peek_token_kind()) {
-            // Handle `;`.
+            // `;`.
             (TokenKind::Semicolon, _) => {
                 self.advance_any(); // Eat ';' token.
 
                 Ok(None)
             }
-            // Handle `ClassStaticBlock > static {`.
+            // `ClassStaticBlock > static {`.
             (TokenKind::Keyword(KeywordKind::Static), TokenKind::LeftCurlyBrace) => {
-                let static_block = self.parse_static_block()?;
-
-                Ok(Some(ClassBodyBody::StaticBlock(static_block)))
+                Ok(Some(ClassBodyBody::StaticBlock(self.parse_static_block()?)))
             }
-            // Handle `static MethodDefinition`.
-            // Handle `static FieldDefinition`.
-            (TokenKind::Keyword(KeywordKind::Static), _) => {
-                // Handle `static;` where `static` is used as an identifier.
-                if self.peek_token_kind() == TokenKind::Semicolon {
-                    let field_definition =
-                        self.parse_field_definition(start_index, None, false, false)?;
-
-                    return Ok(Some(ClassBodyBody::PropertyDefinition(field_definition)));
-                }
-
+            // `ClassStaticBlock > static ;`.
+            (TokenKind::Keyword(KeywordKind::Static), TokenKind::Semicolon) => {
+                Ok(Some(ClassBodyBody::PropertyDefinition(
+                    self.parse_field_definition(start_index, None, false, false)?,
+                )))
+            }
+            // `static MethodDefinition`.
+            // `static FieldDefinition`.
+            (TokenKind::Keyword(KeywordKind::Static), peek_token_kind)
+                if !matches!(peek_token_kind, TokenKind::LeftParenthesis) =>
+            {
                 self.advance_any(); // Eat 'static' token.
 
                 self.parse_class_element(true, Some(start_index))
             }
-            // Handle `MethodDefinition > get ClassElementName ... ;`.
+            // `MethodDefinition > get ClassElementName ... ;`.
             (TokenKind::Keyword(KeywordKind::Get), peek_token_kind)
                 if peek_token_kind.is_class_element_name() =>
             {
@@ -174,7 +172,7 @@ impl Parser {
 
                 Ok(Some(ClassBodyBody::MethodDefinition(method_definition)))
             }
-            // Handle `MethodDefinition > set ClassElementName ... ;`.
+            // `MethodDefinition > set ClassElementName ... ;`.
             (TokenKind::Keyword(KeywordKind::Set), peek_token_kind)
                 if peek_token_kind.is_class_element_name() =>
             {
@@ -197,7 +195,7 @@ impl Parser {
 
                 Ok(Some(ClassBodyBody::MethodDefinition(method_definition)))
             }
-            // Handle `MethodDefinition > GeneratorMethod > * ClassElementName`.
+            // `MethodDefinition > GeneratorMethod > * ClassElementName`.
             (TokenKind::Multiplication, peek_token_kind)
                 if peek_token_kind.is_class_element_name() =>
             {
@@ -215,7 +213,7 @@ impl Parser {
                     generator_method_definition,
                 )))
             }
-            // Handle `MethodDefinition > AsyncMethod > async [no LineTerminator here] ClassElementName`.
+            // `MethodDefinition > AsyncMethod > async [no LineTerminator here] ClassElementName`.
             (TokenKind::Keyword(KeywordKind::Async), peek_token_kind)
                 if !self.has_current_token_line_terminator()
                     && peek_token_kind.is_class_element_name() =>
@@ -233,7 +231,7 @@ impl Parser {
                     async_method_definition,
                 )))
             }
-            // Handle `MethodDefinition > AsyncGeneratorMethod > async [no LineTerminator here] * ClassElementName`.
+            // `MethodDefinition > AsyncGeneratorMethod > async [no LineTerminator here] * ClassElementName`.
             (TokenKind::Keyword(KeywordKind::Async), TokenKind::Multiplication)
                 if !self.has_current_token_line_terminator() =>
             {
@@ -253,8 +251,8 @@ impl Parser {
                     async_generator_method_definition,
                 )))
             }
-            // Handle `MethodDefinition > ClassElementName ( ... ;`.
-            // Handle `FieldDefinition > ClassElementName;`.
+            // `MethodDefinition > ClassElementName ( ... ;`.
+            // `FieldDefinition > ClassElementName;`.
             (token_kind, _) if token_kind.is_class_element_name() => {
                 let is_computed = token_kind == TokenKind::LeftSquareBracket;
 

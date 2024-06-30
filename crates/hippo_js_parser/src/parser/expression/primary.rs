@@ -288,7 +288,7 @@ impl Parser {
         let mut is_computed = false;
 
         match (self.token_kind(), self.peek_token_kind()) {
-            // Handle `... AssignmentExpression`.
+            // `... AssignmentExpression`.
             (TokenKind::Ellipsis, _) => {
                 self.advance_any(); // Eat '...' token.
 
@@ -302,7 +302,7 @@ impl Parser {
                     argument: assignment_expression,
                 }));
             }
-            // Handle `MethodDefinition > get ClassElementName`.
+            // `MethodDefinition > get ClassElementName`.
             (TokenKind::Keyword(KeywordKind::Get), peek_token_kind)
                 if peek_token_kind.is_class_element_name() =>
             {
@@ -327,7 +327,7 @@ impl Parser {
                     method_definition,
                 )?));
             }
-            // Handle `MethodDefinition > set ClassElementName`.
+            // `MethodDefinition > set ClassElementName`.
             (TokenKind::Keyword(KeywordKind::Set), peek_token_kind)
                 if peek_token_kind.is_class_element_name() =>
             {
@@ -352,7 +352,7 @@ impl Parser {
                     method_definition,
                 )?));
             }
-            // Handle `MethodDefinition > GeneratorMethod > * ClassElementName`.
+            // `MethodDefinition > GeneratorMethod > * ClassElementName`.
             (TokenKind::Multiplication, peek_token_kind)
                 if peek_token_kind.is_class_element_name() =>
             {
@@ -370,7 +370,7 @@ impl Parser {
                     generator_method_definition,
                 )?));
             }
-            // Handle `MethodDefinition > AsyncMethod > async [no LineTerminator here] ClassElementName`.
+            // `MethodDefinition > AsyncMethod > async [no LineTerminator here] ClassElementName`.
             (TokenKind::Keyword(KeywordKind::Async), peek_token_kind)
                 if !self.has_current_token_line_terminator()
                     && peek_token_kind.is_class_element_name() =>
@@ -388,7 +388,7 @@ impl Parser {
                     async_method_definition,
                 )?));
             }
-            // Handle `MethodDefinition > AsyncGeneratorMethod > async [no LineTerminator here] * ClassElementName`.
+            // `MethodDefinition > AsyncGeneratorMethod > async [no LineTerminator here] * ClassElementName`.
             (TokenKind::Keyword(KeywordKind::Async), TokenKind::Multiplication)
                 if !self.has_current_token_line_terminator() =>
             {
@@ -408,7 +408,7 @@ impl Parser {
                     async_generator_method_definition,
                 )?));
             }
-            // Handle `CoverInitializedName > IdentifierReference Initializer`.
+            // `CoverInitializedName > IdentifierReference Initializer`.
             (token_kind, TokenKind::Assignment) if token_kind.is_identifier_reference() => {
                 property_definition_key =
                     Some(Expression::Identifier(self.parse_identifier_reference()?));
@@ -422,7 +422,7 @@ impl Parser {
 
                 property_definition_value = Some(PropertyValue::Expression(assignment_expression));
             }
-            // Handle `(PropertyName > LiteralPropertyName) :`.
+            // `(PropertyName > LiteralPropertyName) :`.
             (token_kind, TokenKind::Colon) if token_kind.is_property_name() => {
                 property_definition_key = Some(self.parse_property_name()?);
 
@@ -436,14 +436,14 @@ impl Parser {
                 property_definition_value = Some(PropertyValue::Expression(assignment_expression));
             }
 
-            // Handle `(PropertyName > ComputedPropertyName) :`.
+            // `(PropertyName > ComputedPropertyName) :`.
             (TokenKind::LeftSquareBracket, _) => {
                 is_computed = true;
 
                 let property_name = self.parse_computed_property_name()?;
 
                 match self.token_kind() {
-                    // Handle `ComputedPropertyName : AssignmentExpression`.
+                    // `ComputedPropertyName : AssignmentExpression`.
                     TokenKind::Colon => {
                         property_definition_key = Some(property_name);
 
@@ -457,7 +457,7 @@ impl Parser {
                         property_definition_value =
                             Some(PropertyValue::Expression(assignment_expression));
                     }
-                    // Handle `MethodDefinition > ClassElementName > ComputedPropertyName ( UniqueFormalParameters )`.
+                    // `MethodDefinition > ClassElementName > ComputedPropertyName ( UniqueFormalParameters )`.
                     TokenKind::LeftParenthesis => {
                         let function_expression = self.parse_method_definition_method_body()?;
 
@@ -477,7 +477,7 @@ impl Parser {
                     _ => return Err(self.unexpected_current_token_kind()),
                 };
             }
-            // Handle `IdentifierReference`.
+            // `IdentifierReference`.
             (token_kind, peek_token_kind)
                 if token_kind.is_identifier_reference()
                     && peek_token_kind != TokenKind::LeftParenthesis =>
@@ -491,7 +491,7 @@ impl Parser {
 
                 property_definition_value = Some(PropertyValue::Expression(identifier_reference));
             }
-            // Handle `MethodDefinition > ClassElementName ( UniqueFormalParameters )`.
+            // `MethodDefinition > ClassElementName ( UniqueFormalParameters )`.
             (token_kind, _) if token_kind.is_class_element_name() => {
                 is_computed = token_kind == TokenKind::LeftSquareBracket;
 
