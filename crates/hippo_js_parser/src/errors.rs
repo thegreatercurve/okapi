@@ -8,7 +8,6 @@ pub enum ParserError {
     InvalidIdentifierCharacter,
 
     // String literals
-    UnterminatedStringLiteral,
     InvalidEscapeSequence,
     InvalidEscapeSequenceCannotBeFormatted,
     InvalidHexadecimalEscapeSequence,
@@ -83,7 +82,6 @@ impl std::fmt::Display for ParserError {
             }
             ParserError::SyntaxError => write!(f, "SyntaxError"),
             ParserError::InvalidIdentifierCharacter => write!(f, "InvalidIdentifierCharacter"),
-            ParserError::UnterminatedStringLiteral => write!(f, "UnterminatedStringLiteral"),
             ParserError::InvalidEscapeSequence => write!(f, "InvalidEscapeSequence"),
             ParserError::InvalidEscapeSequenceCannotBeFormatted => {
                 write!(f, "InvalidEscapeSequenceCannotBeFormatted")

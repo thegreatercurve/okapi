@@ -42,7 +42,7 @@ pub fn run_pass_explicit_tests() -> Result<(), ErrorKind> {
             Ok(true) => {
                 passed += 1;
 
-                // println!("✅ Test passed: {}", test.description())
+                println!("✅ Test passed: {}", test.description())
             }
             _ => {
                 failed += 1;

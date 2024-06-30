@@ -137,7 +137,7 @@ impl Lexer {
                     }
                 }
                 // Invalid line terminator chars.
-                CR | LF => return Err(ParserError::UnterminatedStringLiteral),
+                token_kind if token_kind.is_line_terminator() => {}
                 _ => string_literal.push(self.current_char()),
             }
 
