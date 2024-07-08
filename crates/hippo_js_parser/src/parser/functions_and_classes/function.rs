@@ -1,4 +1,4 @@
-use crate::ast::*;
+use crate::{ast::*, GoalSymbol};
 use crate::{KeywordKind, Parser, ParserError, TokenKind};
 
 // 13 ECMAScript Language: Expressions
@@ -65,6 +65,10 @@ impl Parser {
     pub(crate) fn parse_function_body(&mut self) -> Result<BlockStatement, ParserError> {
         let start_index = self.start_node();
 
+        // Template literal middles or tails are not permitted within an object literal.
+        let previous_goal_symbol = self.cursor.lexer.goal_symbol.clone();
+        self.cursor.lexer.goal_symbol = GoalSymbol::InputElementDiv;
+
         self.expect_and_advance(TokenKind::LeftCurlyBrace)?;
 
         let mut body = self.parse_directive_prologue()?;
@@ -72,6 +76,8 @@ impl Parser {
         while self.token_kind() != TokenKind::RightCurlyBrace {
             body.push(self.parse_statement_list_item()?);
         }
+
+        self.cursor.lexer.goal_symbol = previous_goal_symbol;
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 

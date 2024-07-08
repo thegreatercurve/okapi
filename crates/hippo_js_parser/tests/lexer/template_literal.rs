@@ -45,6 +45,20 @@ fn template_literal_with_multiple_parts() {
 }
 
 #[test]
+fn template_literal_with_nested_template_literal() {
+    assert_lexer_eq!(
+        r"`foo${`bar${baz}`}`;",
+        vec![
+            template_literal_head("foo", 0, 6, 1, 1),
+            template_literal_head("bar", 6, 12, 1, 7),
+            identifier("baz", 12, 15, 1, 13),
+            template_literal_tail("", 15, 17, 1, 16),
+            template_literal_tail("", 17, 19, 1, 18),
+        ]
+    );
+}
+
+#[test]
 fn template_literal_with_different_goal_symbols() {
     assert_lexer_eq!(
         r"`123 ${foo / 2} bar ${456} baz` 2 / 2;",

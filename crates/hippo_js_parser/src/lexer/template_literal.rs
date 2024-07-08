@@ -12,6 +12,10 @@ impl Lexer {
 
         self.read_char(); // Eat '`' char.
 
+        if is_head {
+            self.template_literal_depth += 1;
+        }
+
         let start_index = self.read_index;
         let mut end_index = self.read_index;
 
@@ -20,8 +24,6 @@ impl Lexer {
         while self.current_char() != '\0' {
             match self.current_char() {
                 '`' => {
-                    self.goal_symbol = GoalSymbol::InputElementRegExp;
-
                     end_index = self.read_index;
 
                     self.read_char(); // Eat '`' char.
@@ -101,8 +103,12 @@ impl Lexer {
         };
 
         if is_tail {
+            self.template_literal_depth -= 1;
+
             // Reset the goal symbol to `InputElementDiv` once the template literal is finished.
-            self.goal_symbol = GoalSymbol::InputElementDiv;
+            if self.template_literal_depth == 0 {
+                self.goal_symbol = GoalSymbol::InputElementDiv;
+            }
         }
 
         Ok(Token::new(

@@ -242,7 +242,7 @@ impl Parser {
 
         let properties = self.parse_property_definition_list()?;
 
-        self.cursor.lexer.goal_symbol = previous_goal_symbol.clone();
+        self.cursor.lexer.goal_symbol = previous_goal_symbol;
 
         self.expect_and_advance(TokenKind::RightCurlyBrace)?;
 
@@ -605,10 +605,11 @@ impl Parser {
     // 13.2.6 Regular Expression Literals
     // https://tc39.es/ecma262/#sec-literals-regular-expression-literals
     fn parse_regular_expression_literal(&mut self) -> Result<RegExpLiteral, ParserError> {
-        //  In the context of a primary expression, the lexer shoudl have the goal symbol of `InputElementRegExp` or `InputElementRegExpOrTemplateTail` which means that division tokens should be reparsed as potential RegexLiteral.
+        //  In the context of a primary expression, the lexer should have the goal symbol of `InputElementRegExp` or `InputElementRegExpOrTemplateTail` which means that division tokens should be reparsed as a potential  `RegexLiteral`.
         // https://tc39.es/ecma262/#prod-InputElementRegExpOrTemplateTail
         let start_index = self.start_node();
 
+        let previous_goal_symbol = self.cursor.lexer.goal_symbol.clone();
         self.cursor.lexer.goal_symbol = GoalSymbol::InputElementRegExp;
 
         self.cursor.rewind();
@@ -621,7 +622,7 @@ impl Parser {
 
         let node = self.end_node(start_index)?;
 
-        self.cursor.lexer.goal_symbol = GoalSymbol::InputElementDiv;
+        self.cursor.lexer.goal_symbol = previous_goal_symbol;
 
         let raw_value = format!("/{:}/{:}", pattern, flags);
 
@@ -648,6 +649,7 @@ impl Parser {
                 match self.token_kind() {
                     TokenKind::TemplateHead => {
                         quasis.push(self.parse_template_element(false, 1, 2)?);
+
                         let expression = self.with_params(
                             self.params.clone().add_allow_in(false),
                             Self::parse_expression,
@@ -666,7 +668,9 @@ impl Parser {
                         expressions.push(expression);
                     }
                     TokenKind::TemplateTail => {
-                        quasis.push(self.parse_template_element(true, 1, 1)?)
+                        quasis.push(self.parse_template_element(true, 1, 1)?);
+
+                        break;
                     }
                     _ => return Err(self.unexpected_current_token_kind()),
                 }

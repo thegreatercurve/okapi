@@ -26,6 +26,7 @@ pub struct Lexer {
     pub column: usize,
     pub chars: Vec<char>,
     pub goal_symbol: GoalSymbol,
+    pub template_literal_depth: usize,
 }
 
 impl Lexer {
@@ -47,6 +48,7 @@ impl Lexer {
             column: 1,
             chars: Vec::new(),
             goal_symbol: GoalSymbol::InputElementDiv,
+            template_literal_depth: 0,
         }
     }
 
@@ -125,7 +127,7 @@ impl Lexer {
             '}' if self.goal_symbol == GoalSymbol::InputElementRegExpOrTemplateTail => {
                 self.scan_template_literal()
             }
-            '/' if matches!(self.goal_symbol, GoalSymbol::InputElementRegExp) => {
+            '/' if self.goal_symbol == GoalSymbol::InputElementRegExp => {
                 self.scan_regular_expression_literal()
             }
             ch if ch.is_punctuator_start() => self.scan_punctuator(),

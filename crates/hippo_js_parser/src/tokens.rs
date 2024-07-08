@@ -273,6 +273,7 @@ impl TokenKind {
     }
 
     // 12.9.6 Template Literal Lexical Components
+    // https://tc39.es/ecma262/#sec-template-literal-lexical-components
     pub(crate) fn is_template_start(&self) -> bool {
         matches!(
             self,
