@@ -1,5 +1,5 @@
 {
-  "name": "hippo-playground",
+  "name": "okapi-playground",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
-    "hippo_wasm": "file:../crates/hippo_wasm/pkg",
+    "okapi_wasm": "file:../crates/okapi_wasm/pkg",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

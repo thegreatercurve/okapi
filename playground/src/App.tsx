@@ -1,6 +1,6 @@
 import { Editor } from "@monaco-editor/react";
 import { useEffect, useState } from "react";
-import init, { parseModule } from "hippo_wasm/hippo_wasm";
+import init, { parseModule } from "okapi_wasm/okapi_wasm";
 
 const options = {
   readOnly: false,

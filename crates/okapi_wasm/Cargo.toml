@@ -1,0 +1,12 @@
+[package]
+name = "okapi_wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+okapi_js_parser = { workspace = true }
+wasm-bindgen = "0.2.92"

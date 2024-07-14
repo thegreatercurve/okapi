@@ -77,52 +77,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 
 [[package]]
-name = "hippo_js_parser"
-version = "0.0.1"
-dependencies = [
- "assert-json-diff",
- "bitflags",
- "hippo_unicode",
- "pretty_assertions",
- "serde",
- "serde_json",
- "test-case",
-]
-
-[[package]]
-name = "hippo_napi"
-version = "0.0.1"
-dependencies = [
- "hippo_js_parser",
- "napi",
- "napi-build",
- "napi-derive",
-]
-
-[[package]]
-name = "hippo_test262"
-version = "0.0.1"
-dependencies = [
- "hippo_js_parser",
- "regex",
- "serde",
- "serde_yaml",
- "walkdir",
-]
-
-[[package]]
-name = "hippo_unicode"
-version = "0.0.1"
-
-[[package]]
-name = "hippo_wasm"
-version = "0.0.1"
-dependencies = [
- "hippo_js_parser",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "indexmap"
 version = "2.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -215,6 +169,52 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "427802e8ec3a734331fec1035594a210ce1ff4dc5bc1950530920ab717964ea3"
 dependencies = [
  "libloading",
+]
+
+[[package]]
+name = "okapi_js_parser"
+version = "0.0.1"
+dependencies = [
+ "assert-json-diff",
+ "bitflags",
+ "okapi_unicode",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "test-case",
+]
+
+[[package]]
+name = "okapi_napi"
+version = "0.0.1"
+dependencies = [
+ "napi",
+ "napi-build",
+ "napi-derive",
+ "okapi_js_parser",
+]
+
+[[package]]
+name = "okapi_test262"
+version = "0.0.1"
+dependencies = [
+ "okapi_js_parser",
+ "regex",
+ "serde",
+ "serde_yaml",
+ "walkdir",
+]
+
+[[package]]
+name = "okapi_unicode"
+version = "0.0.1"
+
+[[package]]
+name = "okapi_wasm"
+version = "0.0.1"
+dependencies = [
+ "okapi_js_parser",
+ "wasm-bindgen",
 ]
 
 [[package]]

@@ -8,5 +8,5 @@ license = "MIT"
 edition = "2021"
 
 [workspace.dependencies]
-hippo_js_parser = { path = "crates/hippo_js_parser" }
-hippo_unicode = { path = "crates/hippo_unicode" }
+okapi_js_parser = { path = "crates/okapi_js_parser" }
+okapi_unicode = { path = "crates/okapi_unicode" }

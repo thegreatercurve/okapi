@@ -1,0 +1,12 @@
+[package]
+name = "okapi_test262"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+regex = "1.10.4"
+serde = "1.0.203"
+serde_yaml = "0.9.34"
+walkdir = "2.5.0"
+okapi_js_parser = { workspace = true }
