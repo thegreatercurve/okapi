@@ -25,7 +25,7 @@ pub(crate) trait Test<'a> {
         Ok(contents)
     }
     fn parse_module(&self) -> Result<bool, ErrorKind> {
-        let source = &self.source();
+        let source = self.source();
 
         let mut parser = Parser::new(source);
 
@@ -36,7 +36,7 @@ pub(crate) trait Test<'a> {
     }
 
     fn parse_script(&self) -> Result<bool, ErrorKind> {
-        let source = &self.source();
+        let source: &str = self.source();
 
         let mut parser = Parser::new(source);
 
