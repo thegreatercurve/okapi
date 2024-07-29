@@ -1,4 +1,4 @@
-# Okapi Test262
+# Okapi JavaScript Parser
 
 This crate contains the code for both the lexer and parser.
 
